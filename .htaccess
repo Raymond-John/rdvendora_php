@@ -1,0 +1,50 @@
+Options -Indexes
+ServerSignature Off
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<Files ".env">
+    Require all denied
+</Files>
+<Files ".env.example">
+    Require all denied
+</Files>
+<Files "composer.json">
+    Require all denied
+</Files>
+<Files "composer.lock">
+    Require all denied
+</Files>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block private application folders
+    RewriteRule ^(app|storage|vendor|archive|config)(/|$) - [F,L]
+
+    # Force HTTPS on Hostinger (skip local XAMPP)
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/gif "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType video/mp4 "access plus 30 days"
+</IfModule>
+
+# 404.html remains at the web root; Hostinger serves it from the domain root.

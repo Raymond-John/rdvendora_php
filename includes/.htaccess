@@ -1,0 +1,5 @@
+Require all denied
+
+<Files "loginuser.php">
+    Require all granted
+</Files>

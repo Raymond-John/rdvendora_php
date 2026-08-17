@@ -1,0 +1,587 @@
+<?php
+/**
+ * RD Vendora Email Functions – Premium Styled Emails
+ * All emails use Royal Blue (#0A3D91) & Gold (#D4AF37) theme.
+ */
+
+// ----- Load PHPMailer (if available) -----
+$phpmailer_available = function_exists('rdv_load_phpmailer') ? rdv_load_phpmailer() : false;
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// ---------- SMTP Mailer ----------
+function getMailer() {
+    $mail = new PHPMailer(true);
+    $mail->isSMTP();
+    $mail->Host       = rdv_env('SMTP_HOST', 'smtp.gmail.com');
+    $mail->SMTPAuth   = true;
+    $mail->Username   = rdv_env('SMTP_USER', '');
+    $mail->Password   = rdv_env('SMTP_PASS', '');
+    $encryption       = strtolower((string) rdv_env('SMTP_ENCRYPTION', 'tls'));
+    $mail->SMTPSecure = ($encryption === 'ssl')
+        ? PHPMailer::ENCRYPTION_SMTPS
+        : PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port       = (int) rdv_env('SMTP_PORT', 587);
+    $from             = rdv_env('SMTP_FROM', rdv_env('SMTP_USER', 'notifications@rdvendora.com'));
+    $fromName         = rdv_env('SMTP_FROM_NAME', 'RD Vendora');
+    $mail->setFrom($from, $fromName);
+    $mail->addReplyTo($from, 'Support');
+    $mail->XMailer = ' ';
+    return $mail;
+}
+
+// ---------- Fallback mail() sender ----------
+function sendEmailFallback($to, $subject, $htmlBody, $plainBody) {
+    $boundary = md5(uniqid(time()));
+    $headers = "From: notifications@rdvendora.com\r\n";
+    $headers .= "Reply-To: support@rdvendora.com\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n";
+    
+    $message = "--$boundary\r\n";
+    $message .= "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+    $message .= $plainBody . "\r\n\r\n";
+    $message .= "--$boundary\r\n";
+    $message .= "Content-Type: text/html; charset=UTF-8\r\n\r\n";
+    $message .= $htmlBody . "\r\n\r\n";
+    $message .= "--$boundary--";
+    
+    return mail($to, $subject, $message, $headers);
+}
+
+// ---------- Universal sender (PHPMailer or fallback) ----------
+function sendEmail($to, $subject, $htmlBody, $plainBody) {
+    global $phpmailer_available;
+    if ($phpmailer_available) {
+        try {
+            $mail = getMailer();
+            $mail->addAddress($to);
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $htmlBody;
+            $mail->AltBody = $plainBody;
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("PHPMailer failed: " . $mail->ErrorInfo . " - falling back to mail()");
+            return sendEmailFallback($to, $subject, $htmlBody, $plainBody);
+        }
+    } else {
+        return sendEmailFallback($to, $subject, $htmlBody, $plainBody);
+    }
+}
+
+// ============================================================
+//  WELCOME EMAIL – Premium Styled
+// ============================================================
+function sendWelcomeEmail($email, $fullname) {
+    $create_store_link = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/create-store.php';
+    $year = date('Y');
+
+    $htmlBody = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to RD Vendora</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F5F7FB; font-family:-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#F5F7FB; padding:40px 20px;">
+    <tr>
+        <td align="center" style="padding:0;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
+                <tr>
+                    <td style="padding:0;">
+                        <!-- HEADER -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+                            <tr>
+                                <td style="padding:22px 30px; text-align:center;">
+                                    <span style="font-size:24px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">RD Vendora</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- BODY -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding:32px 30px 24px 30px; text-align:center;">
+                                    <span style="font-size:48px;">🚀</span>
+                                    <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 4px 0;">Welcome, ' . $fullname . '! 👋</h1>
+                                    <p style="font-size:16px; color:#64748B; margin:0 0 20px 0; line-height:1.6;">
+                                        Thank you for joining <strong style="color:#1A56DB;">RD Vendora</strong>.<br>
+                                        We\'re excited to help you build your online store and grow your business.
+                                    </p>
+                                    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin:10px 0 24px 0;">
+                                        <tr>
+                                            <td style="background-color:#D4AF37; border-radius:50px; padding:14px 40px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
+                                                <a href="' . $create_store_link . '" style="color:#0A3D91; text-decoration:none; font-weight:700; font-size:16px; display:inline-block;">🚀 Create Your Store</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style="font-size:15px; color:#64748B; margin:0 0 10px 0;">
+                                        If you have any questions, feel free to reply to this email.<br>
+                                        Our support team is always here to help you.
+                                    </p>
+                                    <p style="font-size:15px; color:#1A56DB; font-weight:500; margin:0;">– The RD Vendora Team</p>
+                                    <!-- FOOTER -->
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:32px; border-top:1px solid #E5E7EB; padding-top:20px;">
+                                        <tr>
+                                            <td style="text-align:center; font-size:13px; color:#94A3B8; line-height:1.6;">
+                                                <span style="color:#1E293B; font-weight:600;">RD Vendora</span><br>
+                                                <a href="mailto:support@rdvendora.com" style="color:#1A56DB; text-decoration:none;">support@rdvendora.com</a> &nbsp;|&nbsp; <a href="https://rdvendora.com" style="color:#1A56DB; text-decoration:none;">rdvendora.com</a><br>
+                                                &copy; ' . $year . ' RD Vendora — All Rights Reserved.<br>
+                                                <span style="font-size:12px; color:#94A3B8;">This is an automated message. Please do not reply.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>';
+
+    $plainText = "Hi $fullname,\n\nThank you for joining RD Vendora. We're excited to help you build your online store.\n\nCreate your store at: $create_store_link\n\nIf you have any questions, feel free to reply to this email.\n\n– The RD Vendora Team";
+
+    return sendEmail($email, "Welcome to RD Vendora, $fullname!", $htmlBody, $plainText);
+}
+
+// ============================================================
+//  LOGIN NOTIFICATION – Premium Styled
+// ============================================================
+function sendLoginNotification($email, $fullname) {
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown browser';
+    $time = date('Y-m-d H:i:s');
+    $reset_link = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/reset-password.php';
+    $year = date('Y');
+
+    $htmlBody = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Notification</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F5F7FB; font-family:-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#F5F7FB; padding:40px 20px;">
+    <tr>
+        <td align="center" style="padding:0;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
+                <tr>
+                    <td style="padding:0;">
+                        <!-- HEADER -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+                            <tr>
+                                <td style="padding:22px 30px; text-align:center;">
+                                    <span style="font-size:24px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">RD Vendora</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- BODY -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding:32px 30px 24px 30px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="text-align:center; padding-bottom:10px;">
+                                                <span style="font-size:48px;">🔐</span>
+                                                <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 4px 0;">Hello, ' . $fullname . '</h1>
+                                                <p style="font-size:16px; color:#64748B; margin:0; line-height:1.6;">
+                                                    We noticed a new login to your <strong style="color:#1A56DB;">RD Vendora</strong> account.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#F8FAFC; border-radius:14px; border-left:6px solid #D4AF37; padding:16px 20px; margin:16px 0 20px 0;">
+                                        <tr>
+                                            <td>
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td style="padding:4px 0; font-size:15px; color:#1E293B;">
+                                                            <strong>🕒 Time:</strong> ' . $time . '
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:4px 0; font-size:15px; color:#1E293B;">
+                                                            <strong>🌐 IP Address:</strong> ' . $ip . '
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:4px 0; font-size:15px; color:#1E293B;">
+                                                            <strong>💻 Browser:</strong> ' . htmlspecialchars($userAgent) . '
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style="font-size:15px; color:#64748B; margin:0 0 12px 0; line-height:1.6;">
+                                        If this was you, you can safely ignore this email.<br>
+                                        If you did not log in, please <a href="' . $reset_link . '" style="color:#1A56DB; font-weight:600; text-decoration:none;">reset your password</a> immediately and contact support.
+                                    </p>
+                                    <p style="font-size:15px; color:#1A56DB; font-weight:500; margin:20px 0 0 0;">– RD Vendora Security Team</p>
+                                    <!-- FOOTER -->
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:32px; border-top:1px solid #E5E7EB; padding-top:20px;">
+                                        <tr>
+                                            <td style="text-align:center; font-size:13px; color:#94A3B8; line-height:1.6;">
+                                                <span style="color:#1E293B; font-weight:600;">RD Vendora</span><br>
+                                                <a href="mailto:support@rdvendora.com" style="color:#1A56DB; text-decoration:none;">support@rdvendora.com</a> &nbsp;|&nbsp; <a href="https://rdvendora.com" style="color:#1A56DB; text-decoration:none;">rdvendora.com</a><br>
+                                                &copy; ' . $year . ' RD Vendora — All Rights Reserved.<br>
+                                                <span style="font-size:12px; color:#94A3B8;">This is an automated security alert. Please do not reply.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>';
+
+    $plainText = "Hello $fullname,\n\nWe noticed a new login to your RD Vendora account.\n\nTime: $time\nIP Address: $ip\nBrowser: $userAgent\n\nIf this was you, ignore this email. If not, reset your password immediately at: $reset_link\n\n– RD Vendora Security Team";
+
+    return sendEmail($email, "Security Alert: New login to your RD Vendora account", $htmlBody, $plainText);
+}
+
+// ============================================================
+//  ORDER CONFIRMATION – Premium Styled
+// ============================================================
+function sendOrderConfirmation($customerEmail, $customerName, $orderData) {
+    $orderId    = $orderData['order_id'];
+    $orderDate  = $orderData['created_at'] ?? date('Y-m-d H:i:s');
+    $total      = $orderData['total_amount'];
+    $items      = $orderData['items'];
+    $year = date('Y');
+
+    // Build product table
+    $itemsHtml = '';
+    $itemsText = '';
+    $rowCount  = 0;
+    foreach ($items as $item) {
+        $rowCount++;
+        $bgColor = ($rowCount % 2 == 0) ? '#F8FAFC' : '#FFFFFF';
+        $name    = htmlspecialchars($item['name']);
+        $qty     = (int)$item['qty'];
+        $price   = $item['price'];
+        $totalItem = $qty * $price;
+        $itemsHtml .= "
+            <tr style='background-color:{$bgColor};'>
+                <td style='padding:12px 10px; border-bottom:1px solid #E5E7EB; font-size:14px; color:#1E293B;'>{$name}</td>
+                <td style='padding:12px 10px; border-bottom:1px solid #E5E7EB; text-align:center; font-size:14px; color:#1E293B;'>{$qty}</td>
+                <td style='padding:12px 10px; border-bottom:1px solid #E5E7EB; text-align:right; font-size:14px; color:#1E293B;'>₦" . number_format($price, 2) . "</td>
+                <td style='padding:12px 10px; border-bottom:1px solid #E5E7EB; text-align:right; font-size:14px; font-weight:600; color:#1A56DB;'>₦" . number_format($totalItem, 2) . "</td>
+            </tr>
+        ";
+        $itemsText .= "{$name} x {$qty} = ₦" . number_format($totalItem, 2) . "\n";
+    }
+
+    $delivery = 0;
+    $discount = 0;
+    $subtotal = $total - $delivery + $discount;
+    $grandTotal = $total;
+
+    $formattedSubtotal = '₦' . number_format($subtotal, 2);
+    $formattedDelivery = ($delivery == 0) ? 'Free' : '₦' . number_format($delivery, 2);
+    $formattedDiscount = '₦' . number_format($discount, 2);
+    $formattedGrandTotal = '₦' . number_format($grandTotal, 2);
+
+    $htmlBody = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F5F7FB; font-family:-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#F5F7FB; padding:40px 20px;">
+    <tr>
+        <td align="center" style="padding:0;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
+                <tr>
+                    <td style="padding:0;">
+                        <!-- HEADER -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+                            <tr>
+                                <td style="padding:22px 30px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="vertical-align:middle;">
+                                                <span style="font-size:22px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">RD Vendora</span>
+                                            </td>
+                                            <td style="vertical-align:middle; text-align:right;">
+                                                <span style="font-size:14px; color:#D4AF37; font-weight:500;">Order #' . $orderId . '</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- BODY -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding:32px 30px 24px 30px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="text-align:center; padding-bottom:20px;">
+                                                <span style="font-size:42px;">✅</span>
+                                                <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 4px 0;">Hello, ' . $customerName . ' 👋</h1>
+                                                <p style="font-size:16px; color:#64748B; margin:0; line-height:1.6;">
+                                                    Thank you for shopping with <strong style="color:#1A56DB;">RD Vendora</strong>.<br>
+                                                    We have received your order successfully and it is now being processed.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#F0F7FF; border-radius:14px; border:1px solid #DBEAFE; padding:16px 20px; margin-bottom:24px;">
+                                        <tr>
+                                            <td style="text-align:center;">
+                                                <div style="font-size:16px; font-weight:700; color:#16A34A; text-transform:uppercase; letter-spacing:0.5px;">✅ Order Confirmed</div>
+                                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin-top:10px;">
+                                                    <tr>
+                                                        <td style="padding:0 15px; text-align:center; border-right:1px solid #DBEAFE;">
+                                                            <div style="font-size:12px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Order Number</div>
+                                                            <div style="font-size:16px; font-weight:600; color:#1E293B;">#' . $orderId . '</div>
+                                                        </td>
+                                                        <td style="padding:0 15px; text-align:center; border-right:1px solid #DBEAFE;">
+                                                            <div style="font-size:12px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Status</div>
+                                                            <div style="font-size:16px; font-weight:600; color:#16A34A;">Confirmed</div>
+                                                        </td>
+                                                        <td style="padding:0 15px; text-align:center;">
+                                                            <div style="font-size:12px; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Processing</div>
+                                                            <div style="font-size:16px; font-weight:600; color:#1E293B;">24-48 hrs</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border:1px solid #E5E7EB; border-radius:14px; overflow:hidden; margin-bottom:24px;">
+                                        <tr>
+                                            <td style="background-color:#F8FAFC; padding:14px 20px; border-bottom:1px solid #E5E7EB;">
+                                                <span style="font-size:16px; font-weight:600; color:#1E293B;">📦 Order Summary</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:10px 20px;">
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                                    <thead>
+                                                        <tr style="border-bottom:1px solid #E5E7EB;">
+                                                            <th style="padding:10px 10px 10px 0; text-align:left; font-size:12px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Product</th>
+                                                            <th style="padding:10px 10px; text-align:center; font-size:12px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Qty</th>
+                                                            <th style="padding:10px 10px; text-align:right; font-size:12px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Price</th>
+                                                            <th style="padding:10px 0 10px 10px; text-align:right; font-size:12px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ' . $itemsHtml . '
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:0 20px 16px 20px;">
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top:1px solid #E5E7EB; margin-top:8px;">
+                                                    <tr>
+                                                        <td style="padding:8px 0 4px 0; text-align:right; font-size:15px; color:#1E293B;">Subtotal</td>
+                                                        <td style="padding:8px 0 4px 20px; text-align:right; font-size:15px; color:#1E293B;">' . $formattedSubtotal . '</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:4px 0; text-align:right; font-size:15px; color:#1E293B;">Delivery</td>
+                                                        <td style="padding:4px 0 4px 20px; text-align:right; font-size:15px; color:#1E293B;">' . $formattedDelivery . '</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:4px 0; text-align:right; font-size:15px; color:#1E293B;">Discount</td>
+                                                        <td style="padding:4px 0 4px 20px; text-align:right; font-size:15px; color:#1E293B;">' . $formattedDiscount . '</td>
+                                                    </tr>
+                                                    <tr style="background-color:#0A3D91; border-radius:8px;">
+                                                        <td style="padding:12px 0 12px 0; text-align:right; font-size:18px; font-weight:700; color:#FFFFFF; border-radius:8px 0 0 8px;">Grand Total</td>
+                                                        <td style="padding:12px 0 12px 20px; text-align:right; font-size:20px; font-weight:700; color:#D4AF37; border-radius:0 8px 8px 0;">' . $formattedGrandTotal . '</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                                        <tr>
+                                            <td style="text-align:center; padding:0 10px;">
+                                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="display:inline-block; margin:0 6px 8px 6px;">
+                                                    <tr>
+                                                        <td style="background-color:#1A56DB; border-radius:50px; padding:12px 32px; box-shadow:0 4px 12px rgba(26,86,219,0.25);">
+                                                            <a href="https://rdvendora.com/account/orders" style="color:#FFFFFF; text-decoration:none; font-weight:600; font-size:15px; display:inline-block;">View My Order</a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="display:inline-block; margin:0 6px 8px 6px;">
+                                                    <tr>
+                                                        <td style="background-color:#D4AF37; border-radius:50px; padding:12px 32px; box-shadow:0 4px 12px rgba(212,175,55,0.2);">
+                                                            <a href="https://rdvendora.com" style="color:#0A3D91; text-decoration:none; font-weight:600; font-size:15px; display:inline-block;">Continue Shopping</a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#F8FAFC; border-radius:14px; border:1px solid #E5E7EB; padding:12px 16px; margin-bottom:24px;">
+                                        <tr>
+                                            <td>
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td style="text-align:center; padding:6px 0;">
+                                                            <span style="font-size:22px;">📦</span>
+                                                            <div style="font-size:14px; font-weight:500; color:#1E293B;">Preparing</div>
+                                                        </td>
+                                                        <td style="text-align:center; padding:6px 0;">
+                                                            <span style="font-size:22px;">🚚</span>
+                                                            <div style="font-size:14px; font-weight:500; color:#1E293B;">Shipping soon</div>
+                                                        </td>
+                                                        <td style="text-align:center; padding:6px 0;">
+                                                            <span style="font-size:22px;">📧</span>
+                                                            <div style="font-size:14px; font-weight:500; color:#1E293B;">Email alerts</div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="3" style="text-align:center; padding-top:8px; font-size:14px; color:#64748B;">
+                                                            You\'ll receive another email when your order ships.
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="text-align:center; padding-top:8px;">
+                                                <h2 style="font-size:22px; font-weight:600; color:#1E293B; margin:0 0 4px 0;">Thank You For Shopping With Us</h2>
+                                                <p style="font-size:15px; color:#64748B; margin:0;">
+                                                    We appreciate your trust in <strong style="color:#1A56DB;">RD Vendora</strong>.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- FOOTER -->
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:32px; border-top:1px solid #E5E7EB; padding-top:20px;">
+                                        <tr>
+                                            <td style="text-align:center; font-size:13px; color:#94A3B8; line-height:1.6;">
+                                                <span style="color:#1E293B; font-weight:600;">RD Vendora</span><br>
+                                                <a href="mailto:support@rdvendora.com" style="color:#1A56DB; text-decoration:none;">support@rdvendora.com</a> &nbsp;|&nbsp; <a href="https://rdvendora.com" style="color:#1A56DB; text-decoration:none;">rdvendora.com</a><br>
+                                                &copy; ' . $year . ' RD Vendora — All Rights Reserved.<br>
+                                                <span style="font-size:12px; color:#94A3B8;">This is an automated email. Please do not reply.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>';
+
+    $plainText = "Thank you for your order, $customerName!\n\nOrder #$orderId\nDate: $orderDate\n\nItems:\n$itemsText\nTotal: ₦" . number_format($total, 2) . "\n\nWe'll notify you when it ships.\n– RD Vendora Team";
+
+    return sendEmail($customerEmail, "Order Confirmation #$orderId – RD Vendora", $htmlBody, $plainText);
+}
+
+// ============================================================
+//  SUBSCRIPTION EMAIL – Premium Styled
+// ============================================================
+function sendSubscriptionEmail($email, $fullname, $planName, $billingCycle, $amount, $startDate, $endDate) {
+    $amountFormatted = $amount > 0 ? '₦' . number_format($amount, 2) : 'Free';
+    $cycleText = ($billingCycle == 'annual') ? 'Annual (20% discount applied)' : 'Monthly';
+    $year = date('Y');
+
+    $htmlBody = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Confirmation</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F5F7FB; font-family:-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#F5F7FB; padding:40px 20px;">
+    <tr>
+        <td align="center" style="padding:0;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
+                <tr>
+                    <td style="padding:0;">
+                        <!-- HEADER -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+                            <tr>
+                                <td style="padding:22px 30px; text-align:center;">
+                                    <span style="font-size:24px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">RD Vendora</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- BODY -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding:32px 30px 24px 30px; text-align:center;">
+                                    <span style="font-size:48px;">🎉</span>
+                                    <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 4px 0;">Hi ' . $fullname . ',</h1>
+                                    <p style="font-size:16px; color:#64748B; margin:0 0 20px 0; line-height:1.6;">
+                                        Your <strong style="color:#1A56DB;">' . $planName . '</strong> plan (' . $cycleText . ') has been successfully activated.
+                                    </p>
+                                    <div style="background:#F8FAFC; border-left:6px solid #D4AF37; padding:16px 20px; border-radius:8px; margin:16px auto; max-width:300px;">
+                                        <p style="margin:4px 0; font-size:15px; color:#1E293B;"><strong>Amount:</strong> ' . $amountFormatted . '</p>
+                                        <p style="margin:4px 0; font-size:15px; color:#1E293B;"><strong>Start:</strong> ' . $startDate . '</p>
+                                        <p style="margin:4px 0; font-size:15px; color:#1E293B;"><strong>End:</strong> ' . $endDate . '</p>
+                                    </div>
+                                    <p style="font-size:15px; color:#64748B; margin:20px 0 10px 0;">
+                                        You can manage your subscription from your vendor dashboard.
+                                    </p>
+                                    <p style="font-size:15px; color:#1A56DB; font-weight:500; margin:0;">– RD Vendora Team</p>
+                                    <!-- FOOTER -->
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:32px; border-top:1px solid #E5E7EB; padding-top:20px;">
+                                        <tr>
+                                            <td style="text-align:center; font-size:13px; color:#94A3B8; line-height:1.6;">
+                                                <span style="color:#1E293B; font-weight:600;">RD Vendora</span><br>
+                                                <a href="mailto:support@rdvendora.com" style="color:#1A56DB; text-decoration:none;">support@rdvendora.com</a> &nbsp;|&nbsp; <a href="https://rdvendora.com" style="color:#1A56DB; text-decoration:none;">rdvendora.com</a><br>
+                                                &copy; ' . $year . ' RD Vendora — All Rights Reserved.<br>
+                                                <span style="font-size:12px; color:#94A3B8;">This is an automated message. Please do not reply.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>';
+
+    $plainText = "Hi $fullname,\n\nYour $planName plan ($cycleText) has been successfully activated.\nAmount: $amountFormatted\nStart: $startDate\nEnd: $endDate\n\nManage your subscription from your vendor dashboard.\n\n– RD Vendora Team";
+
+    return sendEmail($email, "Subscription Confirmation – RD Vendora", $htmlBody, $plainText);
+}
+?>

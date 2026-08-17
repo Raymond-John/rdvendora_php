@@ -1,0 +1,26 @@
+# Secrets
+.env
+
+# Logs and cache
+*.log
+storage/logs/*
+!storage/logs/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+
+# User-generated uploads
+uploads/*
+!uploads/.htaccess
+
+# Local leftovers from restructure
+archive/
+
+# Generated transport files
+transport_manifests/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store

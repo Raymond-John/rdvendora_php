@@ -33,6 +33,9 @@ if (session_status() === PHP_SESSION_NONE) {
         if (substr($dir, -9) === '/includes') {
             $dir = dirname($dir);
         }
+        if (substr($dir, -6) === '/admin') {
+            $dir = dirname($dir);
+        }
         if ($dir !== '/' && $dir !== '.' && $dir !== '') {
             $cookiePath = $dir;
         }
@@ -76,5 +79,32 @@ if (!function_exists('rdv_load_phpmailer')) {
         }
 
         return false;
+    }
+}
+
+if (!function_exists('rdv_web_relative')) {
+    function rdv_web_relative($path) {
+        $path = str_replace('\\', '/', (string) $path);
+        $path = preg_replace('#^(\.\./)+#', '', $path);
+        return ltrim($path, '/');
+    }
+}
+
+if (!function_exists('rdv_fs_path')) {
+    function rdv_fs_path($webRelative) {
+        return PUBLIC_PATH . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, rdv_web_relative($webRelative));
+    }
+}
+
+if (!function_exists('rdv_admin_src')) {
+    function rdv_admin_src($webRelative) {
+        if ($webRelative === '' || $webRelative === null) {
+            return '';
+        }
+        if (preg_match('#^(https?:)?//#i', $webRelative) || (isset($webRelative[0]) && $webRelative[0] === '/')) {
+            return $webRelative;
+        }
+        $relative = rdv_web_relative($webRelative);
+        return '../' . $relative;
     }
 }

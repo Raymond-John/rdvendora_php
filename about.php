@@ -672,7 +672,7 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
               <a href="contact.php" class="nav-link">Contact</a>
             </nav>
             <div class="navbar-actions">
-              ${session ? `<a href="${session.role === 'admin' ? 'admin.php' : 'dashboard.php'}" class="btn btn-primary btn-sm">Dashboard</a>` : `<a href="login.php" class="btn btn-ghost btn-sm">Log in</a><a href="register.php" class="btn btn-primary btn-sm">Get Started</a>`}
+              ${session ? `<a href="${session.role === 'admin' ? 'admin/admin.php' : 'dashboard.php'}" class="btn btn-primary btn-sm">Dashboard</a>` : `<a href="login.php" class="btn btn-ghost btn-sm">Log in</a><a href="register.php" class="btn btn-primary btn-sm">Get Started</a>`}
               <button class="btn-icon mobile-menu-toggle" id="mobile-menu-toggle">
                 <span></span><span></span><span></span>
               </button>

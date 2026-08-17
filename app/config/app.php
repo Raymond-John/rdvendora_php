@@ -13,6 +13,9 @@ if ($appUrl === '' && !empty($_SERVER['HTTP_HOST'])) {
     if (substr($scriptDir, -9) === '/includes') {
         $scriptDir = dirname($scriptDir);
     }
+    if (substr($scriptDir, -6) === '/admin') {
+        $scriptDir = dirname($scriptDir);
+    }
     $appUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . rtrim($scriptDir, '/');
 }
 if (!defined('APP_URL')) {

@@ -24,10 +24,13 @@ if (!function_exists('rdv_ga_measurement_id')) {
                         $stmt->execute();
                         $row = $stmt->get_result()->fetch_assoc();
                         $stmt->close();
-                    $fromDb = trim((string) ($row['setting_value'] ?? ''));
-                    if ($fromDb !== '') {
-                        $id = $fromDb;
+                        $fromDb = trim((string) ($row['setting_value'] ?? ''));
+                        if ($fromDb !== '') {
+                            $id = $fromDb;
+                        }
                     }
+                } catch (Throwable $e) {
+                    error_log('rdv_ga_measurement_id: ' . $e->getMessage());
                 }
             }
         }

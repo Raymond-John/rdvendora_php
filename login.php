@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once __DIR__ . '/includes/connection.php';
 require_once __DIR__ . '/includes/public_site.php';
 
@@ -13,9 +12,10 @@ if (!empty($_SESSION['user_id'])) {
 }
 
 $googleOauth = rdv_google_oauth_config($conn);
-$googleNext = (!empty($_GET['next']) && preg_match('/^[a-z0-9_\\-]+\\.php$/i', (string) $_GET['next']))
-    ? ('oauth2callback.php?next=' . rawurlencode((string) $_GET['next']))
-    : 'oauth2callback.php';
+$googleNext = $googleOauth['redirect_uri'];
+if (!empty($_GET['next']) && preg_match('/^[a-z0-9_\\-]+\\.php$/i', (string) $_GET['next'])) {
+    $googleNext .= (strpos($googleNext, '?') === false ? '?' : '&') . 'next=' . rawurlencode((string) $_GET['next']);
+}
 
 $errorMsg = (string) ($_SESSION['login_error'] ?? $_GET['error'] ?? '');
 $successMsg = (string) ($_SESSION['login_success'] ?? $_GET['success'] ?? '');

@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once __DIR__ . '/includes/connection.php';
 require_once __DIR__ . '/includes/public_site.php';
 
@@ -162,7 +161,7 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <button type="submit" class="btn btn-primary w-full" style="justify-content:center;" id="reg-btn">Create account</button>
         </form>
         <?php
-        $googleBtnHref = 'oauth2callback.php';
+        $googleBtnHref = $googleOauth['redirect_uri'] ?? 'https://rdvendora.com/oauth2callback.php';
         $googleBtnLabel = 'Continue with Google';
         require __DIR__ . '/includes/auth_google_button.php';
         ?>

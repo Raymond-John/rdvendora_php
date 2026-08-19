@@ -64,6 +64,30 @@ if (!function_exists('rdv_uri_is_local')) {
     }
 }
 
+if (!function_exists('rdv_force_canonical_https')) {
+    function rdv_force_canonical_https() {
+        if (PHP_SAPI === 'cli' || headers_sent()) {
+            return;
+        }
+        $host = rdv_request_host();
+        if ($host !== 'rdvendora.com' && $host !== 'www.rdvendora.com') {
+            return;
+        }
+        $https = rdv_request_is_https();
+        if ($https && $host === 'rdvendora.com') {
+            return;
+        }
+        $path = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        if ($path === '' || $path[0] !== '/') {
+            $path = '/' . ltrim($path, '/');
+        }
+        header('Location: https://rdvendora.com' . $path, true, 301);
+        exit;
+    }
+}
+
+rdv_force_canonical_https();
+
 $appEnv = (string) rdv_env('APP_ENV', 'local');
 $appDebug = (bool) rdv_env('APP_DEBUG', $appEnv !== 'production');
 

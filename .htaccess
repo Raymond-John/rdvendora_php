@@ -39,10 +39,13 @@ ServerSignature Off
     RewriteRule ^adminsettings\.php$ admin/adminsettings.php [R=301,L,QSA]
     RewriteRule ^admin-([a-z0-9-]+)\.php$ admin/admin-$1.php [R=301,L,QSA]
 
-    # Force HTTPS on Hostinger (skip local XAMPP)
-    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
+    # Canonical HTTPS apex on live (do not send www or http to Google OAuth)
+    RewriteCond %{HTTP_HOST} ^(www\.)?rdvendora\.com$ [NC]
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
     RewriteCond %{HTTPS} !=on
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
+    RewriteCond %{HTTP_HOST} ^www\.rdvendora\.com$ [NC]
+    RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
 </IfModule>
 
 ErrorDocument 404 /404.php

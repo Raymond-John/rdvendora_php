@@ -34,6 +34,10 @@ if (!defined('APP_URL')) {
     define('APP_URL', rtrim((string) $appUrl, '/'));
 }
 
+if (!defined('GOOGLE_PRODUCTION_REDIRECT_URI')) {
+    define('GOOGLE_PRODUCTION_REDIRECT_URI', 'https://rdvendora.com/oauth2callback.php');
+}
+
 if (!defined('GOOGLE_CLIENT_ID')) {
     define('GOOGLE_CLIENT_ID', trim((string) rdv_env('GOOGLE_CLIENT_ID', '')));
 }
@@ -41,12 +45,22 @@ if (!defined('GOOGLE_CLIENT_SECRET')) {
     define('GOOGLE_CLIENT_SECRET', trim((string) rdv_env('GOOGLE_CLIENT_SECRET', '')));
 }
 if (!defined('GOOGLE_REDIRECT_URI')) {
-    $redirect = trim((string) rdv_env('GOOGLE_REDIRECT_URI', ''));
-    if ($redirect !== '' && function_exists('rdv_uri_is_local') && rdv_uri_is_local($redirect) && !rdv_host_is_local($host)) {
-        $redirect = '';
-    }
-    if ($redirect === '') {
-        $redirect = rtrim(APP_URL, '/') . '/oauth2callback.php';
+    $host = function_exists('rdv_request_host') ? rdv_request_host() : '';
+    if ($host === 'rdvendora.com' || $host === 'www.rdvendora.com' || str_ends_with((string) $host, '.rdvendora.com')) {
+        $redirect = GOOGLE_PRODUCTION_REDIRECT_URI;
+    } else {
+        $redirect = trim((string) rdv_env('GOOGLE_REDIRECT_URI', ''));
+        if ($redirect !== '' && function_exists('rdv_uri_is_local') && rdv_uri_is_local($redirect) && !rdv_host_is_local($host)) {
+            $redirect = '';
+        }
+        if ($redirect === '' || (stripos($redirect, 'http://') === 0 && !rdv_uri_is_local($redirect))) {
+            $redirect = rtrim(APP_URL, '/') . '/oauth2callback.php';
+        }
+        if ($host === '' || (!function_exists('rdv_host_is_local') || !rdv_host_is_local($host))) {
+            if (stripos($redirect, 'https://') !== 0) {
+                $redirect = GOOGLE_PRODUCTION_REDIRECT_URI;
+            }
+        }
     }
     define('GOOGLE_REDIRECT_URI', $redirect);
 }

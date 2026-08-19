@@ -8,6 +8,9 @@ class GoogleOAuth {
     private $redirectUri;
 
     public function __construct($clientId, $clientSecret, $redirectUri) {
+        if (stripos($redirectUri, 'http://') === 0 && !preg_match('#^http://(localhost|127\\.0\\.0\\.1)(:\\d+)?/#i', $redirectUri)) {
+            $redirectUri = 'https://rdvendora.com/oauth2callback.php';
+        }
         $this->clientId = $clientId;
         $this->clientSecret = $clientSecret;
         $this->redirectUri = $redirectUri;
@@ -20,18 +23,18 @@ class GoogleOAuth {
     }
 
     public function getAuthUrl($state, $codeChallenge = '') {
+        if ($codeChallenge === '') {
+            throw new InvalidArgumentException('PKCE code_challenge is required.');
+        }
         $params = [
             'client_id' => $this->clientId,
             'redirect_uri' => $this->redirectUri,
             'response_type' => 'code',
             'scope' => 'openid email profile',
             'state' => $state,
-            'prompt' => 'select_account',
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
         ];
-        if ($codeChallenge !== '') {
-            $params['code_challenge'] = $codeChallenge;
-            $params['code_challenge_method'] = 'S256';
-        }
         return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
 
@@ -43,9 +46,10 @@ class GoogleOAuth {
             'redirect_uri' => $this->redirectUri,
             'grant_type' => 'authorization_code',
         ];
-        if ($codeVerifier !== '') {
-            $post['code_verifier'] = $codeVerifier;
+        if ($codeVerifier === '') {
+            throw new Exception('Missing PKCE code_verifier.');
         }
+        $post['code_verifier'] = $codeVerifier;
         $data = $this->curlJson('https://oauth2.googleapis.com/token', $post, true);
 
         if (empty($data['access_token'])) {

@@ -166,10 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (isset($_POST['update_google_oauth'])) {
         $gid = trim((string) ($_POST['google_client_id'] ?? ''));
         $gsecret = trim((string) ($_POST['google_client_secret'] ?? ''));
-        $gredir = trim((string) ($_POST['google_redirect_uri'] ?? ''));
-        if ($gredir === '') {
-            $gredir = rtrim((string) APP_URL, '/') . '/oauth2callback.php';
-        }
+        $gredir = 'https://rdvendora.com/oauth2callback.php';
         if ($gid !== '' && !preg_match('/\.apps\.googleusercontent\.com$/', $gid)) {
             $message = 'Google Client ID should end with .apps.googleusercontent.com';
             $messageType = 'error';
@@ -356,7 +353,7 @@ $smtp_pass = getSetting($conn, 'smtp_pass');
 $smtp_encryption = getSetting($conn, 'smtp_encryption');
 $google_client_id = getSetting($conn, 'google_client_id');
 $google_client_secret = getSetting($conn, 'google_client_secret');
-$google_redirect_uri = getSetting($conn, 'google_redirect_uri', rtrim((string) APP_URL, '/') . '/oauth2callback.php');
+$google_redirect_uri = 'https://rdvendora.com/oauth2callback.php';
 
 // Fetch roles (for super admin)
 $roles = [];
@@ -479,8 +476,8 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 </div>
                 <div class="form-group">
                     <label>Authorized redirect URI</label>
-                    <input type="url" name="google_redirect_uri" value="<?= htmlspecialchars($google_redirect_uri) ?>" placeholder="https://rdvendora.com/oauth2callback.php">
-                    <small style="display:block;color:var(--text-muted);font-size:0.7rem;margin-top:4px;">Must match Google Cloud exactly. Also add Authorized JavaScript origins <code>https://rdvendora.com</code> and <code>https://www.rdvendora.com</code>.</small>
+                    <input type="url" name="google_redirect_uri" value="https://rdvendora.com/oauth2callback.php" readonly>
+                    <small style="display:block;color:var(--text-muted);font-size:0.7rem;margin-top:4px;">Locked to the production HTTPS callback. Add this exact URI on the <strong>Web application</strong> OAuth client in Google Cloud. Authorized JavaScript origin: <code>https://rdvendora.com</code>.</small>
                 </div>
                 <button type="submit" name="update_google_oauth" class="btn">Save Google Sign-In</button>
             </form>

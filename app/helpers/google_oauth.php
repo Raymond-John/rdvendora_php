@@ -1,32 +1,35 @@
 <?php
 /**
- * Google Sign-In config from .env, overlaid by Admin → Settings.
+ * Google Sign-In config. Production always uses HTTPS apex callback.
  */
+if (!defined('GOOGLE_PRODUCTION_REDIRECT_URI')) {
+    define('GOOGLE_PRODUCTION_REDIRECT_URI', 'https://rdvendora.com/oauth2callback.php');
+}
+
 if (!function_exists('rdv_google_callback_uri_for_host')) {
     function rdv_google_callback_uri_for_host() {
         $host = function_exists('rdv_request_host') ? rdv_request_host() : strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
         $host = preg_replace('/:\d+$/', '', $host);
-        if ($host === 'rdvendora.com' || $host === 'www.rdvendora.com' || str_ends_with($host, '.rdvendora.com')) {
-            return 'https://rdvendora.com/oauth2callback.php';
+        if ($host === 'rdvendora.com' || $host === 'www.rdvendora.com' || str_ends_with((string) $host, '.rdvendora.com')) {
+            return GOOGLE_PRODUCTION_REDIRECT_URI;
         }
-        if (function_exists('rdv_host_is_local') && !rdv_host_is_local($host) && $host !== '') {
-            return 'https://' . $host . '/oauth2callback.php';
+        if (function_exists('rdv_host_is_local') && rdv_host_is_local($host)) {
+            $https = function_exists('rdv_request_is_https') && rdv_request_is_https();
+            $scheme = $https ? 'https' : 'http';
+            $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/oauth2callback.php'));
+            $base = rtrim(dirname($script), '/');
+            if (substr($base, -9) === '/includes') {
+                $base = dirname($base);
+            }
+            if (substr($base, -6) === '/admin') {
+                $base = dirname($base);
+            }
+            if ($base === '/' || $base === '\\' || $base === '.' || $base === '') {
+                $base = '';
+            }
+            return $scheme . '://' . $host . $base . '/oauth2callback.php';
         }
-
-        $https = function_exists('rdv_request_is_https') && rdv_request_is_https();
-        $scheme = $https ? 'https' : 'http';
-        $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/oauth2callback.php'));
-        $base = rtrim(dirname($script), '/');
-        if (substr($base, -9) === '/includes') {
-            $base = dirname($base);
-        }
-        if (substr($base, -6) === '/admin') {
-            $base = dirname($base);
-        }
-        if ($base === '/' || $base === '\\' || $base === '.' || $base === '') {
-            $base = '';
-        }
-        return $scheme . '://' . $host . $base . '/oauth2callback.php';
+        return GOOGLE_PRODUCTION_REDIRECT_URI;
     }
 }
 
@@ -34,16 +37,10 @@ if (!function_exists('rdv_google_oauth_config')) {
     function rdv_google_oauth_config($conn = null) {
         $clientId = defined('GOOGLE_CLIENT_ID') ? trim((string) GOOGLE_CLIENT_ID) : '';
         $clientSecret = defined('GOOGLE_CLIENT_SECRET') ? trim((string) GOOGLE_CLIENT_SECRET) : '';
-        $redirectUri = defined('GOOGLE_REDIRECT_URI') ? trim((string) GOOGLE_REDIRECT_URI) : '';
 
         $db = $conn instanceof mysqli ? $conn : ($GLOBALS['conn'] ?? $GLOBALS['connect'] ?? null);
         if ($db instanceof mysqli) {
-            $keys = [
-                'google_client_id' => 'clientId',
-                'google_client_secret' => 'clientSecret',
-                'google_redirect_uri' => 'redirectUri',
-            ];
-            foreach ($keys as $settingKey => $local) {
+            foreach (['google_client_id' => 'clientId', 'google_client_secret' => 'clientSecret'] as $settingKey => $local) {
                 $val = '';
                 if (function_exists('rdv_site_setting')) {
                     $val = rdv_site_setting($db, $settingKey);
@@ -66,24 +63,14 @@ if (!function_exists('rdv_google_oauth_config')) {
                         $clientId = $val;
                     } elseif ($local === 'clientSecret' && $clientSecret === '') {
                         $clientSecret = $val;
-                    } elseif ($local === 'redirectUri' && $redirectUri === '') {
-                        $redirectUri = $val;
                     }
                 }
             }
         }
 
-        $computed = rdv_google_callback_uri_for_host();
-        $currentHost = function_exists('rdv_request_host') ? rdv_request_host() : strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
-        $requestIsLocal = function_exists('rdv_host_is_local') && rdv_host_is_local($currentHost);
-        $redirectIsLocal = function_exists('rdv_uri_is_local') && rdv_uri_is_local($redirectUri);
-
-        if ($currentHost === 'rdvendora.com' || $currentHost === 'www.rdvendora.com' || str_ends_with($currentHost, '.rdvendora.com')) {
-            $redirectUri = 'https://rdvendora.com/oauth2callback.php';
-        } elseif ($redirectIsLocal && !$requestIsLocal) {
-            $redirectUri = $computed;
-        } elseif ($redirectUri === '' || $redirectIsLocal !== $requestIsLocal) {
-            $redirectUri = $computed;
+        $redirectUri = rdv_google_callback_uri_for_host();
+        if (stripos($redirectUri, 'http://') === 0 && !(function_exists('rdv_uri_is_local') && rdv_uri_is_local($redirectUri))) {
+            $redirectUri = GOOGLE_PRODUCTION_REDIRECT_URI;
         }
 
         $placeholder = (
@@ -109,7 +96,10 @@ if (!function_exists('rdv_google_oauth_fail')) {
             session_start();
         }
         $_SESSION['login_error'] = $message;
-        header('Location: login.php');
+        $login = (defined('APP_URL') && strpos(APP_URL, 'https://rdvendora.com') === 0)
+            ? 'https://rdvendora.com/login.php'
+            : 'login.php';
+        header('Location: ' . $login);
         exit;
     }
 }

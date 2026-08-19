@@ -2,6 +2,31 @@
 /**
  * Google Sign-In config from .env, overlaid by Admin → Settings.
  */
+if (!function_exists('rdv_google_callback_uri_for_host')) {
+    function rdv_google_callback_uri_for_host() {
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        $host = preg_replace('/:\d+$/', '', $host);
+        if ($host === 'rdvendora.com' || $host === 'www.rdvendora.com') {
+            return 'https://rdvendora.com/oauth2callback.php';
+        }
+
+        $https = function_exists('rdv_request_is_https') && rdv_request_is_https();
+        $scheme = $https ? 'https' : 'http';
+        $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/oauth2callback.php'));
+        $base = rtrim(dirname($script), '/');
+        if (substr($base, -9) === '/includes') {
+            $base = dirname($base);
+        }
+        if (substr($base, -6) === '/admin') {
+            $base = dirname($base);
+        }
+        if ($base === '/' || $base === '\\' || $base === '.' || $base === '') {
+            $base = '';
+        }
+        return $scheme . '://' . $host . $base . '/oauth2callback.php';
+    }
+}
+
 if (!function_exists('rdv_google_oauth_config')) {
     function rdv_google_oauth_config($conn = null) {
         $clientId = defined('GOOGLE_CLIENT_ID') ? trim((string) GOOGLE_CLIENT_ID) : '';
@@ -45,8 +70,15 @@ if (!function_exists('rdv_google_oauth_config')) {
             }
         }
 
-        if ($redirectUri === '') {
-            $redirectUri = rtrim((string) (defined('APP_URL') ? APP_URL : ''), '/') . '/oauth2callback.php';
+        $computed = rdv_google_callback_uri_for_host();
+        $currentHost = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+        $configuredHost = strtolower((string) (parse_url($redirectUri, PHP_URL_HOST) ?? ''));
+        $liveHost = ($currentHost === 'rdvendora.com' || $currentHost === 'www.rdvendora.com');
+
+        if ($liveHost) {
+            $redirectUri = 'https://rdvendora.com/oauth2callback.php';
+        } elseif ($redirectUri === '' || $configuredHost === '' || ($configuredHost !== $currentHost && $configuredHost !== 'www.' . $currentHost && 'www.' . $configuredHost !== $currentHost)) {
+            $redirectUri = $computed;
         }
 
         $placeholder = (

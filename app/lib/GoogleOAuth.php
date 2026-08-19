@@ -24,7 +24,7 @@ class GoogleOAuth {
             'state' => $state,
             'include_granted_scopes' => 'true',
         ];
-        return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
+        return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
 
     public function getAccessToken($code) {

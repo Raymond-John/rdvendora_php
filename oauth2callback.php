@@ -14,11 +14,22 @@ if (!$oauth['configured']) {
     rdv_google_oauth_fail('Google Sign-In is not configured on this server yet.');
 }
 
+$host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+if (($host === 'rdvendora.com' || $host === 'www.rdvendora.com') && function_exists('rdv_request_is_https') && !rdv_request_is_https()) {
+    header('Location: https://rdvendora.com/oauth2callback.php' . (!empty($_SERVER['QUERY_STRING']) ? ('?' . $_SERVER['QUERY_STRING']) : ''), true, 302);
+    exit;
+}
+
 $google = new GoogleOAuth($oauth['client_id'], $oauth['client_secret'], $oauth['redirect_uri']);
 
 if (empty($_GET['code'])) {
     if (!empty($_GET['error'])) {
-        rdv_google_oauth_fail('Google sign-in was cancelled.');
+        $err = (string) $_GET['error'];
+        $msg = 'Google sign-in was cancelled.';
+        if ($err === 'redirect_uri_mismatch') {
+            $msg = 'Google rejected the redirect URI. In Google Cloud → Credentials, add exactly: ' . $oauth['redirect_uri'];
+        }
+        rdv_google_oauth_fail($msg);
     }
     $_SESSION['oauth_state'] = bin2hex(random_bytes(16));
     $next = trim((string) ($_GET['next'] ?? ''));

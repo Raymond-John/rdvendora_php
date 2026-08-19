@@ -80,8 +80,247 @@ if ($vendorQuery) {
 $adminPageTitle = 'Admin Chat - RD Vendora';
 $adminPageHeading = 'Chat';
 $adminPageSubtitle = 'Platform support chat';
-$adminSearchPlaceholder = 'Search platform...';
-$adminShowHeader = true;
+$adminSearchPlaceholder = 'Search vendors...';
+$adminShowHeader = false;
+$adminHeadExtra = '<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>';
+$adminPageStyles = <<<'CSS'
+.admin-app:has(.chat-layout) .main-content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.chat-layout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    margin: calc(var(--topbar-height) + 1rem) 2rem 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-primary);
+    box-shadow: var(--shadow);
+}
+.vendor-list {
+    width: 320px;
+    border-right: 1px solid var(--border-primary);
+    overflow-y: auto;
+    background: var(--bg-secondary);
+}
+.vendor-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    cursor: pointer;
+    position: relative;
+}
+.vendor-item:hover { background: var(--bg-tertiary); }
+.vendor-item.active {
+    background: var(--primary-light);
+    border-left: 3px solid var(--primary);
+}
+.vendor-avatar {
+    width: 48px; height: 48px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    position: relative;
+}
+.online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 2px solid var(--bg-secondary);
+}
+.vendor-info { flex: 1; min-width: 0; }
+.vendor-name { font-weight: 600; margin-bottom: 0.2rem; }
+.vendor-last-msg {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.unread-badge {
+    background: var(--primary);
+    color: white;
+    border-radius: 2rem;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg-primary);
+}
+.chat-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.call-controls { display: flex; gap: 0.5rem; }
+.admin-app .chat-header .call-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.admin-app .chat-header .call-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+.admin-app .chat-header .audio-call:hover { background: #10b981; }
+.admin-app .chat-header .video-call:hover { background: #6366f1; }
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.admin-app .chat-messages .message {
+    max-width: 70%;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    border-radius: 1rem;
+    word-wrap: break-word;
+    font-size: 0.875rem;
+}
+.admin-app .chat-messages .message-admin {
+    background: var(--gradient-primary);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 0.25rem;
+}
+.admin-app .chat-messages .message-vendor {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border-bottom-left-radius: 0.25rem;
+}
+.message-time {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+    text-align: right;
+}
+.typing-indicator {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0.25rem 1rem;
+    font-style: italic;
+}
+.chat-input-area {
+    padding: 1rem;
+    border-top: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.admin-app .chat-input-area input {
+    flex: 1;
+    width: auto;
+    padding: 0.6rem 1rem;
+    border-radius: 2rem;
+    border: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    outline: none;
+}
+.admin-app .chat-input-area button {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    width: auto;
+}
+.admin-app .chat-input-area .mic-btn {
+    background: var(--bg-tertiary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+.mic-btn.recording {
+    background: var(--error);
+    color: white;
+    animation: chatPulse 1s infinite;
+}
+@keyframes chatPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+.local-video, .remote-video {
+    width: 200px;
+    height: 150px;
+    background: #000;
+    border-radius: 8px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;
+    object-fit: cover;
+}
+.remote-video { right: 240px; }
+#callControls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1001;
+    display: none;
+    background: var(--bg-secondary);
+    padding: 8px 12px;
+    border-radius: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+.admin-app #callControls button {
+    background: var(--error);
+    color: #fff;
+    padding: 0.45rem 1rem;
+    border-radius: 2rem;
+    width: auto;
+}
+@media (max-width: 768px) {
+    .chat-layout {
+        margin: calc(var(--topbar-height) + 0.5rem) 0.5rem 0.5rem;
+        flex-direction: column;
+        height: calc(100vh - var(--topbar-height) - 1rem);
+    }
+    .vendor-list { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--border-primary); }
+    .local-video, .remote-video { width: 120px; height: 90px; }
+    .remote-video { right: 140px; }
+}
+CSS;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
 <div class="chat-layout">
@@ -111,22 +350,19 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             <div class="typing-indicator" id="typingIndicator" style="display: none;">Vendor is typing...</div>
             <div class="chat-input-area" id="chatInputArea" style="display: none;">
                 <input type="text" id="messageInput" placeholder="Type a message...">
-                <button id="sendBtn">Send</button>
-                <button class="mic-btn" id="micBtn">🎤</button>
+                <button type="button" id="sendBtn">Send</button>
+                <button type="button" class="mic-btn" id="micBtn">🎤</button>
             </div>
         </div>
-    </div>
 </div>
 
-<!-- Video call containers -->
 <video id="localVideo" class="local-video" autoplay muted></video>
 <video id="remoteVideo" class="remote-video" autoplay></video>
 <div id="callControls">
-    <button id="endCallBtn">End Call</button>
+    <button type="button" id="endCallBtn">End Call</button>
+</div>
 <script>
-    // Theme, sidebar, dropdown
-// Search vendor filter
-    const searchInput = document.getElementById('searchVendor');
+    const searchInput = document.getElementById('adminSearchInput');
     const vendorItems = document.querySelectorAll('.vendor-item');
     if (searchInput) {
         searchInput.addEventListener('input', function() {

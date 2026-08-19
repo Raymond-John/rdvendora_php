@@ -211,6 +211,15 @@ $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
 $adminPageStyles = <<<'CSS'
 .design-section { padding: 1rem 2rem 2rem; }
+.admin-app .design-section h4 label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
 .settings-group {
     background: var(--bg-secondary);
     border: 1px solid var(--border-primary);
@@ -288,6 +297,11 @@ $adminPageStyles = <<<'CSS'
     margin-bottom: 0;
     color: var(--text-primary);
     cursor: pointer;
+}
+.admin-app .store-checkbox-list input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 .shipping-grid {
     display: grid;

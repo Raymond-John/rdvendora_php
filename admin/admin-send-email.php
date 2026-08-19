@@ -200,8 +200,107 @@ function sendSmtpMail($to, $subject, $htmlBody, $fromEmail, $fromName, $smtpHost
 $adminPageTitle = 'Send Email to Customers - Admin';
 $adminPageHeading = 'Send Email';
 $adminPageSubtitle = 'Message customers from the admin panel';
-$adminSearchPlaceholder = 'Search platform...';
+$adminSearchPlaceholder = 'Search customers...';
 $adminShowHeader = true;
+$adminPageStyles = <<<'CSS'
+.email-form-container { padding: 1.5rem 2rem 2rem; }
+.email-form-container .form-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-sm);
+}
+.email-form-container .form-group { margin-bottom: 1.5rem; }
+.email-form-container .form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+.admin-app .email-form-container .form-input,
+.admin-app .email-form-container .form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-family: inherit;
+}
+.email-form-container .form-textarea { min-height: 200px; resize: vertical; }
+.checkbox-group {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+}
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+}
+.checkbox-group label:hover { background: var(--primary-light); }
+.admin-app .checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: var(--primary);
+    background: none;
+    border: none;
+}
+.admin-app .email-form-container .btn-send,
+.admin-app .email-form-container button[type="submit"].btn-send {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    width: 100%;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    justify-content: center;
+}
+.email-form-container .alert {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    margin: 0 0 1.5rem;
+}
+.email-form-container .alert-success {
+    background: var(--success-light);
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+.email-form-container .alert-error {
+    background: var(--error-light);
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.email-form-container hr {
+    margin: 1.5rem 0;
+    border: none;
+    border-top: 1px solid var(--border-primary);
+}
+@media (max-width: 768px) {
+    .email-form-container { padding: 1rem; }
+    .email-form-container .form-card { padding: 1rem; }
+}
+CSS;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
 <div class="email-form-container">
@@ -252,7 +351,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     </div>
 <script>
 // Search filter for email checkboxes
-    const searchInput = document.getElementById('searchEmails');
+    const searchInput = document.getElementById('adminSearchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
             const filter = this.value.toLowerCase();

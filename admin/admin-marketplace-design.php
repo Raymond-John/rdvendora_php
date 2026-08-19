@@ -211,7 +211,7 @@ $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<div class="design-section">
+    <div class="design-section">
         <?php if ($message): ?>
             <div class="alert alert-<?= $messageType ?>"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>

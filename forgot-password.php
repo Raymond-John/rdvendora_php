@@ -178,114 +178,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $conn->close();
+
+$authPageTitle = 'Forgot Password - RD Vendora';
+$authVisualTitle = 'Reset access to your store';
+$authVisualText = 'We will email a reset link if that address has an RD Vendora account.';
+$authVisualFeatures = [
+    'Link expires after one hour',
+    'Your password stays unchanged until you finish',
+    'Back to login whenever you need',
+];
+require __DIR__ . '/includes/auth_layout_start.php';
 ?>
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password - RD Vendora</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            width: 100%;
-            max-width: 450px;
-            padding: 40px;
-        }
-        [data-theme="dark"] .card {
-            background: #1e1e2f;
-            color: #e0e0e0;
-        }
-        .logo { text-align: center; margin-bottom: 30px; }
-        h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center; }
-        .subtitle { text-align: center; color: #6b7280; margin-bottom: 30px; font-size: 14px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; }
-        input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        button:hover { transform: translateY(-1px); }
-        .back-link { text-align: center; margin-top: 20px; }
-        .back-link a { color: #6366f1; text-decoration: none; font-size: 14px; }
-        .message {
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .message.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-        .message.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-        .message.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
-        [data-theme="dark"] .message.success { background: #064e3b; color: #a7f3d0; }
-        [data-theme="dark"] .message.error { background: #7f1d1d; color: #fecaca; }
-        [data-theme="dark"] .message.info { background: #1e3a8a; color: #bfdbfe; }
-        [data-theme="dark"] input { background: #2d2d3f; border-color: #3a3a4f; color: #e0e0e0; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="logo">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
-            </svg>
+        <div class="auth-form-header">
+          <h1 class="auth-form-title">Forgot password?</h1>
+          <p class="auth-form-subtitle">Enter your email and we will send a reset link if the account exists.</p>
         </div>
-        <h1>Forgot password?</h1>
-        <p class="subtitle">Enter your email and we'll send you a reset link.</p>
-        
         <?php if ($message): ?>
-            <div class="message <?= $messageType ?>"><?= $message ?></div>
+          <div class="auth-alert <?= htmlspecialchars($messageType, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>
-        
         <form method="POST" action="">
-            <div class="form-group">
-                <label>Email address</label>
-                <input type="email" name="email" required placeholder="your@email.com">
-            </div>
-            <button type="submit">Send reset link</button>
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input type="email" class="form-input" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+          </div>
+          <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">Send reset link</button>
         </form>
-        <div class="back-link">
-            <a href="login.php">← Back to login</a>
+        <div class="auth-footer">
+          <a href="login.php">Back to login</a>
         </div>
-    </div>
-    <script>
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) document.documentElement.setAttribute('data-theme', 'dark');
-    </script>
-</body>
-</html>
+<?php require __DIR__ . '/includes/auth_layout_end.php'; ?>

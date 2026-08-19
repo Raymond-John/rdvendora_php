@@ -30,21 +30,21 @@ for ($i = 6; $i >= 0; $i--) {
     $dailyRevenue = 0;
     $dailyUsers = 0;
     try {
-        $revStmt = $conn->prepare("SELECT COALESCE(SUM(total_amount), 0) as daily_total FROM orders WHERE status = 'completed' AND DATE(created_at) = ?");
+    $revStmt = $conn->prepare("SELECT COALESCE(SUM(total_amount), 0) as daily_total FROM orders WHERE status = 'completed' AND DATE(created_at) = ?");
         if ($revStmt) {
-            $revStmt->bind_param("s", $date);
-            $revStmt->execute();
-            $revRow = $revStmt->get_result()->fetch_assoc();
-            $dailyRevenue = $revRow['daily_total'] ?? 0;
-            $revStmt->close();
+    $revStmt->bind_param("s", $date);
+    $revStmt->execute();
+    $revRow = $revStmt->get_result()->fetch_assoc();
+    $dailyRevenue = $revRow['daily_total'] ?? 0;
+    $revStmt->close();
         }
-        $userStmt = $conn->prepare("SELECT COUNT(*) as daily_count FROM users WHERE DATE(created_at) = ?");
+    $userStmt = $conn->prepare("SELECT COUNT(*) as daily_count FROM users WHERE DATE(created_at) = ?");
         if ($userStmt) {
-            $userStmt->bind_param("s", $date);
-            $userStmt->execute();
-            $userRow = $userStmt->get_result()->fetch_assoc();
-            $dailyUsers = $userRow['daily_count'] ?? 0;
-            $userStmt->close();
+    $userStmt->bind_param("s", $date);
+    $userStmt->execute();
+    $userRow = $userStmt->get_result()->fetch_assoc();
+    $dailyUsers = $userRow['daily_count'] ?? 0;
+    $userStmt->close();
         }
     } catch (Throwable $e) {
         error_log('Admin chart query failed: ' . $e->getMessage());
@@ -79,7 +79,7 @@ $adminShowHeader = true;
 $adminHeadExtra = '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>';
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<div class="stats-grid">
+    <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-title">Total Users</div>
             <div class="stat-value"><?= number_format($totalUsers) ?></div>
@@ -148,7 +148,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     const revenueData = <?= json_encode($chartRevenue) ?>;
     const userData = <?= json_encode($chartUsers) ?>;
     const labels = <?= json_encode($chartLabels) ?>;
-// Chart creation function (reusable for theme change)
+    // Chart creation function (reusable for theme change)
     let revenueChart, userChart;
     function createCharts() {
         const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
@@ -210,6 +210,6 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     createCharts();
     window.rdvAdminOnThemeChange = createCharts;
 
-    
+
 </script>
 <?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>

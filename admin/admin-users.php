@@ -75,7 +75,7 @@ $adminSearchPlaceholder = 'Search users...';
 $adminShowHeader = true;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<?php if (isset($message)): ?>
+    <?php if (isset($message)): ?>
         <div class="message <?= strpos($message, 'success') !== false ? 'success' : 'error' ?>"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
 

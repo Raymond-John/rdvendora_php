@@ -2,8 +2,9 @@
    RD Vendora - Auth Pages (Login, Register, Forgot Password)
    ============================================================ */
 
-.auth-layout {
-  min-height: 100vh;
+.auth-page .auth-layout {
+  min-height: calc(100vh - 72px);
+  margin-top: 72px;
   display: flex;
 }
 
@@ -347,6 +348,26 @@
   color: var(--text-secondary);
   margin-bottom: var(--space-6);
 }
+
+.btn-google {
+  background: #fff;
+  border: 1px solid var(--border-primary);
+  color: #1f2937;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+.btn-google:hover {
+  background: #f3f4f6;
+}
+.auth-alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.auth-alert.error { background: var(--error-light); border: 1px solid var(--error); color: var(--error-dark, #b91c1c); }
+.auth-alert.success { background: var(--success-light); border: 1px solid var(--success); color: var(--success-dark); }
 
 /* ---- Responsive Auth ---- */
 @media (max-width: 1024px) {

@@ -198,83 +198,63 @@
   }
 
   function enhanceNav() {
-    qsa('#navbar-nav').forEach(function (nav) {
-      if (nav.querySelector('a[href="blog.php"]')) return;
-      var about = nav.querySelector('a[href="about.php"]');
+    var nav = qs('#navbar');
+    if (nav && nav.getAttribute('data-rdv-chrome') === '1') return;
+    qsa('#navbar-nav').forEach(function (el) {
+      if (el.querySelector('a[href="blog.php"]')) return;
+      var about = el.querySelector('a[href="about.php"]');
       var link = document.createElement('a');
       link.href = 'blog.php';
       link.className = 'nav-link';
       link.textContent = 'News';
-      if (about) nav.insertBefore(link, about);
-      else nav.appendChild(link);
+      if (about) el.insertBefore(link, about);
+      else el.appendChild(link);
     });
   }
 
   function enhanceFooter() {
-    qsa('#footer .footer-links a, .mobile-menu-footer a').forEach(function (a) {
+    var footer = qs('#footer');
+    if (footer && footer.getAttribute('data-rdv-chrome') === '1') return;
+    qsa('#footer .footer-links a').forEach(function (a) {
       var t = (a.textContent || '').trim().toLowerCase();
       if (a.getAttribute('href') === '#' || t === 'privacy') a.setAttribute('href', 'privacy.php');
       if (t === 'terms' || t === 'terms of service') a.setAttribute('href', 'terms.php');
       if (t === 'cookies') a.setAttribute('href', 'cookies.php');
-      if (t === 'security') a.setAttribute('href', 'disclaimer.php');
-      if (t === 'careers' || t === 'changelog') a.setAttribute('href', 'about.php');
     });
-    var legal = qs('#footer .footer-column:last-child .footer-links');
-    if (legal && !legal.querySelector('a[href="community-guidelines.php"]')) {
-      ['privacy.php|Privacy Policy', 'terms.php|Terms', 'cookies.php|Cookie Policy', 'disclaimer.php|Disclaimer', 'community-guidelines.php|Community Guidelines', 'sitemap.php|Sitemap'].forEach(function (pair) {
-        var parts = pair.split('|');
-        if (!legal.querySelector('a[href="' + parts[0] + '"]')) {
-          var a = document.createElement('a');
-          a.href = parts[0];
-          a.textContent = parts[1];
-          legal.appendChild(a);
-        }
-      });
-    }
-    var company = qsa('#footer .footer-column')[2];
-    if (company && !qs('a[href="blog.php"]', company)) {
-      var links = qs('.footer-links', company);
-      if (links) {
-        var b = document.createElement('a');
-        b.href = 'blog.php';
-        b.textContent = 'News';
-        links.appendChild(b);
-      }
-    }
-    if (!qs('#footer .rdv-newsletter-form')) {
-      var brand = qs('#footer .footer-brand');
-      if (brand) {
-        var box = document.createElement('div');
-        box.className = 'rdv-footer-newsletter';
-        box.innerHTML = '<h2 class="rdv-footer-heading">Newsletter</h2><p>Subscribe to the RD Vendora newsletter to receive updates, useful business resources, platform news, and other relevant information.</p>' +
-          '<form class="rdv-newsletter-form" method="post" action="newsletter-subscribe.php"><input type="text" name="website" class="rdv-hp" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="rdv-sr-only" for="rdv-js-nl-email">Email</label><input id="rdv-js-nl-email" name="email" type="email" required placeholder="Email address"><label class="rdv-consent"><input type="checkbox" name="consent" value="1" required><span>I want emails about RD Vendora news and resources. I can unsubscribe anytime.</span></label><button type="submit" class="btn btn-primary">Subscribe</button><p class="rdv-newsletter-status" role="status"></p></form>';
-        brand.appendChild(box);
-      }
-    }
   }
 
   function mobileMenu() {
     var toggle = qs('#mobile-menu-toggle');
-    var overlay = qs('#rdv-mobile-overlay');
-    if (!toggle || !overlay) return;
-    overlay.hidden = false;
-    overlay.classList.add('mobile-overlay');
-    toggle.addEventListener('click', function () {
-      var open = overlay.classList.toggle('active');
+    var nav = qs('#navbar-nav');
+    if (!toggle || !nav || toggle.getAttribute('data-rdv-bound') === '1') return;
+    toggle.setAttribute('data-rdv-bound', '1');
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      var open = nav.classList.toggle('open');
       toggle.classList.toggle('active', open);
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      document.body.style.overflow = open ? 'hidden' : '';
     });
   }
 
   function faq() {
-    qsa('.rdv-faq-item button').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var item = btn.closest('.rdv-faq-item');
-        var open = !item.classList.contains('is-open');
-        qsa('.rdv-faq-item').forEach(function (el) { el.classList.remove('is-open'); qs('button', el).setAttribute('aria-expanded', 'false'); });
-        if (open) { item.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); }
+    if (document.documentElement.getAttribute('data-rdv-faq') === '1') return;
+    document.documentElement.setAttribute('data-rdv-faq', '1');
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.rdv-faq-item button');
+      if (!btn) return;
+      e.preventDefault();
+      var item = btn.closest('.rdv-faq-item');
+      if (!item) return;
+      var open = !item.classList.contains('is-open');
+      qsa('.rdv-faq-item').forEach(function (el) {
+        el.classList.remove('is-open');
+        var b = qs('button', el);
+        if (b) b.setAttribute('aria-expanded', 'false');
       });
+      if (open) {
+        item.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
     });
   }
 
@@ -282,7 +262,40 @@
     qsa('#cookie-banner').forEach(function (el) { el.remove(); });
   }
 
+  function revealOnScroll() {
+    var nodes = qsa('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+    if (!nodes.length) return;
+    if (!('IntersectionObserver' in window)) {
+      nodes.forEach(function (el) { el.classList.add('revealed'); });
+      return;
+    }
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    nodes.forEach(function (el) { obs.observe(el); });
+  }
+
+  function navScroll() {
+    var nav = qs('#navbar');
+    if (!nav) return;
+    var apply = function () {
+      nav.classList.toggle('scrolled', window.scrollY > 12);
+    };
+    apply();
+    window.addEventListener('scroll', apply, { passive: true });
+  }
+
   function init() {
+    if (document.documentElement.getAttribute('data-rdv-public') === '1') {
+      hideOldCookieBanners();
+      return;
+    }
+    document.documentElement.setAttribute('data-rdv-public', '1');
     hideOldCookieBanners();
     enhanceNav();
     enhanceFooter();
@@ -290,6 +303,8 @@
     cookieUi();
     mobileMenu();
     faq();
+    navScroll();
+    revealOnScroll();
     maybeLoadAds();
     maybeLoadAnalytics();
   }

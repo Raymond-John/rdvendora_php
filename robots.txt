@@ -16,9 +16,7 @@ Disallow: /settings.php
 Disallow: /checkout.php
 Disallow: /cart.php
 Disallow: /login.php
-Disallow: /login-customer.php
 Disallow: /register.php
-Disallow: /register-customer.php
 Disallow: /reset-password.php
 Disallow: /logout.php
 Disallow: /admin_login.php

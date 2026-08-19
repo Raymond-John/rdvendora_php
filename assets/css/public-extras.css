@@ -40,10 +40,28 @@
 .rdv-footer-newsletter { margin-top: 20px; }
 .rdv-footer-newsletter p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 10px; }
 
+.footer .rdv-footer-newsletter {
+  margin: 0 0 var(--space-12, 3rem);
+  padding-top: var(--space-8, 2rem);
+  border-top: 1px solid var(--border-primary);
+  max-width: 480px;
+  text-align: left;
+}
+.footer .rdv-footer-newsletter h4 {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .rdv-newsletter-form { display: grid; gap: 10px; }
 .rdv-newsletter-form input[type="email"],
 .rdv-newsletter-form input[type="text"] {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid var(--border-primary);
   border-radius: 8px;
@@ -51,8 +69,9 @@
   color: var(--text-primary);
 }
 .rdv-newsletter-form input:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.footer .rdv-newsletter-form .btn { justify-self: start; }
 .rdv-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 0.8rem; line-height: 1.45; color: var(--text-secondary); }
-.rdv-consent input { margin-top: 3px; }
+.rdv-consent input { margin-top: 3px; flex-shrink: 0; }
 .rdv-newsletter-status { font-size: 0.85rem; min-height: 1.2em; }
 .rdv-newsletter-status.is-ok { color: var(--success, #0f9d58); }
 .rdv-newsletter-status.is-err { color: var(--error, #d93025); }
@@ -127,6 +146,25 @@
   cursor: pointer;
 }
 .rdv-faq-item button:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 72px 0 0 0;
+  z-index: 500;
+  background: var(--bg-secondary);
+  padding: 1.25rem 1.5rem 2rem;
+  overflow: auto;
+}
+.mobile-overlay.active { display: block; }
+.mobile-nav-links { display: flex; flex-direction: column; gap: 0.35rem; }
+.mobile-nav-link {
+  display: block;
+  padding: 0.85rem 0.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-primary);
+}
 .rdv-faq-item .rdv-faq-a { display: none; padding-bottom: 16px; }
 .rdv-faq-item.is-open .rdv-faq-a { display: block; }
 

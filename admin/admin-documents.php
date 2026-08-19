@@ -168,7 +168,7 @@ $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<?php if ($message): ?>
+    <?php if ($message): ?>
         <div class="alert alert-<?= htmlspecialchars($type) === 'error' ? 'error' : 'success' ?>">
             <?= htmlspecialchars($message) ?>
         </div>
@@ -254,7 +254,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     </div>
 <script>
     // Theme
-// Search filter
+    // Search filter
     document.getElementById('searchInput')?.addEventListener('input', function() {
         const term = this.value.toLowerCase();
         document.querySelectorAll('.user-card').forEach(card => {

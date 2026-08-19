@@ -1,64 +1,103 @@
 <?php
-require_once "connection.php";
-require_once "email_functions.php";
+require_once 'connection.php';
+require_once 'email_functions.php';
+if (file_exists(__DIR__ . '/../app/helpers/csrf.php')) {
+    require_once __DIR__ . '/../app/helpers/csrf.php';
+}
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Use correct connection variable
-if (!isset($conn) && isset($connect)) $conn = $connect;
+if (!isset($conn) && isset($connect)) {
+    $conn = $connect;
+}
 if (!$conn) {
-    header('location: ../login.php?error=Database connection failed');
+    header('Location: ../login.php?error=' . urlencode('Database connection failed'));
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === "POST") {
-    $email = trim($_POST['email'] ?? '');
-    $plain_password = $_POST['password'] ?? '';
-
-    if (empty($email) || empty($plain_password)) {
-        header('location: ../login.php?error=All fields are required');
-        exit();
+function rdv_users_columns(mysqli $conn): array {
+    $cols = [];
+    $res = $conn->query('SHOW COLUMNS FROM users');
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $cols[$row['Field']] = true;
+        }
     }
-
-    // Prepare and execute query – use 'password' column (matches reset script)
-    $stmt = $conn->prepare("SELECT id, email, full_name, password FROM users WHERE email = ?");
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
-
-    if (!$user) {
-        $stmt->close();
-        header('location: ../login.php?error=Email not found');
-        exit();
-    }
-
-    // Verify password using the 'password' column
-    if (!password_verify($plain_password, $user['password'])) {
-        $stmt->close();
-        header('location: ../login.php?error=Incorrect password');
-        exit();
-    }
-
-    // Set session variables
-    $_SESSION['user_id']   = $user['id'];
-    $_SESSION['user_email'] = $user['email'];
-    $_SESSION['user_name'] = $user['full_name'] ?? $user['email'];
-
-    $stmt->close();
-
-    require_once __DIR__ . '/log_activity.php';
-    if (function_exists('logUserActivity')) {
-        logUserActivity((int) $user['id'], 'login', 'login.php', 'Vendor signed in');
-    }
-
-    // Optional: send login notification
-    if (function_exists('sendLoginNotification')) {
-        sendLoginNotification($email, $user['full_name']);
-    }
-
-    header('location: ../dashboard.php?success=Login successful');
-    exit();
+    return $cols;
 }
-?>
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../login.php');
+    exit;
+}
+
+if (function_exists('rdv_csrf_verify') && !rdv_csrf_verify()) {
+    header('Location: ../login.php?error=' . urlencode('Please refresh the page and try again'));
+    exit;
+}
+
+$email = trim((string) ($_POST['email'] ?? ''));
+$plain_password = (string) ($_POST['password'] ?? '');
+
+if ($email === '' || $plain_password === '') {
+    header('Location: ../login.php?error=' . urlencode('All fields are required'));
+    exit;
+}
+
+$cols = rdv_users_columns($conn);
+$nameCol = !empty($cols['fullname']) ? 'fullname' : (!empty($cols['full_name']) ? 'full_name' : 'email');
+$passCol = !empty($cols['password']) ? 'password' : 'password_hash';
+$select = "SELECT id, email, `$nameCol` AS display_name, `$passCol` AS password_hash FROM users WHERE email = ? LIMIT 1";
+$stmt = $conn->prepare($select);
+if (!$stmt) {
+    header('Location: ../login.php?error=' . urlencode('Could not look up that account'));
+    exit;
+}
+$stmt->bind_param('s', $email);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$user || empty($user['password_hash']) || !password_verify($plain_password, $user['password_hash'])) {
+    header('Location: ../login.php?error=' . urlencode('Email or password is incorrect'));
+    exit;
+}
+
+$displayName = trim((string) ($user['display_name'] ?? ''));
+if ($displayName === '') {
+    $displayName = (string) $user['email'];
+}
+
+$_SESSION['user_id'] = (int) $user['id'];
+$_SESSION['user_email'] = $user['email'];
+$_SESSION['email'] = $user['email'];
+$_SESSION['user_name'] = $displayName;
+$_SESSION['fullname'] = $displayName;
+
+require_once __DIR__ . '/log_activity.php';
+if (function_exists('logUserActivity')) {
+    logUserActivity((int) $user['id'], 'login', 'login.php', 'Signed in');
+}
+if (function_exists('sendLoginNotification')) {
+    sendLoginNotification($email, $displayName);
+}
+
+$next = trim((string) ($_POST['next'] ?? $_GET['next'] ?? ''));
+if ($next !== '' && preg_match('/^[a-z0-9_\\-]+\\.php(?:\\?.*)?$/i', $next) && stripos($next, '://') === false) {
+    header('Location: ../' . $next);
+    exit;
+}
+
+$hasStore = false;
+$storeStmt = $conn->prepare('SELECT id FROM stores WHERE user_id = ? LIMIT 1');
+if ($storeStmt) {
+    $uid = (int) $user['id'];
+    $storeStmt->bind_param('i', $uid);
+    $storeStmt->execute();
+    $hasStore = (bool) $storeStmt->get_result()->fetch_assoc();
+    $storeStmt->close();
+}
+
+header('Location: ../' . ($hasStore ? 'dashboard.php' : 'create-store.php'));
+exit;

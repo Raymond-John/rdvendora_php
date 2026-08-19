@@ -24,6 +24,9 @@ ServerSignature Off
     # Block private application folders
     RewriteRule ^(app|storage|vendor|archive|config)(/|$) - [F,L]
 
+    RewriteRule ^login-customer\.php$ login.php [R=301,L,QSA]
+    RewriteRule ^register-customer\.php$ register.php [R=301,L,QSA]
+
     RewriteRule ^sitemap\.xml$ sitemap.xml.php [L]
 
     # Old admin URLs (root) → admin/ folder

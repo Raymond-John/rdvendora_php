@@ -1094,6 +1094,15 @@ select.form-input {
   margin-bottom: var(--space-12);
 }
 
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
 .footer-brand {
   max-width: 300px;
 }

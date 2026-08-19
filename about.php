@@ -124,44 +124,44 @@ require __DIR__ . '/includes/public_layout_start.php';
 
 <?php if (!empty($team_members)): ?>
 <section class="mk-section">
-    <div class="container">
+  <div class="container">
     <div class="mk-section-head">
-        <div class="section-label">Team</div>
+      <div class="section-label">Team</div>
       <h2>People behind RD Vendora</h2>
       <p>The people listed here are published from the admin team editor.</p>
-      </div>
+    </div>
     <div class="mk-team-grid">
-        <?php foreach ($team_members as $member):
+      <?php foreach ($team_members as $member):
         $bgColor = 'var(--primary-light)'; $textColor = 'var(--primary)';
         switch ($member['avatar_color'] ?? '') {
             case 'success': $bgColor = 'var(--success-light)'; $textColor = 'var(--success-dark)'; break;
             case 'warning': $bgColor = 'var(--warning-light)'; $textColor = 'var(--warning-dark)'; break;
             case 'error':   $bgColor = 'var(--error-light)';   $textColor = 'var(--error-dark)';   break;
-          }
-          $initials = $member['initials'] ?: strtoupper(substr($member['name'], 0, 2));
-        ?>
+        }
+        $initials = $member['initials'] ?: strtoupper(substr($member['name'], 0, 2));
+      ?>
       <article class="mk-card mk-team-card reveal">
-          <?php if (!empty($member['avatar'])): ?>
-          <img src="<?= htmlspecialchars($member['avatar']) ?>" alt="<?= htmlspecialchars($member['name']) ?>">
-          <?php else: ?>
-          <div class="mk-avatar" style="background:<?= $bgColor ?>;color:<?= $textColor ?>;"><?= htmlspecialchars($initials) ?></div>
-          <?php endif; ?>
+        <?php if (!empty($member['avatar'])): ?>
+        <img src="<?= htmlspecialchars($member['avatar']) ?>" alt="<?= htmlspecialchars($member['name']) ?>" width="84" height="84">
+        <?php else: ?>
+        <div class="mk-avatar" style="background:<?= $bgColor ?>;color:<?= $textColor ?>;"><?= htmlspecialchars($initials) ?></div>
+        <?php endif; ?>
         <h3><?= htmlspecialchars($member['name']) ?></h3>
-        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.6rem;"><?= htmlspecialchars($member['role']) ?></p>
-        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;"><?= nl2br(htmlspecialchars($member['bio'])) ?></p>
+        <p class="mk-team-role"><?= htmlspecialchars($member['role']) ?></p>
+        <p class="mk-team-bio"><?= nl2br(htmlspecialchars($member['bio'])) ?></p>
       </article>
-        <?php endforeach; ?>
-      </div>
+      <?php endforeach; ?>
     </div>
-  </section>
+  </div>
+</section>
 <?php endif; ?>
 
 <div class="container">
   <div class="mk-cta-band">
     <h2>Work with us</h2>
     <p>Questions about the product, partnership, or your store? Send a message.</p>
-    <a href="contact.php" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Contact RD Vendora</a>
-    </div>
+    <a href="contact.php" class="btn btn-white btn-lg">Contact RD Vendora</a>
   </div>
+</div>
 
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

@@ -213,7 +213,7 @@
   .rdv-cookie-actions .btn { width: 100%; justify-content: center; }
   .navbar-brand .rdv-brand-logo {
     height: 26px;
-    max-width: 92px;
+    max-width: 2px;
     padding: 1px 3px;
   }
 }

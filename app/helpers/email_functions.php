@@ -63,8 +63,9 @@ function sendEmail($to, $subject, $htmlBody, $plainBody) {
             $mail->AltBody = $plainBody;
             $mail->send();
             return true;
-        } catch (Exception $e) {
-            error_log("PHPMailer failed: " . $mail->ErrorInfo . " - falling back to mail()");
+        } catch (Throwable $e) {
+            $info = isset($mail) && is_object($mail) ? ($mail->ErrorInfo ?? $e->getMessage()) : $e->getMessage();
+            error_log("PHPMailer failed: " . $info . " - falling back to mail()");
             return sendEmailFallback($to, $subject, $htmlBody, $plainBody);
         }
     } else {

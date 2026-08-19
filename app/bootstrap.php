@@ -51,6 +51,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once APP_PATH . '/config/app.php';
+require_once APP_PATH . '/helpers/ads.php';
+require_once APP_PATH . '/helpers/analytics.php';
 require_once APP_PATH . '/config/database.php';
 
 if (!function_exists('rdv_load_phpmailer')) {

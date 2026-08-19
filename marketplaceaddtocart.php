@@ -45,6 +45,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <?php require __DIR__ . '/includes/adsense_head.php'; ?>
     <title>Your Cart - RD Vendora</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -71,194 +72,6 @@ $conn->close();
             color: var(--text-primary);
             overflow-x: hidden;
         }
-        body.preloading { overflow: hidden; height: 100vh; }
-
-        /* ── PRELOADER ── */
-        #preloader {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: var(--btn-bg-darker);
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            transition: opacity .7s ease, visibility .7s ease;
-        }
-        #preloader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
-        .pre-bg-circles { position: absolute; inset: 0; pointer-events: none; }
-        .pre-circle {
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(39,168,90,.18), transparent 70%);
-            animation: preCirclePulse 4s ease-in-out infinite;
-        }
-        .pc1 { width: 600px; height: 600px; top: -150px; left: -150px; animation-delay: 0s; }
-        .pc2 { width: 400px; height: 400px; bottom: -100px; right: -100px; animation-delay: 1.5s; }
-        .pc3 { width: 300px; height: 300px; top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: 3s; }
-        @keyframes preCirclePulse {
-            0%, 100% { transform: scale(1); opacity: .6; }
-            50%       { transform: scale(1.15); opacity: 1; }
-        }
-        .pc3 { animation-name: preCirclePulse3; }
-        @keyframes preCirclePulse3 {
-            0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: .4; }
-            50%       { transform: translate(-50%,-50%) scale(1.2); opacity: .8; }
-        }
-        .pre-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            position: relative;
-            z-index: 2;
-        }
-        .pre-logo-wrap {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pre-leaf-ring {
-            position: absolute;
-            inset: 0;
-            animation: preRingSpin 6s linear infinite;
-        }
-        .pre-leaf {
-            position: absolute;
-            font-size: 18px;
-            color: var(--btn-bg);
-            width: 24px; height: 24px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .l1 { top: 0;   left: 50%; transform: translateX(-50%); }
-        .l2 { bottom: 0; left: 50%; transform: translateX(-50%) rotate(180deg); }
-        .l3 { left: 0;  top: 50%; transform: translateY(-50%) rotate(-90deg); }
-        .l4 { right: 0; top: 50%; transform: translateY(-50%) rotate(90deg); }
-        @keyframes preRingSpin {
-            from { transform: rotate(0deg); }
-            to   { transform: rotate(360deg); }
-        }
-        .pre-logo-inner {
-            width: 80px; height: 80px;
-            background: linear-gradient(135deg, var(--btn-bg-dark), var(--btn-bg));
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 0 4px rgba(39,168,90,.2), 0 0 30px rgba(39,168,90,.4);
-            animation: preBagPulse 2s ease-in-out infinite;
-            position: relative;
-            z-index: 1;
-        }
-        @keyframes preBagPulse {
-            0%, 100% { box-shadow: 0 0 0 4px rgba(39,168,90,.2), 0 0 30px rgba(39,168,90,.4); }
-            50%       { box-shadow: 0 0 0 10px rgba(39,168,90,.1), 0 0 50px rgba(39,168,90,.6); }
-        }
-        .pre-bag-icon {
-            font-size: 32px;
-            color: #fff;
-            animation: preBagBounce 2s ease-in-out infinite;
-        }
-        @keyframes preBagBounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50%       { transform: translateY(-4px) scale(1.05); }
-        }
-        .pre-brand {
-            font-size: 36px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            animation: preBrandReveal .8s ease forwards;
-        }
-        .pre-brand-g { color: #86efac; }
-        .pre-brand-s { color: #fff; }
-        @keyframes preBrandReveal {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .pre-tagline {
-            font-size: 12px;
-            color: rgba(255,255,255,.5);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            animation: preBrandReveal .8s .2s ease both;
-        }
-        .pre-bar-wrap {
-            width: 280px;
-            animation: preBrandReveal .8s .4s ease both;
-        }
-        .pre-bar-track {
-            height: 6px;
-            background: rgba(255,255,255,.1);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 8px;
-        }
-        .pre-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--btn-bg-dark), var(--btn-bg), #86efac);
-            border-radius: 10px;
-            transition: width .3s ease;
-            position: relative;
-        }
-        .pre-bar-glow {
-            position: absolute;
-            top: 0; left: 0;
-            height: 100%;
-            width: 40%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
-            animation: preGlowSlide 1.5s linear infinite;
-            border-radius: 10px;
-        }
-        @keyframes preGlowSlide {
-            from { left: -40%; }
-            to   { left: 110%; }
-        }
-        .pre-percent {
-            text-align: right;
-            font-size: 12px;
-            font-weight: 700;
-            color: #86efac;
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
-        .pre-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            animation: preBrandReveal .8s .6s ease both;
-        }
-        .pre-step {
-            font-size: 12px;
-            color: rgba(255,255,255,.3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: color .4s, transform .4s;
-        }
-        .pre-step i { font-size: 13px; color: rgba(255,255,255,.2); transition: color .4s; }
-        .pre-step.active { color: rgba(255,255,255,.85); transform: translateX(4px); }
-        .pre-step.active i { color: var(--btn-bg); }
-        .pre-step.done { color: rgba(255,255,255,.5); }
-        .pre-step.done i { color: #86efac; }
-        .pre-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-        .pre-dot {
-            position: absolute;
-            border-radius: 50%;
-            background: var(--btn-bg);
-            animation: preDotFloat linear infinite;
-            opacity: 0;
-        }
-        @keyframes preDotFloat {
-            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
-            10%  { opacity: 1; }
-            90%  { opacity: .6; }
-            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
-        }
-
         /* ── TOP STRIP ── */
         .top-strip {
             background: var(--btn-bg-dark);
@@ -627,45 +440,6 @@ $conn->close();
 </head>
 <body>
 
-<!-- ── PRELOADER ── -->
-<div id="preloader">
-    <div class="pre-bg-circles">
-        <div class="pre-circle pc1"></div>
-        <div class="pre-circle pc2"></div>
-        <div class="pre-circle pc3"></div>
-    </div>
-    <div class="pre-content">
-        <div class="pre-logo-wrap">
-            <div class="pre-leaf-ring">
-                <div class="pre-leaf l1"><i class="fas fa-leaf"></i></div>
-                <div class="pre-leaf l2"><i class="fas fa-leaf"></i></div>
-                <div class="pre-leaf l3"><i class="fas fa-leaf"></i></div>
-                <div class="pre-leaf l4"><i class="fas fa-leaf"></i></div>
-            </div>
-            <div class="pre-logo-inner">
-                <i class="fas fa-shopping-bag pre-bag-icon"></i>
-            </div>
-        </div>
-        <div class="pre-brand">
-            <span class="pre-brand-g">RD</span><span class="pre-brand-s">Vendora</span>
-        </div>
-        <div class="pre-tagline">Premium Marketplace</div>
-        <div class="pre-bar-wrap">
-            <div class="pre-bar-track">
-                <div class="pre-bar-fill" id="preBarFill"></div>
-                <div class="pre-bar-glow"></div>
-            </div>
-            <div class="pre-percent" id="prePercent">0%</div>
-        </div>
-        <div class="pre-steps">
-            <div class="pre-step active" id="step1"><i class="fas fa-check-circle"></i> Loading cart</div>
-            <div class="pre-step" id="step2"><i class="fas fa-check-circle"></i> Preparing checkout</div>
-            <div class="pre-step" id="step3"><i class="fas fa-check-circle"></i> Almost ready!</div>
-        </div>
-    </div>
-    <div class="pre-particles" id="preParticles"></div>
-</div>
-
 <!-- TOP STRIP -->
 <div class="top-strip">🚚 Free delivery on orders above ₦10,000 &nbsp;|&nbsp; ✅ 100% Genuine Products &nbsp;|&nbsp; 🔄 Easy Returns</div>
 
@@ -755,63 +529,6 @@ $conn->close();
 </footer>
 
 <script>
-/* ── PRELOADER ── */
-(function() {
-    document.body.classList.add('preloading');
-    const loader    = document.getElementById('preloader');
-    const barFill   = document.getElementById('preBarFill');
-    const percent   = document.getElementById('prePercent');
-    const step1     = document.getElementById('step1');
-    const step2     = document.getElementById('step2');
-    const step3     = document.getElementById('step3');
-    const particles = document.getElementById('preParticles');
-
-    for (let i = 0; i < 22; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'pre-dot';
-        const size = Math.random() * 8 + 3;
-        dot.style.cssText = `
-            width:${size}px;height:${size}px;
-            left:${Math.random()*100}%;
-            animation-duration:${Math.random()*5+4}s;
-            animation-delay:${Math.random()*4}s;
-        `;
-        particles.appendChild(dot);
-    }
-
-    let current = 0;
-    function animateTo(target, duration, onDone) {
-        const start = current, t0 = performance.now();
-        (function tick(now) {
-            const p = Math.min((now - t0) / duration, 1);
-            const e = 1 - Math.pow(1 - p, 3);
-            current = Math.round(start + (target - start) * e);
-            barFill.style.width = current + '%';
-            percent.textContent = current + '%';
-            p < 1 ? requestAnimationFrame(tick) : onDone && onDone();
-        })(t0);
-    }
-
-    setTimeout(() => animateTo(35, 500, () => {
-        step1.classList.replace('active','done');
-        step2.classList.add('active');
-    }), 600);
-
-    setTimeout(() => animateTo(70, 500, () => {
-        step2.classList.replace('active','done');
-        step3.classList.add('active');
-    }), 1300);
-
-    setTimeout(() => animateTo(100, 600, () => {
-        step3.classList.replace('active','done');
-        setTimeout(() => {
-            document.body.classList.remove('preloading');
-            loader.classList.add('hide');
-            setTimeout(() => loader.remove(), 800);
-        }, 300);
-    }), 2000);
-})();
-
 /* ── CART FUNCTIONS ── */
 const CART_KEY = "greenshop_cart";
 
@@ -1001,5 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCartCountDisplay();
 });
 </script>
+<div id="rdv-cookie-root"></div>
+<script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

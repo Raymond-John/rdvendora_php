@@ -1,8 +1,14 @@
 <?php
 session_start();
 require_once 'includes/connection.php';
+require_once 'includes/public_site.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!rdv_csrf_verify() || !rdv_rate_limit('testimonial', 4, 600)) {
+        $_SESSION['testimonial_error'] = 'Please refresh the page and try again.';
+        header('Location: index.php#testimonials');
+        exit;
+    }
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
     $rating = (int)$_POST['rating'];

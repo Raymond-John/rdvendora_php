@@ -24,11 +24,24 @@ ServerSignature Off
     # Block private application folders
     RewriteRule ^(app|storage|vendor|archive|config)(/|$) - [F,L]
 
+    RewriteRule ^sitemap\.xml$ sitemap.xml.php [L]
+
+    # Old admin URLs (root) → admin/ folder
+    RewriteRule ^admin\.php$ admin/admin.php [R=301,L,QSA]
+    RewriteRule ^admin_login\.php$ admin/admin_login.php [R=301,L,QSA]
+    RewriteRule ^admin_register\.php$ admin/admin_register.php [R=301,L,QSA]
+    RewriteRule ^adminsettings\.php$ admin/adminsettings.php [R=301,L,QSA]
+    RewriteRule ^admin-([a-z0-9-]+)\.php$ admin/admin-$1.php [R=301,L,QSA]
+
     # Force HTTPS on Hostinger (skip local XAMPP)
     RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
     RewriteCond %{HTTPS} !=on
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
+
+ErrorDocument 404 /404.php
+ErrorDocument 403 /403.php
+ErrorDocument 500 /500.php
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

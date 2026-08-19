@@ -23,24 +23,31 @@ if ($teamResult) {
 $conn->close();
 
 // Set default values if any content missing (fallback to meaningful defaults)
-$hero_title = $content['hero_title'] ?? 'Building the future of <span class="gradient-text">commerce</span>';
-$hero_subtitle = $content['hero_subtitle'] ?? 'We are on a mission to make eCommerce accessible to everyone. Founded in 2024, RD Vendora empowers entrepreneurs worldwide.';
-$story_title = $content['story_title'] ?? 'Our Story';
-$story_text = $content['story_text'] ?? '';
-$stat1_number = $content['stat1_number'] ?? '15K+';
-$stat1_label = $content['stat1_label'] ?? 'Active stores';
-$stat2_number = $content['stat2_number'] ?? '$2.5M';
-$stat2_label = $content['stat2_label'] ?? 'Products sold';
-$stat3_number = $content['stat3_number'] ?? '50+';
-$stat3_label = $content['stat3_label'] ?? 'Countries';
-$stat4_number = $content['stat4_number'] ?? '99.9%';
-$stat4_label = $content['stat4_label'] ?? 'Uptime';
+$hero_title = $content['hero_title'] ?? 'Helping people sell <span class="gradient-text">online</span>';
+$hero_subtitle = $content['hero_subtitle'] ?? 'RD Vendora is a multi-vendor eCommerce platform. We build software so independent sellers and small businesses can create a store, list products, take orders, and get paid through supported payment providers.';
+$story_title = $content['story_title'] ?? 'Why RD Vendora exists';
+$story_text = $content['story_text'] ?? "Starting an online shop usually means stitching together hosting, a catalogue, checkout, and a way to talk to customers. RD Vendora puts those pieces in one product: a store dashboard, public storefronts, a marketplace, and admin tools for the people who run the platform.\n\nThe goal is practical, not theatrical. We want a seller who has never launched a site before to register, create a store, and take a real order. We want buyers to see honest listings and a checkout that uses established processors (Paystack and Flutterwave) instead of a homemade card form.\n\nWe do not publish invented user counts, revenue figures, or awards. If you see numbers on this page, they were entered by the site administrator in the about-page editor.";
+$stat1_number = $content['stat1_number'] ?? '';
+$stat1_label = $content['stat1_label'] ?? '';
+$stat2_number = $content['stat2_number'] ?? '';
+$stat2_label = $content['stat2_label'] ?? '';
+$stat3_number = $content['stat3_number'] ?? '';
+$stat3_label = $content['stat3_label'] ?? '';
+$stat4_number = $content['stat4_number'] ?? '';
+$stat4_label = $content['stat4_label'] ?? '';
+$fakeNumbers = ['15K+', '$2.5M', '50+', '99.9%'];
+if (in_array($stat1_number, $fakeNumbers, true)) { $stat1_number = ''; }
+if (in_array($stat2_number, $fakeNumbers, true)) { $stat2_number = ''; }
+if (in_array($stat3_number, $fakeNumbers, true)) { $stat3_number = ''; }
+if (in_array($stat4_number, $fakeNumbers, true)) { $stat4_number = ''; }
+$showAboutStats = ($stat1_number !== '' || $stat2_number !== '' || $stat3_number !== '' || $stat4_number !== '');
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <?php require __DIR__ . '/includes/adsense_head.php'; ?>
   <title>About - RD Vendora</title>
   <meta name="description" content="Learn about RD Vendora's mission to make eCommerce accessible to everyone.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,6 +55,7 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
   <link rel="stylesheet" href="./assets/css/style.css">
   <link rel="stylesheet" href="./assets/css/responsive.css">
   <link rel="stylesheet" href="./assets/css/animations.css">
+  <link rel="stylesheet" href="./assets/css/public-extras.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
@@ -285,31 +293,6 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
     .gradient-text { background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .card { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); }
 
-    /* ========== PRELOADER ========== */
-    #preloader {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-primary);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-    #preloader.fade-out { opacity: 0; visibility: hidden; }
-    .preloader-content { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-    .preloader-ring {
-      width: 64px; height: 64px; border-radius: 50%;
-      background: conic-gradient(from 0deg, var(--primary) 0%, var(--warning) 80%, transparent 80%);
-      animation: preloader-spin 1.2s linear infinite;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .preloader-ring::after { content: ''; width: 48px; height: 48px; border-radius: 50%; background: var(--bg-primary); }
-    @keyframes preloader-spin { to { transform: rotate(360deg); } }
-    .preloader-brand {
-      font-family: var(--font-sans); font-weight: var(--font-bold); font-size: var(--text-xl);
-      background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      letter-spacing: -0.3px;
-    }
-
     /* ========== GLASSMORPHIC FOOTER ========== */
     .footer-glass {
       background: rgba(255,255,255,0.65) !important;
@@ -479,14 +462,6 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
   </style>
 </head>
 <body>
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="preloader-content">
-      <div class="preloader-ring"></div>
-      <span class="preloader-brand">RD Vendora</span>
-    </div>
-  </div>
-
   <!-- NAVBAR (same as index) -->
   <header class="navbar glass" id="navbar"></header>
 
@@ -513,30 +488,52 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
           }
           ?>
         </div>
+        <?php if ($showAboutStats): ?>
         <div class="reveal-right">
           <div class="about-stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <?php if ($stat1_number !== ''): ?>
             <div class="card stats-card" style="padding: 28px; text-align: center;">
               <div class="stats-number" style="font-size: 36px; font-weight: 700; color: var(--primary); margin-bottom: 4px;"><?= htmlspecialchars($stat1_number) ?></div>
               <div class="stats-label" style="font-size: 14px; color: var(--text-secondary);"><?= htmlspecialchars($stat1_label) ?></div>
             </div>
+            <?php endif; ?>
+            <?php if ($stat2_number !== ''): ?>
             <div class="card stats-card" style="padding: 28px; text-align: center;">
               <div class="stats-number" style="font-size: 36px; font-weight: 700; color: var(--primary); margin-bottom: 4px;"><?= htmlspecialchars($stat2_number) ?></div>
               <div class="stats-label" style="font-size: 14px; color: var(--text-secondary);"><?= htmlspecialchars($stat2_label) ?></div>
             </div>
+            <?php endif; ?>
+            <?php if ($stat3_number !== ''): ?>
             <div class="card stats-card" style="padding: 28px; text-align: center;">
               <div class="stats-number" style="font-size: 36px; font-weight: 700; color: var(--primary); margin-bottom: 4px;"><?= htmlspecialchars($stat3_number) ?></div>
               <div class="stats-label" style="font-size: 14px; color: var(--text-secondary);"><?= htmlspecialchars($stat3_label) ?></div>
             </div>
+            <?php endif; ?>
+            <?php if ($stat4_number !== ''): ?>
             <div class="card stats-card" style="padding: 28px; text-align: center;">
               <div class="stats-number" style="font-size: 36px; font-weight: 700; color: var(--primary); margin-bottom: 4px;"><?= htmlspecialchars($stat4_number) ?></div>
               <div class="stats-label" style="font-size: 14px; color: var(--text-secondary);"><?= htmlspecialchars($stat4_label) ?></div>
             </div>
+            <?php endif; ?>
           </div>
         </div>
+        <?php endif; ?>
       </div>
     </div>
   </section>
 
+  <section class="section">
+    <div class="container" style="max-width:800px">
+      <h2 class="section-title">Mission</h2>
+      <p style="color:var(--text-secondary);line-height:1.7;margin-bottom:16px">Make it realistic for a small business to run an online store: catalogue, orders, and supported checkout in one place.</p>
+      <h2 class="section-title">Vision</h2>
+      <p style="color:var(--text-secondary);line-height:1.7;margin-bottom:16px">A marketplace where independent sellers can be found, paid, and managed without pretending the platform is bigger than it is.</p>
+      <h2 class="section-title">Who we serve</h2>
+      <p style="color:var(--text-secondary);line-height:1.7">Sellers who need a storefront, buyers who want to purchase from those stores, and the operators who moderate the platform. If that matches you, start from <a href="register.php">create an account</a> or <a href="contact.php">contact us</a>.</p>
+    </div>
+  </section>
+
+  <?php if (!empty($team_members)): ?>
   <section class="section gradient-bg">
     <div class="container">
       <div class="section-header reveal">
@@ -571,6 +568,7 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
       </div>
     </div>
   </section>
+  <?php endif; ?>
 
   <!-- FOOTER (glassmorphic) -->
   <footer class="footer footer-glass" id="footer"></footer>
@@ -806,10 +804,7 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
     function acceptCookies() { localStorage.setItem(COOKIE_CONSENT_KEY, 'true'); cookieBanner.classList.remove('visible'); }
     if (acceptBtn) acceptBtn.addEventListener('click', acceptCookies);
 
-    // Preloader fade out
     window.addEventListener('load', () => {
-      const preloader = document.getElementById('preloader');
-      if (preloader) setTimeout(() => preloader.classList.add('fade-out'), 400);
       showCookieBanner();
     });
 
@@ -866,5 +861,6 @@ $stat4_label = $content['stat4_label'] ?? 'Uptime';
       document.body.appendChild(themeToggle);
     });
   </script>
+  <script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

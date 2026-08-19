@@ -176,6 +176,7 @@ function filterUrl($cat, $storeId, $search) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <?php require __DIR__ . '/includes/adsense_head.php'; ?>
     <title><?= htmlspecialchars($store['store_name']) ?> – Official Store</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -632,5 +633,7 @@ function filterUrl($cat, $storeId, $search) {
 
     updateCartUI();
 </script>
+<div id="rdv-cookie-root"></div>
+<script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

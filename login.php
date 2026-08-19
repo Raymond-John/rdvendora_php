@@ -16,12 +16,14 @@ unset($_SESSION['login_error'], $_SESSION['login_success']);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <?php require __DIR__ . '/includes/adsense_head.php'; ?>
   <title>Log In - RD Vendora</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/auth.css">
   <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/public-extras.css">
   <link rel="stylesheet" href="assets/css/responsive.css">
   <style>
     /* ========== YOUR COMPLETE ORIGINAL CSS (keep exactly as you had) ========== */
@@ -887,5 +889,6 @@ unset($_SESSION['login_error'], $_SESSION['login_success']);
         </div>`;
     })();
   </script>
+  <script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

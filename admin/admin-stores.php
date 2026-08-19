@@ -357,8 +357,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
         $stmt->close();
     }
     
-    $filterParam = isset($_GET['filter']) ? '&filter=' . urlencode($_GET['filter']) : '';
-    header("Location: admin-stores.php?message=" . urlencode($message) . "&type=" . $type . $filterParam);
+    $redirectQs = http_build_query(array_filter([
+        'message' => $message,
+        'type' => $type,
+        'filter' => $_GET['filter'] ?? '',
+        'q' => $_GET['q'] ?? '',
+        'page' => $_GET['page'] ?? '',
+    ], static function ($v) {
+        return $v !== '' && $v !== null;
+    }));
+    header('Location: admin-stores.php' . ($redirectQs !== '' ? '?' . $redirectQs : ''));
     exit;
 }
 
@@ -366,30 +374,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
 $message = isset($_GET['message']) ? $_GET['message'] : '';
 $messageType = isset($_GET['type']) ? $_GET['type'] : '';
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$searchQ = trim((string) ($_GET['q'] ?? ''));
+$perPage = 12;
+$page = max(1, (int) ($_GET['page'] ?? 1));
 
-// Build WHERE clause for filters
-$whereClause = "";
+$userCols = [];
+$colResult = $conn->query('SHOW COLUMNS FROM users');
+if ($colResult) {
+    while ($col = $colResult->fetch_assoc()) {
+        $userCols[$col['Field']] = true;
+    }
+}
+$ownerNameParts = [];
+foreach (['fullname', 'full_name', 'name', 'username'] as $candidate) {
+    if (!empty($userCols[$candidate])) {
+        $ownerNameParts[] = "NULLIF(u.$candidate, '')";
+    }
+}
+$ownerNameExpr = $ownerNameParts
+    ? ('COALESCE(' . implode(', ', $ownerNameParts) . ", u.email, 'Unknown')")
+    : "COALESCE(u.email, 'Unknown')";
+$ownerSearchParts = ['s.store_name', 's.store_slug', 'u.email'];
+foreach (['fullname', 'full_name', 'name', 'username'] as $candidate) {
+    if (!empty($userCols[$candidate])) {
+        $ownerSearchParts[] = "u.$candidate";
+    }
+}
+
+$conditions = [];
 if ($filter === 'pending') {
-    $whereClause = "WHERE s.status = 'pending'";
+    $conditions[] = "s.status = 'pending'";
 } elseif ($filter === 'active') {
-    $whereClause = "WHERE s.status = 'active'";
+    $conditions[] = "s.status = 'active'";
 } elseif ($filter === 'inactive') {
-    $whereClause = "WHERE s.status = 'inactive'";
+    $conditions[] = "s.status = 'inactive'";
 } elseif ($filter === 'expired') {
-    // Expired filter: stores with no active subscription AND (subscription status='expired' OR end_date <= today)
-    $whereClause = "WHERE s.status = 'active' AND NOT EXISTS (
+    $conditions[] = "s.status = 'active' AND NOT EXISTS (
         SELECT 1 FROM subscriptions WHERE user_id = s.user_id AND status = 'active' AND end_date > NOW()
     ) AND EXISTS (
         SELECT 1 FROM subscriptions WHERE user_id = s.user_id AND (status = 'expired' OR (status = 'active' AND DATE(end_date) <= CURDATE())) AND status != 'cancelled'
     )";
 } elseif ($filter === 'no_subscription') {
-    $whereClause = "WHERE s.id NOT IN (SELECT user_id FROM subscriptions WHERE status = 'active' AND end_date > NOW()) AND NOT EXISTS (SELECT 1 FROM subscriptions WHERE user_id = s.user_id AND (status = 'expired' OR (status = 'active' AND DATE(end_date) <= CURDATE())))";
+    $conditions[] = "s.id NOT IN (SELECT user_id FROM subscriptions WHERE status = 'active' AND end_date > NOW()) AND NOT EXISTS (SELECT 1 FROM subscriptions WHERE user_id = s.user_id AND (status = 'expired' OR (status = 'active' AND DATE(end_date) <= CURDATE())))";
 } elseif ($filter === 'trial_expiring') {
-    $whereClause = "WHERE s.id IN (
-        SELECT user_id FROM subscriptions 
+    $conditions[] = "s.id IN (
+        SELECT user_id FROM subscriptions
         WHERE plan = 'Launch' AND status = 'active' AND end_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 3 DAY)
     )";
 }
+
+if ($searchQ !== '') {
+    $like = '%' . $conn->real_escape_string($searchQ) . '%';
+    $conditions[] = '(' . implode(' OR ', array_map(static function ($col) use ($like) {
+        return "$col LIKE '$like'";
+    }, $ownerSearchParts)) . ')';
+}
+
+$whereClause = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+
+$storesListQs = static function (array $extra = []) use ($filter, $searchQ) {
+    $params = array_merge(['filter' => $filter, 'q' => $searchQ], $extra);
+    $params = array_filter($params, static function ($v) {
+        return $v !== '' && $v !== null;
+    });
+    return '?' . http_build_query($params);
+};
+
+$countResult = $conn->query("SELECT COUNT(*) AS total FROM stores s LEFT JOIN users u ON s.user_id = u.id $whereClause");
+$totalStores = $countResult ? (int) ($countResult->fetch_assoc()['total'] ?? 0) : 0;
+$totalPages = max(1, (int) ceil($totalStores / $perPage));
+if ($page > $totalPages) {
+    $page = $totalPages;
+}
+$offset = ($page - 1) * $perPage;
 
 // ========== QUERY WITH DATE-BASED EXPIRED DETECTION ==========
 $stores = [];
@@ -397,7 +454,7 @@ $query = "
     SELECT 
         s.*,
         u.email as owner_email,
-        u.full_name as owner_name,
+        $ownerNameExpr as owner_name,
         -- Active subscription details using correlated subqueries (per store)
         (SELECT plan FROM subscriptions WHERE user_id = s.user_id AND status = 'active' AND end_date > NOW() ORDER BY id DESC LIMIT 1) as subscription_plan,
         (SELECT end_date FROM subscriptions WHERE user_id = s.user_id AND status = 'active' AND end_date > NOW() ORDER BY id DESC LIMIT 1) as subscription_end_date,
@@ -420,6 +477,7 @@ $query = "
     LEFT JOIN users u ON s.user_id = u.id
     $whereClause
     ORDER BY s.created_at DESC
+    LIMIT $perPage OFFSET $offset
 ";
 
 $result = $conn->query($query);
@@ -432,6 +490,10 @@ if ($result) {
         $prodCount = $prodStmt->get_result()->fetch_assoc();
         $row['product_count'] = $prodCount['count'] ?? 0;
         $prodStmt->close();
+
+        if (trim((string) ($row['owner_name'] ?? '')) === '') {
+            $row['owner_name'] = $row['owner_email'] ?: 'Unknown';
+        }
         
         // Calculate trial remaining days if applicable
         $row['trial_remaining_days'] = null;
@@ -459,588 +521,175 @@ if ($result) {
         $stores[] = $row;
     }
 }
-$conn->close();
+
+$adminPageTitle = 'Stores - RD Vendora Admin';
+$adminPageHeading = 'Stores';
+$adminPageSubtitle = $totalStores . ' store' . ($totalStores === 1 ? '' : 's') . ' · page ' . $page . ' of ' . $totalPages;
+$adminSearchPlaceholder = 'Search stores...';
+$adminShowHeader = true;
+$adminPageStyles = <<<'CSS'
+.filter-tabs {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0 2rem 1.25rem;
+}
+.filter-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.filter-btn.active, .filter-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.view-toggle {
+    display: inline-flex;
+    gap: 0.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    padding: 0.2rem;
+}
+.view-toggle button {
+    width: 34px; height: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    background: transparent;
+}
+.view-toggle button.active { background: var(--primary); color: #fff; }
+.stores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    padding: 0 2rem 1.5rem;
+}
+.store-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+.store-card .card-header {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    padding: 1.1rem 1.2rem 0.85rem;
+}
+.store-avatar {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.15rem;
+    flex-shrink: 0;
+}
+.store-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+}
+.store-slug { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+.store-card .card-body { padding: 0.4rem 1.2rem 1rem; flex: 1; }
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border-primary);
+    font-size: 0.82rem;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--text-muted); font-weight: 600; min-width: 90px; }
+.store-card .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.9rem 1.2rem 1.15rem;
+    border-top: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+}
+.admin-app .stores-grid .btn-sm,
+.admin-app .stores-grid button[type="submit"].btn-sm {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-primary);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+}
+.admin-app .stores-grid .btn-sm:hover { background: var(--primary-light); color: var(--primary); }
+.admin-app .stores-grid .btn-approve { background: var(--success-light); color: var(--success); border-color: transparent; }
+.admin-app .stores-grid .btn-suspend { background: var(--warning-light); color: #b45309; border-color: transparent; }
+.admin-app .stores-grid .btn-disable { background: var(--bg-secondary); }
+.admin-app .stores-grid .btn-delete,
+.admin-app .stores-grid .btn-delete:hover { background: var(--error-light); color: var(--error); }
+.admin-app .stores-grid .btn-email { background: #e0f2fe; color: #0369a1; }
+.admin-app .stores-grid .btn-email.sent { opacity: 0.8; }
+.badge-pending { background: var(--warning-light); color: #b45309; }
+.badge-expired { background: var(--error-light); color: var(--error); }
+.badge-warning { background: var(--warning-light); color: #b45309; }
+.stores-grid.list-view { grid-template-columns: 1fr; }
+.stores-grid.list-view .store-card {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) 1fr auto;
+    align-items: stretch;
+}
+.stores-grid.list-view .card-actions { border-top: none; border-left: 1px solid var(--border-primary); max-width: 280px; }
+.stores-grid.list-view .card-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0 1rem; }
+.stores-grid.list-view .info-row { border-bottom: none; flex-direction: column; gap: 0.2rem; }
+.modal-footer { padding: 0.85rem 1.25rem 1.15rem; border-top: 1px solid var(--border-primary); text-align: right; }
+.stores-meta { padding: 0 2rem 0.75rem; font-size: 0.8rem; color: var(--text-muted); }
+@media (max-width: 900px) {
+    .stores-grid.list-view .store-card { grid-template-columns: 1fr; }
+    .stores-grid.list-view .card-actions { border-left: none; border-top: 1px solid var(--border-primary); max-width: none; }
+}
+CSS;
+require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stores - RD Vendora Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* ====== ALL STYLES (complete) ====== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #eef2ff;
-            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --border-primary: #e2e8f0;
-            --border-secondary: #cbd5e1;
-            --success: #10b981;
-            --success-light: #d1fae5;
-            --warning: #f59e0b;
-            --warning-light: #fef3c7;
-            --error: #ef4444;
-            --error-light: #fee2e2;
-            --info: #3b82f6;
-            --info-light: #dbeafe;
-            --radius-sm: 0.375rem;
-            --radius: 0.5rem;
-            --radius-lg: 0.75rem;
-            --radius-xl: 1rem;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --transition: all 0.3s ease;
-            --sidebar-width: 260px;
-            --sidebar-collapsed: 72px;
-            --topbar-height: 64px;
-            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        [data-theme="dark"] {
-            --bg-primary: #0c0e14;
-            --bg-secondary: #14161f;
-            --bg-tertiary: #1a1d28;
-            --text-primary: #e8eaf0;
-            --text-secondary: #9ca3b0;
-            --text-muted: #6b7280;
-            --border-primary: #2d3139;
-            --border-secondary: #3a3f4a;
-            --primary-light: rgba(99,102,241,0.15);
-            --success-light: #064e3b;
-            --warning-light: #451a03;
-            --error-light: #7f1d1d;
-            --info-light: #1e3a8a;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-            --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.4), 0 2px 4px 0 rgb(0 0 0 / 0.3);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-        }
-        body {
-            font-family: var(--font-sans);
-            font-size: 0.9375rem;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.5;
-            transition: background 0.2s, color 0.2s;
-            overflow-x: hidden;
-        }
-        a { text-decoration: none; color: inherit; }
-        button { cursor: pointer; border: none; background: none; }
-        .sidebar {
-            position: fixed; left:0; top:0; bottom:0;
-            width: var(--sidebar-width);
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-primary);
-            display: flex; flex-direction: column;
-            z-index: 300;
-            transition: width var(--transition), transform var(--transition);
-            overflow: hidden;
-        }
-        .sidebar.collapsed { width: var(--sidebar-collapsed); }
-        .sidebar-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 1rem 1.25rem;
-            height: var(--topbar-height);
-            border-bottom: 1px solid var(--border-primary);
-        }
-        .nav-logo {
-            display: flex; align-items: center; gap: 0.75rem;
-            font-weight: 800; font-size: 1.125rem;
-            white-space: nowrap;
-        }
-        .nav-logo-icon {
-            width: 32px; height: 32px;
-            background: var(--gradient-primary);
-            border-radius: var(--radius);
-            display: flex; align-items: center; justify-content: center;
-            color: white;
-        }
-        .sidebar-toggle {
-            width: 28px; height: 28px;
-            border-radius: var(--radius);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--text-muted);
-        }
-        .sidebar-toggle:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-        .sidebar-menu {
-            flex: 1; overflow-y: auto; padding: 1rem 0.75rem;
-        }
-        .sidebar-section-title {
-            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-            color: var(--text-muted); padding: 0.5rem 1rem; letter-spacing: 0.5px;
-        }
-        .sidebar-item {
-            display: flex; align-items: center; gap: 0.75rem;
-            padding: 0.6rem 1rem; border-radius: var(--radius);
-            color: var(--text-secondary); font-size: 0.875rem; font-weight: 500;
-            transition: var(--transition); margin-bottom: 2px;
-            cursor: pointer;
-        }
-        .sidebar-item:hover, .sidebar-item.active {
-            background: var(--primary-light); color: var(--primary);
-        }
-        .sidebar.collapsed .sidebar-item span,
-        .sidebar.collapsed .sidebar-section-title,
-        .sidebar.collapsed .nav-logo span {
-            opacity: 0; width: 0; overflow: hidden;
-        }
-        .main-content {
-            margin-left: var(--sidebar-width);
-            transition: margin-left var(--transition);
-            min-height: 100vh;
-        }
-        .sidebar.collapsed ~ .main-content { margin-left: var(--sidebar-collapsed); }
-        .dash-navbar {
-            position: fixed; top:0; right:0; left: var(--sidebar-width);
-            height: var(--topbar-height);
-            background: var(--bg-secondary);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-primary);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2rem;
-            z-index: 200;
-            transition: left var(--transition);
-        }
-        .dash-search {
-            display: flex; align-items: center; gap: 0.5rem;
-            background: var(--bg-tertiary);
-            padding: 0.4rem 1rem;
-            border-radius: var(--radius-lg);
-            width: 280px;
-        }
-        .dash-search input {
-            background: none; border: none; outline: none;
-            font-size: 0.875rem;
-            width: 100%;
-            color: var(--text-primary);
-        }
-        .dash-actions { display: flex; align-items: center; gap: 1rem; }
-        .dash-btn {
-            width: 38px; height: 38px;
-            border-radius: var(--radius);
-            display: flex; align-items: center; justify-content: center;
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-        }
-        .dash-user {
-            display: flex; align-items: center; gap: 0.75rem;
-            padding: 0.25rem 0.5rem 0.25rem 0.25rem;
-            border-radius: var(--radius-lg);
-            cursor: pointer;
-        }
-        .dash-user img {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .dash-user-info .name { font-size: 0.875rem; font-weight: 500; }
-        .dash-user-info .role { font-size: 0.7rem; color: var(--text-muted); }
-        .dropdown { position: relative; }
-        .dropdown-menu {
-            position: absolute; top: calc(100% + 8px); right: 0;
-            min-width: 180px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-primary);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            opacity: 0; pointer-events: none; transform: translateY(-8px);
-            transition: var(--transition);
-        }
-        .dropdown.open .dropdown-menu { opacity: 1; pointer-events: all; transform: translateY(0); }
-        .dropdown-item {
-            display: flex; align-items: center; gap: 0.5rem;
-            padding: 0.75rem 1rem; font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-        .dropdown-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-        .page-header {
-            padding: 1.5rem 2rem 0.5rem 2rem;
-            margin-top: var(--topbar-height);
-        }
-        .page-title {
-            font-size: 1.875rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-        .alert {
-            margin: 1rem 2rem 0;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-lg);
-            font-size: 0.875rem;
-        }
-        .alert-success { background: var(--success-light); color: #10b981; border: 1px solid var(--border-primary); }
-        .alert-error { background: var(--error-light); color: #ef4444; border: 1px solid var(--border-primary); }
-        .alert-warning { background: var(--warning-light); color: #f59e0b; border: 1px solid var(--border-primary); }
-        .filter-tabs {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 1rem 2rem 0;
-            flex-wrap: wrap;
-        }
-        .filter-tabs .filter-group {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            flex: 1;
-        }
-        .filter-tabs .view-toggle {
-            display: flex;
-            gap: 0.25rem;
-            background: var(--bg-tertiary);
-            padding: 0.25rem;
-            border-radius: var(--radius-lg);
-            margin-left: auto;
-        }
-        .filter-tabs .view-toggle button {
-            padding: 0.4rem 0.7rem;
-            border-radius: var(--radius);
-            font-size: 0.8rem;
-            background: transparent;
-            color: var(--text-secondary);
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
-        }
-        .filter-tabs .view-toggle button.active {
-            background: var(--bg-secondary);
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-        }
-        .filter-tabs .view-toggle button:hover:not(.active) {
-            background: var(--bg-hover);
-        }
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            transition: var(--transition);
-            text-decoration: none;
-            display: inline-block;
-        }
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-        .filter-btn:hover { background: var(--primary-light); color: var(--primary); }
-        .stores-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 1.5rem;
-            margin: 1.5rem 2rem;
-            transition: all 0.3s ease;
-        }
-        .stores-grid.list-view {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .stores-grid.list-view .store-card {
-            display: flex;
-            flex-direction: row;
-            align-items: stretch;
-            width: 100%;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-        .stores-grid.list-view .store-card .card-header {
-            flex: 0 0 250px;
-            border-bottom: none;
-            border-right: 1px solid var(--border-primary);
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .stores-grid.list-view .store-card .card-body {
-            flex: 1;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem 1.5rem;
-            padding: 1rem 1.25rem;
-            border: none;
-        }
-        .stores-grid.list-view .store-card .card-body .info-row {
-            flex: 0 0 auto;
-            margin-bottom: 0;
-            border: none;
-            padding: 0;
-        }
-        .stores-grid.list-view .store-card .card-actions {
-            flex: 0 0 auto;
-            border-top: none;
-            border-left: 1px solid var(--border-primary);
-            padding: 1rem 1.25rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 0.5rem;
-            min-width: 140px;
-        }
-        .stores-grid.list-view .store-card .card-actions .btn-sm {
-            width: 100%;
-        }
-        .stores-grid.list-view .store-card .store-avatar {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-        .stores-grid.list-view .store-card .store-info h3 {
-            font-size: 0.95rem;
-        }
-        @media (max-width: 768px) {
-            .stores-grid.list-view .store-card {
-                flex-direction: column;
-            }
-            .stores-grid.list-view .store-card .card-header {
-                flex: none;
-                border-right: none;
-                border-bottom: 1px solid var(--border-primary);
-            }
-            .stores-grid.list-view .store-card .card-body {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .stores-grid.list-view .store-card .card-actions {
-                flex-direction: row;
-                flex-wrap: wrap;
-                border-left: none;
-                border-top: 1px solid var(--border-primary);
-                justify-content: flex-start;
-            }
-            .stores-grid.list-view .store-card .card-actions .btn-sm {
-                width: auto;
-            }
-            .filter-tabs .view-toggle {
-                margin-left: 0;
-                width: 100%;
-                justify-content: center;
-            }
-            .filter-tabs {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-        .store-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-primary);
-            border-radius: var(--radius-xl);
-            transition: all 0.2s;
-            overflow: hidden;
-        }
-        .store-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        .card-header {
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border-bottom: 1px solid var(--border-primary);
-        }
-        .store-avatar {
-            width: 48px; height: 48px;
-            background: var(--gradient-primary);
-            border-radius: 1rem;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; font-weight: 700; color: white; flex-shrink: 0;
-        }
-        .store-info h3 { font-size: 1rem; font-weight: 700; }
-        .store-slug { font-size: 0.7rem; color: var(--text-muted); }
-        .card-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; }
-        .info-label { color: var(--text-muted); }
-        .badge {
-            padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600;
-        }
-        .badge-active { background: var(--success-light); color: #10b981; }
-        .badge-pending { background: var(--warning-light); color: #f59e0b; }
-        .badge-inactive { background: var(--error-light); color: #ef4444; }
-        .badge-expired { background: var(--error-light); color: #dc2626; }
-        .badge-warning { background: var(--warning-light); color: #f59e0b; }
-        .badge-info { background: var(--info-light); color: #3b82f6; }
-        .card-actions {
-            padding: 1rem 1.25rem; border-top: 1px solid var(--border-primary);
-            display: flex; gap: 0.5rem; flex-wrap: wrap;
-        }
-        .btn-sm {
-            padding: 0.375rem 1rem; border-radius: var(--radius);
-            font-size: 0.75rem; font-weight: 500;
-            background: var(--bg-tertiary); color: var(--text-secondary);
-            transition: var(--transition); cursor: pointer; border: none;
-        }
-        .btn-sm:hover { background: var(--primary); color: white; transform: translateY(-1px); }
-        .btn-approve { background: var(--success-light); color: #10b981; }
-        .btn-approve:hover { background: #10b981; color: white; }
-        .btn-disable { background: var(--warning-light); color: #f59e0b; }
-        .btn-disable:hover { background: #f59e0b; color: white; }
-        .btn-suspend { background: var(--error-light); color: #ef4444; }
-        .btn-suspend:hover { background: #ef4444; color: white; }
-        .btn-delete { background: var(--error-light); color: #ef4444; }
-        .btn-delete:hover { background: #dc2626; color: white; }
-        .btn-email { background: var(--info-light); color: #3b82f6; }
-        .btn-email:hover { background: #3b82f6; color: white; }
-        .btn-email.sent { background: var(--success-light); color: #10b981; }
-        .btn-email.sent:hover { background: #10b981; color: white; }
-        .modal-overlay {
-            position: fixed; inset:0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
-            visibility: hidden; opacity: 0; transition: var(--transition);
-        }
-        .modal-overlay.active { visibility: visible; opacity: 1; }
-        .modal-container {
-            background: var(--bg-secondary); border-radius: var(--radius-xl);
-            max-width: 500px; width: 90%; padding: 1.5rem;
-            box-shadow: var(--shadow-lg); transform: scale(0.95);
-            transition: transform var(--transition);
-        }
-        .modal-overlay.active .modal-container { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .modal-title { font-size: 1.25rem; font-weight: 700; }
-        .modal-close { cursor: pointer; font-size: 1.5rem; line-height: 1; color: var(--text-muted); }
-        .modal-body { margin-bottom: 1.5rem; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
-        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
-        .mobile-sidebar-toggle { display: none; }
-        .sidebar-overlay {
-            position: fixed; inset:0; background: rgba(0,0,0,0.5);
-            z-index:299; display: none; backdrop-filter: blur(4px);
-        }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: var(--sidebar-width); }
-            .sidebar.mobile-open { transform: translateX(0); }
-            .main-content { margin-left: 0 !important; }
-            .dash-navbar { left: 0; padding: 0 1rem; }
-            .dash-search { width: 200px; }
-            .mobile-sidebar-toggle { display: flex; }
-            .filter-tabs, .alert { margin: 1rem; }
-            .stores-grid { margin: 1rem; grid-template-columns: 1fr; }
-            .page-header { padding: 1rem; }
-            .stores-grid.list-view .store-card .card-header {
-                flex: none; border-right: none; border-bottom: 1px solid var(--border-primary);
-            }
-            .stores-grid.list-view .store-card .card-body {
-                flex-direction: column; align-items: stretch;
-            }
-            .stores-grid.list-view .store-card .card-actions {
-                flex-direction: row; flex-wrap: wrap;
-                border-left: none; border-top: 1px solid var(--border-primary);
-                justify-content: flex-start;
-            }
-            .stores-grid.list-view .store-card .card-actions .btn-sm {
-                width: auto;
-            }
-            .filter-tabs .view-toggle {
-                margin-left: 0; width: 100%; justify-content: center;
-            }
-            .filter-tabs { flex-direction: column; align-items: stretch; }
-        }
-    </style>
-</head>
-<body>
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <a href="../index.php" class="nav-logo">
-            <div class="nav-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
-            <span>RD Vendora</span>
-        </a>
-        <button class="sidebar-toggle" id="sidebarToggle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg></button>
-    </div>
-    <nav class="sidebar-menu">
-        <div class="sidebar-section-title">Platform</div>
-        <a href="admin.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
-        <a href="admin-users.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Users</span></a>
-        <a href="admin-stores.php" class="sidebar-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Stores</span></a>
-        <a href="admin-pricing.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Pricing Plans</span></a>
-        <a href="admin-testimonies.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>Testimonials</span></a>
-        <a href="admin-contacts.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Contact Messages</span></a>
-        <a href="admin-about.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>About Page</span></a>
-        <a href="admin-chat.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>Chat</span></a>
-        <a href="admin-receive-order.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span>All Orders</span></a>
-        <a href="admin-transport.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span>Transport Orders</span></a>
-        <div class="sidebar-section-title">System</div>
-        <a href="../dashboard.php" class="sidebar-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Back to Store</span></a>
-        <a href="#" class="sidebar-item" onclick="logout()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a>
-    </nav>
-</div>
-
-<div class="main-content">
-    <header class="dash-navbar">
-        <button class="dash-btn mobile-sidebar-toggle" id="mobileSidebarToggle"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-        <div class="dash-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="searchInput" placeholder="Search store or owner..."></div>
-        <div class="dash-actions">
-            <button class="theme-toggle dash-btn" id="themeToggle">🌙</button>
-            <div class="dropdown" id="userDropdown">
-                <div class="dash-user dropdown-trigger"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%236366f1'/%3E%3Ctext x='50' y='67' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E" alt="Admin"><div class="dash-user-info"><div class="name">Platform Admin</div><div class="role">Super Admin</div></div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg></div>
-                <div class="dropdown-menu"><a href="#" class="dropdown-item" onclick="logout()">Logout</a></div>
-            </div>
-        </div>
-    </header>
-
-    <div class="page-header">
-        <h1 class="page-title">Stores</h1>
-        <p class="page-subtitle">Manage all stores on the RD Vendora platform</p>
-    </div>
-
-    <?php if ($message): ?>
+<?php if ($message): ?>
         <div class="alert alert-<?= htmlspecialchars($messageType) === 'error' ? 'error' : (htmlspecialchars($messageType) === 'warning' ? 'warning' : 'success') ?>">
             <?= htmlspecialchars($message) ?>
         </div>
     <?php endif; ?>
 
-    <!-- DEBUG: Show how many expired subscriptions were updated -->
-    <div style="background: #e0f2fe; padding: 8px 16px; margin: 0 2rem; border-radius: 8px; font-size: 0.9rem; color: #0369a1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <span>🔄 <strong><?= $updatedCount ?></strong> expired subscription(s) updated.</span>
-        <span style="font-size: 0.8rem; color: #0284c7;">(Debug message – you can remove this later.)</span>
-    </div>
-
     <div class="filter-tabs">
         <div class="filter-group">
-            <a href="?filter=all" class="filter-btn <?= $filter === 'all' ? 'active' : '' ?>">All Stores</a>
-            <a href="?filter=pending" class="filter-btn <?= $filter === 'pending' ? 'active' : '' ?>">Pending Approval</a>
-            <a href="?filter=active" class="filter-btn <?= $filter === 'active' ? 'active' : '' ?>">Active</a>
-            <a href="?filter=inactive" class="filter-btn <?= $filter === 'inactive' ? 'active' : '' ?>">Disabled</a>
-            <a href="?filter=expired" class="filter-btn <?= $filter === 'expired' ? 'active' : '' ?>">⚠️ Expired</a>
-            <a href="?filter=no_subscription" class="filter-btn <?= $filter === 'no_subscription' ? 'active' : '' ?>">No Active Subscription</a>
-            <a href="?filter=trial_expiring" class="filter-btn <?= $filter === 'trial_expiring' ? 'active' : '' ?>">Trial Expiring (≤3 days)</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'all', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'all' ? 'active' : '' ?>">All Stores</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'pending', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'pending' ? 'active' : '' ?>">Pending Approval</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'active', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'active' ? 'active' : '' ?>">Active</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'inactive', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'inactive' ? 'active' : '' ?>">Disabled</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'expired', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'expired' ? 'active' : '' ?>">Expired</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'no_subscription', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'no_subscription' ? 'active' : '' ?>">No Active Subscription</a>
+            <a href="<?= htmlspecialchars($storesListQs(['filter' => 'trial_expiring', 'page' => 1])) ?>" class="filter-btn <?= $filter === 'trial_expiring' ? 'active' : '' ?>">Trial Expiring (≤3 days)</a>
         </div>
-        <!-- View Toggle -->
         <div class="view-toggle" id="viewToggle">
-            <button class="active" data-view="grid" title="Grid View">
+            <button type="button" class="active" data-view="grid" title="Grid View">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             </button>
-            <button data-view="list" title="List View">
+            <button type="button" data-view="list" title="List View">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             </button>
         </div>
     </div>
+    <div class="stores-meta">Showing <?= count($stores) ?> of <?= number_format($totalStores) ?> stores</div>
 
     <?php if (empty($stores)): ?>
-        <div class="empty-state">🏪 No stores found matching the filter.</div>
+        <div class="empty-state">No stores found matching this filter<?= $searchQ !== '' ? ' or search' : '' ?>.</div>
     <?php else: ?>
         <div class="stores-grid" id="storesGrid">
             <?php foreach ($stores as $store): 
@@ -1113,122 +762,75 @@ $conn->close();
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php if ($totalPages > 1): ?>
+        <div class="pagination">
+            <?php if ($page > 1): ?>
+                <a class="page-btn" href="<?= htmlspecialchars($storesListQs(['page' => $page - 1])) ?>">Previous</a>
+            <?php endif; ?>
+            <?php
+            $window = 2;
+            $started = false;
+            for ($i = 1; $i <= $totalPages; $i++):
+                $show = $i === 1 || $i === $totalPages || abs($i - $page) <= $window;
+                if (!$show) {
+                    if ($started) {
+                        echo '<span class="page-btn" style="pointer-events:none;opacity:.6">…</span>';
+                        $started = false;
+                    }
+                    continue;
+                }
+                $started = true;
+                if ($i === $page): ?>
+                    <span class="page-btn active"><?= $i ?></span>
+                <?php else: ?>
+                    <a class="page-btn" href="<?= htmlspecialchars($storesListQs(['page' => $i])) ?>"><?= $i ?></a>
+                <?php endif;
+            endfor; ?>
+            <?php if ($page < $totalPages): ?>
+                <a class="page-btn" href="<?= htmlspecialchars($storesListQs(['page' => $page + 1])) ?>">Next</a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     <?php endif; ?>
-</div>
 
-<!-- Modal -->
 <div id="storeModal" class="modal-overlay">
     <div class="modal-container">
-        <div class="modal-header"><h3 class="modal-title">Store Details</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+        <div class="modal-header"><h3 class="modal-title">Store Details</h3><button type="button" class="modal-close" onclick="closeModal()">&times;</button></div>
         <div class="modal-body" id="modalBody"></div>
-        <div class="modal-footer"><button class="btn-sm" onclick="closeModal()">Close</button></div>
+        <div class="modal-footer"><button type="button" class="btn-sm" onclick="closeModal()">Close</button></div>
     </div>
 </div>
-
+<?php
+$adminSearchQJson = json_encode($searchQ, JSON_UNESCAPED_UNICODE);
+$adminFooterScripts = <<<JS
 <script>
-    // Dark mode toggle
-    (function() {
-        const html = document.documentElement;
-        const themeBtn = document.getElementById('themeToggle');
-        if (!themeBtn) return;
-        
-        const savedTheme = localStorage.getItem('RD Vendora_admin_theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
-        themeBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
-        
-        themeBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const current = html.getAttribute('data-theme');
-            const newTheme = current === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('RD Vendora_admin_theme', newTheme);
-            themeBtn.textContent = newTheme === 'light' ? '🌙' : '☀️';
-        });
-    })();
-
-    // View Toggle (Grid / List)
-    (function() {
-        const container = document.getElementById('storesGrid');
-        if (!container) return;
-        const buttons = document.querySelectorAll('#viewToggle button');
-        const viewKey = 'admin_stores_view';
-
-        // Load saved preference
-        const savedView = localStorage.getItem(viewKey) || 'grid';
-        setView(savedView);
-
-        buttons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const view = this.dataset.view;
-                setView(view);
-                localStorage.setItem(viewKey, view);
-            });
-        });
-
-        function setView(view) {
-            buttons.forEach(b => b.classList.toggle('active', b.dataset.view === view));
-            container.classList.toggle('list-view', view === 'list');
-        }
-    })();
-
-    function confirmDeleteStore(storeName) {
-        const confirmation = prompt(`⚠️ PERMANENT DELETION ⚠️\n\nStore: "${storeName}"\nThis will delete ALL products, orders, and order items for this store.\nThis action CANNOT be undone.\n\nType "DELETE" to confirm:`);
-        if (confirmation !== 'DELETE') {
-            alert('Deletion cancelled.');
-            return false;
-        }
-        return true;
-    }
-
-    // Sidebar
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mobileToggle = document.getElementById('mobileSidebarToggle');
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-    function closeMobile() { sidebar.classList.remove('mobile-open'); overlay.style.display = 'none'; document.body.style.overflow = ''; }
-    function openMobile() { sidebar.classList.add('mobile-open'); overlay.style.display = 'block'; document.body.style.overflow = 'hidden'; }
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 768) { if (sidebar.classList.contains('mobile-open')) closeMobile(); else openMobile(); }
-            else sidebar.classList.toggle('collapsed');
-        });
-    }
-    if (mobileToggle) mobileToggle.addEventListener('click', openMobile);
-    overlay.addEventListener('click', closeMobile);
-    window.addEventListener('resize', () => { if (window.innerWidth > 768) { closeMobile(); sidebar.classList.remove('collapsed'); } });
-
-    // Dropdown
-    const userDD = document.getElementById('userDropdown');
-    if (userDD) {
-        const trigger = userDD.querySelector('.dropdown-trigger');
-        trigger.addEventListener('click', (e) => { e.stopPropagation(); userDD.classList.toggle('open'); });
-        document.addEventListener('click', () => userDD.classList.remove('open'));
-    }
-
-    // Search
-    const searchInput = document.getElementById('searchInput');
-    const cards = document.querySelectorAll('.store-card');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const term = this.value.toLowerCase();
-            cards.forEach(card => {
-                const storeName = card.getAttribute('data-store-name') || '';
-                const ownerName = card.getAttribute('data-owner-name') || '';
-                card.style.display = (storeName.includes(term) || ownerName.includes(term)) ? '' : 'none';
-            });
-        });
-    }
-
-    // Modal
+(function () {
+    const searchInput = document.getElementById('adminSearchInput');
+    const grid = document.getElementById('storesGrid');
+    const toggle = document.getElementById('viewToggle');
     const modal = document.getElementById('storeModal');
-    function viewStoreDetails(store) {
+    const initialQ = {$adminSearchQJson};
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function (m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]); });
+    }
+
+    window.confirmDeleteStore = function (name) {
+        return confirm('Permanently delete "' + name + '" and all of its products/orders? This cannot be undone.');
+    };
+
+    window.closeModal = function () {
+        if (modal) modal.classList.remove('active');
+    };
+
+    window.viewStoreDetails = function (store) {
+        if (!modal) return;
         const modalBody = document.getElementById('modalBody');
-        const hasExpired = store.has_expired ? true : false;
+        const hasExpired = !!store.has_expired;
         let statusBadge = '';
         if (hasExpired) {
-            statusBadge = '<span class="badge badge-expired">⚠️ Expired</span>';
+            statusBadge = '<span class="badge badge-expired">Expired</span>';
         } else if (store.status === 'active') {
             statusBadge = '<span class="badge badge-active">Active</span>';
         } else if (store.status === 'pending') {
@@ -1236,42 +838,76 @@ $conn->close();
         } else {
             statusBadge = '<span class="badge badge-inactive">Disabled</span>';
         }
-        
         let trialInfo = '';
         if (store.subscription_plan === 'Launch' && store.trial_remaining_days !== null && store.trial_remaining_days > 0) {
-            trialInfo = `<div><strong>Trial Remaining:</strong> ${store.trial_remaining_days} day(s) (14‑day trial)</div>`;
+            trialInfo = '<div><strong>Trial Remaining:</strong> ' + store.trial_remaining_days + ' day(s) (14-day trial)</div>';
         } else if (store.subscription_plan === 'Launch') {
-            trialInfo = `<div><strong>Plan:</strong> 14‑day free trial</div>`;
+            trialInfo = '<div><strong>Plan:</strong> 14-day free trial</div>';
         }
-        
         let notificationInfo = '';
         if (hasExpired) {
-            notificationInfo = `<div><strong>Expiry Notification:</strong> ${store.notification_sent ? '✅ Sent' : '❌ Not sent'}</div>`;
+            notificationInfo = '<div><strong>Expiry Notification:</strong> ' + (store.notification_sent ? 'Sent' : 'Not sent') + '</div>';
         }
-        
-        modalBody.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <div><strong>Store Name:</strong> ${escapeHtml(store.store_name)}</div>
-                <div><strong>Owner:</strong> ${escapeHtml(store.owner_name || 'Unknown')} (${escapeHtml(store.owner_email || '')})</div>
-                <div><strong>Subdomain:</strong> ${escapeHtml(store.store_slug || 'store')}.RD Vendora.com</div>
-                <div><strong>Status:</strong> ${statusBadge}</div>
-                <div><strong>Subscription Plan:</strong> ${store.subscription_plan ? escapeHtml(store.subscription_plan) : 'No active plan'}</div>
-                <div><strong>Expiry Date:</strong> ${store.subscription_end_date ? new Date(store.subscription_end_date).toLocaleDateString() : '—'}</div>
-                ${trialInfo}
-                ${notificationInfo}
-                <div><strong>Products:</strong> ${store.product_count}</div>
-                <div><strong>Created:</strong> ${new Date(store.created_at).toLocaleDateString()}</div>
-            </div>
-            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-primary);">
-                <a href="storefront.php?store=${store.id}" target="_blank" class="btn-sm">Visit Store →</a>
-            </div>
-        `;
+        modalBody.innerHTML =
+            '<div style="display:flex;flex-direction:column;gap:0.75rem;">' +
+            '<div><strong>Store Name:</strong> ' + escapeHtml(store.store_name) + '</div>' +
+            '<div><strong>Owner:</strong> ' + escapeHtml(store.owner_name || 'Unknown') + ' (' + escapeHtml(store.owner_email || '') + ')</div>' +
+            '<div><strong>Subdomain:</strong> ' + escapeHtml(store.store_slug || 'store') + '.rdvendora.com</div>' +
+            '<div><strong>Status:</strong> ' + statusBadge + '</div>' +
+            '<div><strong>Subscription Plan:</strong> ' + (store.subscription_plan ? escapeHtml(store.subscription_plan) : 'No active plan') + '</div>' +
+            '<div><strong>Expiry Date:</strong> ' + (store.subscription_end_date ? new Date(store.subscription_end_date).toLocaleDateString() : '—') + '</div>' +
+            trialInfo + notificationInfo +
+            '<div><strong>Products:</strong> ' + (store.product_count || 0) + '</div>' +
+            '<div><strong>Created:</strong> ' + (store.created_at ? new Date(store.created_at).toLocaleDateString() : '—') + '</div>' +
+            '</div>';
         modal.classList.add('active');
+    };
+
+    if (modal) {
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) window.closeModal();
+        });
     }
-    function closeModal() { modal.classList.remove('active'); }
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-    function logout() { if(confirm('Logout from admin panel?')) window.location.href='../logout.php'; }
+
+    if (toggle && grid) {
+        const applyView = function (view) {
+            grid.classList.toggle('list-view', view === 'list');
+            toggle.querySelectorAll('button').forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+            });
+            try { localStorage.setItem('rdvAdminStoresView', view); } catch (e) {}
+        };
+        toggle.querySelectorAll('button').forEach(function (btn) {
+            btn.addEventListener('click', function () { applyView(btn.getAttribute('data-view')); });
+        });
+        let saved = 'grid';
+        try { saved = localStorage.getItem('rdvAdminStoresView') || 'grid'; } catch (e) {}
+        applyView(saved);
+    }
+
+    if (searchInput) {
+        searchInput.value = initialQ || '';
+        let timer = null;
+        const goSearch = function () {
+            const params = new URLSearchParams(window.location.search);
+            const q = searchInput.value.trim();
+            if (q) params.set('q', q); else params.delete('q');
+            params.set('page', '1');
+            window.location.search = params.toString();
+        };
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                goSearch();
+            }
+        });
+        searchInput.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(goSearch, 500);
+        });
+    }
+})();
 </script>
-</body>
-</html>
+JS;
+require __DIR__ . '/../includes/admin_layout_end.php';
+?>

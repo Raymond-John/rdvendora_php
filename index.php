@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/connection.php';
+require_once 'includes/public_site.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -61,13 +62,16 @@ $conn->close();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <?php require __DIR__ . '/includes/adsense_head.php'; ?>
   <title>RD Vendora - Build Your Online Store</title>
-  <meta name="description" content="The complete multi-vendor eCommerce platform. Build, manage, and scale your online business.">
+  <meta name="description" content="RD Vendora is a multi-vendor eCommerce platform. Create a store, list products, take orders, and check out with Paystack or Flutterwave.">
+  <link rel="canonical" href="https://rdvendora.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./assets/css/style.css">
   <link rel="stylesheet" href="./assets/css/responsive.css">
   <link rel="stylesheet" href="./assets/css/animations.css">
+  <link rel="stylesheet" href="./assets/css/public-extras.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
@@ -330,46 +334,6 @@ $conn->close();
     .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
     .floating-card-left { position: absolute; bottom: -20px; left: -30px; }
     .floating-card-right { position: absolute; top: 30px; right: -20px; }
-
-    /* ========== PRELOADER (fast) ========== */
-    #preloader {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-primary);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
-    }
-    #preloader.fade-out {
-      opacity: 0; visibility: hidden;
-    }
-    .preloader-content {
-      display: flex; flex-direction: column; align-items: center; gap: 24px;
-    }
-    .preloader-ring {
-      width: 64px; height: 64px;
-      border-radius: 50%;
-      background: conic-gradient(from 0deg, var(--primary) 0%, var(--warning) 80%, transparent 80%);
-      animation: preloader-spin 1.2s linear infinite;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .preloader-ring::after {
-      content: '';
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: var(--bg-primary);
-    }
-    @keyframes preloader-spin { to { transform: rotate(360deg); } }
-    .preloader-brand {
-      font-family: var(--font-sans);
-      font-weight: var(--font-bold);
-      font-size: var(--text-xl);
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.3px;
-    }
 
     /* ========== GLASSMORPHIC FOOTER ========== */
     .footer-glass {
@@ -1076,14 +1040,6 @@ $conn->close();
   </style>
 </head>
 <body>
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="preloader-content">
-      <div class="preloader-ring"></div>
-      <span class="preloader-brand">RD Vendora</span>
-    </div>
-  </div>
-
   <header class="navbar glass" id="navbar"></header>
 
   <!-- Hero Section with Multi‑Video Background -->
@@ -1182,7 +1138,7 @@ $conn->close();
               <div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;"></div>
               <span style="font-size: 12px; color: var(--text-secondary);">Live visitors</span>
             </div>
-            <div style="font-size: 24px; font-weight: 700;">142</div>
+            <div style="font-size: 24px; font-weight: 700;">Live</div>
           </div>
         </div>
       </div>
@@ -1192,15 +1148,7 @@ $conn->close();
   <!-- Trusted By (unchanged) -->
   <section class="section" style="padding-top: 0;">
     <div class="container">
-      <p class="section-description text-center" style="margin-bottom: 32px; font-size: 14px; color: var(--text-muted);">Trusted by 15,000+ businesses worldwide</p>
-      <div class="brand-logos" style="display: flex; align-items: center; justify-content: center; gap: 48px; flex-wrap: wrap; opacity: 0.5;">
-        <span class="brand-logo-item" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">Acme Corp</span>
-        <span class="brand-logo-item" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">Globex</span>
-        <span class="brand-logo-item" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">Initech</span>
-        <span class="brand-logo-item" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">Umbrella</span>
-        <span class="brand-logo-item" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">Stark Ind</span>
-        <span class="brand-logo-item" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">Wayne Ent</span>
-      </div>
+      <p class="section-description text-center" style="margin-bottom: 32px; font-size: 14px; color: var(--text-muted);">Built for independent sellers and small teams who need a working storefront</p>
     </div>
   </section>
 
@@ -1227,7 +1175,7 @@ $conn->close();
         <div class="feature-card reveal">
           <div class="feature-icon amber"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
           <h3 class="feature-title">Secure Payments</h3>
-          <p class="feature-description">Accept credit cards, PayPal, Apple Pay and more. PCI-compliant and fraud-protected.</p>
+          <p class="feature-description">Checkout can use Paystack and Flutterwave for cards and other methods those providers support in your country.</p>
         </div>
         <div class="feature-card reveal">
           <div class="feature-icon red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
@@ -1478,6 +1426,7 @@ $conn->close();
       <button id="closeModalBtn" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted);">&times;</button>
       <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Share Your Experience</h3>
       <form action="submit-testimonial.php" method="POST">
+        <?= rdv_csrf_field() ?>
         <div class="form-group">
           <label>Your Name *</label>
           <input type="text" name="name" required style="width:100%; padding: 0.6rem; margin-top: 5px; border: 1px solid var(--border-primary); border-radius: 8px; background: var(--bg-primary);">
@@ -1541,12 +1490,6 @@ $conn->close();
       animateCounters() { document.querySelectorAll('[data-counter]').forEach(el => { const target = parseFloat(el.dataset.counter); const suffix = el.dataset.suffix || ''; const duration = 2000; const start = performance.now(); const update = (now) => { const p = Math.min((now - start) / duration, 1); const val = target * (1 - Math.pow(1 - p, 3)); el.textContent = (target % 1 !== 0 ? val.toFixed(1) : Math.floor(val).toLocaleString()) + suffix; if (p < 1) requestAnimationFrame(update); }; requestAnimationFrame(update); }); }
     };
     const Cart = { updateBadge() {} };
-
-    // ========== FAST PRELOADER ==========
-    window.addEventListener('load', () => {
-      const preloader = document.getElementById('preloader');
-      if (preloader) setTimeout(() => preloader.classList.add('fade-out'), 100);
-    });
 
     // ========== MULTI‑VIDEO BACKGROUND PLAYLIST ==========
     // Add or remove video URLs here – each will play in sequence
@@ -1802,5 +1745,6 @@ $conn->close();
       closeReviewModal();
     });
   </script>
+  <script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

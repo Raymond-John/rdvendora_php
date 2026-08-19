@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <?php require __DIR__ . '/includes/adsense_head.php'; ?>
   <title>Pricing - RD Vendora</title>
   <meta name="description" content="Simple, transparent pricing for RD Vendora. Start free and scale as you grow.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/public-extras.css">
   <link rel="stylesheet" href="assets/css/responsive.css">
   <style>
     /* ============================================================
@@ -192,15 +194,6 @@
     .btn-lg { padding: var(--space-4) var(--space-8); font-size: var(--text-base); }
     .gradient-text { background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .card { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); }
-
-    /* ========== PRELOADER ========== */
-    #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
-    #preloader.fade-out { opacity: 0; visibility: hidden; }
-    .preloader-content { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-    .preloader-ring { width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(from 0deg, var(--primary) 0%, var(--warning) 80%, transparent 80%); animation: preloader-spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; }
-    .preloader-ring::after { content: ''; width: 48px; height: 48px; border-radius: 50%; background: var(--bg-primary); }
-    @keyframes preloader-spin { to { transform: rotate(360deg); } }
-    .preloader-brand { font-family: var(--font-sans); font-weight: var(--font-bold); font-size: var(--text-xl); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.3px; }
 
     /* ========== GLASSMORPHIC FOOTER ========== */
     .footer-glass { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(0,0,0,0.08); color: var(--text-primary) !important; padding: var(--space-16) 0 var(--space-8); position: relative; z-index: 1; }
@@ -471,14 +464,6 @@
   </style>
 </head>
 <body>
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="preloader-content">
-      <div class="preloader-ring"></div>
-      <span class="preloader-brand">RD Vendora</span>
-    </div>
-  </div>
-
   <!-- NAVBAR -->
   <header class="navbar glass" id="navbar"></header>
 
@@ -797,12 +782,6 @@
       }
     };
 
-    // Preloader fade out
-    window.addEventListener('load', () => {
-      const preloader = document.getElementById('preloader');
-      if (preloader) setTimeout(() => preloader.classList.add('fade-out'), 400);
-    });
-
     // ======================= REMITA PAYMENT MODAL LOGIC =======================
     let currentPlan = null;
     let currentAmount = 0;
@@ -1005,5 +984,6 @@
       document.body.appendChild(themeToggle);
     });
   </script>
+  <script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

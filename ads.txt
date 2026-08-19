@@ -1,0 +1,3 @@
+# ads.txt for https://rdvendora.com
+# Official Google AdSense authorized seller record.
+google.com, pub-7091872948951204, DIRECT, f08c47fec0942fa0

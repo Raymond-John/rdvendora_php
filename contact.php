@@ -1,15 +1,24 @@
+<?php
+require_once __DIR__ . '/includes/connection.php';
+require_once __DIR__ . '/includes/public_site.php';
+$conn = $conn ?? $connect ?? null;
+$contactEmail = rdv_site_contact_email($conn);
+$contactPhone = $conn ? rdv_site_setting($conn, 'site_phone') : '';
+$contactAddress = $conn ? rdv_site_setting($conn, 'site_address') : '';
+?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact - RD Vendora</title>
-  <meta name="description" content="Get in touch with RD Vendora. We're here to help with any questions.">
+  <?php require __DIR__ . '/includes/adsense_head.php'; ?>
+  <?= rdv_seo_tags('Contact RD Vendora', 'Send a message to the RD Vendora team about accounts, stores, or the platform.', 'contact.php') ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./assets/css/style.css">
   <link rel="stylesheet" href="./assets/css/responsive.css">
   <link rel="stylesheet" href="./assets/css/animations.css">
+  <link rel="stylesheet" href="./assets/css/public-extras.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
@@ -160,15 +169,6 @@
     .gradient-text { background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .card { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); }
 
-    /* ========== PRELOADER ========== */
-    #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
-    #preloader.fade-out { opacity: 0; visibility: hidden; }
-    .preloader-content { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-    .preloader-ring { width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(from 0deg, var(--primary) 0%, var(--warning) 80%, transparent 80%); animation: preloader-spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; }
-    .preloader-ring::after { content: ''; width: 48px; height: 48px; border-radius: 50%; background: var(--bg-primary); }
-    @keyframes preloader-spin { to { transform: rotate(360deg); } }
-    .preloader-brand { font-family: var(--font-sans); font-weight: var(--font-bold); font-size: var(--text-xl); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.3px; }
-
     /* ========== GLASSMORPHIC FOOTER ========== */
     .footer-glass { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(0,0,0,0.08); color: var(--text-primary) !important; padding: var(--space-16) 0 var(--space-8); position: relative; z-index: 1; }
     [data-theme="dark"] .footer-glass { background: rgba(20,22,31,0.7) !important; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(255,255,255,0.06); }
@@ -312,14 +312,6 @@
   </style>
 </head>
 <body>
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="preloader-content">
-      <div class="preloader-ring"></div>
-      <span class="preloader-brand">RD Vendora</span>
-    </div>
-  </div>
-
   <!-- NAVBAR (same as index) -->
   <header class="navbar glass" id="navbar"></header>
 
@@ -340,71 +332,55 @@
         <!-- Left: contact info -->
         <div class="reveal contact-info-card">
           <div class="contact-info-item" style="margin-bottom: 32px;">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Email</h3>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">For general inquiries</p>
-            <a href="mailto:hello@RD Vendora.com" style="color: var(--primary); font-weight: 500;">hello@RD Vendora.com</a>
+            <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">How to reach us</h2>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Use the form on this page. Messages are stored for the RD Vendora team and, when email is configured, forwarded to the site contact address.</p>
+            <?php if ($contactEmail !== ''): ?>
+              <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Email</p>
+              <a href="mailto:<?= htmlspecialchars($contactEmail, ENT_QUOTES, 'UTF-8') ?>" style="color: var(--primary); font-weight: 500;"><?= htmlspecialchars($contactEmail, ENT_QUOTES, 'UTF-8') ?></a>
+            <?php endif; ?>
           </div>
+          <?php if ($contactPhone !== ''): ?>
           <div class="contact-info-item" style="margin-bottom: 32px;">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Support</h3>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">For technical help</p>
-            <a href="mailto:support@RD Vendora.com" style="color: var(--primary); font-weight: 500;">support@RD Vendora.com</a>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Phone</h3>
+            <p style="font-size: 14px; color: var(--text-secondary);"><?= htmlspecialchars($contactPhone, ENT_QUOTES, 'UTF-8') ?></p>
           </div>
-          <div class="contact-info-item" style="margin-bottom: 32px;">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Sales</h3>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">For enterprise inquiries</p>
-            <a href="mailto:sales@RD Vendora.com" style="color: var(--primary); font-weight: 500;">sales@RD Vendora.com</a>
-          </div>
+          <?php endif; ?>
+          <?php if ($contactAddress !== ''): ?>
           <div class="contact-info-item">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Office</h3>
-            <p style="font-size: 14px; color: var(--text-secondary);">123 Commerce Street<br>San Francisco, CA 94105</p>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Address</h3>
+            <p style="font-size: 14px; color: var(--text-secondary);"><?= nl2br(htmlspecialchars($contactAddress, ENT_QUOTES, 'UTF-8')) ?></p>
           </div>
+          <?php endif; ?>
         </div>
-        <!-- Right: contact form -->
         <div class="card contact-form-card reveal-right" style="padding: 32px;">
-          <form id="contact-form">
+          <form id="contact-form" method="post" action="submit-contact.php" novalidate>
+            <?= rdv_csrf_field() ?>
+            <input type="text" name="website" class="rdv-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="form-group">
-              <label class="form-label">Name</label>
-              <input type="text" id="contact_name" class="form-input" placeholder="Your name" required>
+              <label class="form-label" for="contact_name">Name</label>
+              <input type="text" id="contact_name" name="name" class="form-input" placeholder="Your name" required maxlength="120" autocomplete="name">
             </div>
             <div class="form-group">
-              <label class="form-label">Email</label>
-              <input type="email" id="contact_email" class="form-input" placeholder="you@example.com" required>
+              <label class="form-label" for="contact_email">Email</label>
+              <input type="email" id="contact_email" name="email" class="form-input" placeholder="you@example.com" required maxlength="190" autocomplete="email">
             </div>
             <div class="form-group">
-              <label class="form-label">Subject</label>
-              <select id="contact_subject" class="form-input">
-                <option>General inquiry</option>
-                <option>Sales</option>
-                <option>Support</option>
-                <option>Partnership</option>
+              <label class="form-label" for="contact_subject">Subject</label>
+              <select id="contact_subject" name="subject" class="form-input" required>
+                <option value="General inquiry">General inquiry</option>
+                <option value="Sales">Sales</option>
+                <option value="Support">Support</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Other">Other</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Message</label>
-              <textarea id="contact_message" class="form-input" rows="4" placeholder="How can we help?" required></textarea>
+              <label class="form-label" for="contact_message">Message</label>
+              <textarea id="contact_message" name="message" class="form-input" rows="4" placeholder="How can we help?" required minlength="10" maxlength="5000"></textarea>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Send Message</button>
           </form>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- MAP SECTION (unchanged) -->
-  <section class="section" style="padding-top: 0;">
-    <div class="container" style="max-width: 1000px;">
-      <div class="section-header reveal" style="margin-bottom: 32px;">
-        <div class="section-label">Find Us</div>
-        <h2 class="section-title" style="font-size: var(--text-2xl);">Visit our <span class="gradient-text">office</span></h2>
-      </div>
-      <div class="map-container reveal">
-        <iframe
-          src="https://www.openstreetmap.org/export/embed.php?bbox=-122.429%2C37.769%2C-122.409%2C37.779&layer=mapnik&marker=37.7749295%2C-122.4194155"
-          title="RD Vendora Office Location"
-          allowfullscreen=""
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
       </div>
     </div>
   </section>
@@ -505,12 +481,6 @@
         setTimeout(() => toast.remove(), 300);
       }, 4000);
     }
-
-    // Preloader
-    window.addEventListener('load', () => {
-      const preloader = document.getElementById('preloader');
-      if (preloader) setTimeout(() => preloader.classList.add('fade-out'), 400);
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
       DB.init(); Theme.init(); UI.injectNavbar(); UI.injectFooter(); UI.initScrollReveal();
@@ -656,10 +626,11 @@
         submitBtn.innerText = 'Sending...';
         submitBtn.disabled = true;
         try {
+          const formData = new FormData(contactForm);
           const response = await fetch('submit-contact.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ name, email, subject, message })
+            body: formData,
+            credentials: 'same-origin'
           });
           const result = await response.json();
           if (result.success) {
@@ -677,5 +648,6 @@
       });
     });
   </script>
+  <script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

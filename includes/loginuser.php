@@ -48,6 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     $stmt->close();
 
+    require_once __DIR__ . '/log_activity.php';
+    if (function_exists('logUserActivity')) {
+        logUserActivity((int) $user['id'], 'login', 'login.php', 'Vendor signed in');
+    }
+
     // Optional: send login notification
     if (function_exists('sendLoginNotification')) {
         sendLoginNotification($email, $user['full_name']);

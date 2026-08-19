@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <?php require __DIR__ . '/includes/adsense_head.php'; ?>
   <title>Features - RD Vendora</title>
   <meta name="description" content="Explore RD Vendora's complete eCommerce features.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="./assets/css/style.css">
   <link rel="stylesheet" href="./assets/css/responsive.css">
   <link rel="stylesheet" href="./assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/public-extras.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
@@ -214,15 +216,6 @@
     .gradient-text { background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .card { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); }
 
-    /* ========== PRELOADER ========== */
-    #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
-    #preloader.fade-out { opacity: 0; visibility: hidden; }
-    .preloader-content { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-    .preloader-ring { width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(from 0deg, var(--primary) 0%, var(--warning) 80%, transparent 80%); animation: preloader-spin 1.2s linear infinite; display: flex; align-items: center; justify-content: center; }
-    .preloader-ring::after { content: ''; width: 48px; height: 48px; border-radius: 50%; background: var(--bg-primary); }
-    @keyframes preloader-spin { to { transform: rotate(360deg); } }
-    .preloader-brand { font-family: var(--font-sans); font-weight: var(--font-bold); font-size: var(--text-xl); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.3px; }
-
     /* ========== GLASSMORPHIC FOOTER ========== */
     .footer-glass { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(0,0,0,0.08); color: var(--text-primary) !important; padding: var(--space-16) 0 var(--space-8); position: relative; z-index: 1; }
     [data-theme="dark"] .footer-glass { background: rgba(20,22,31,0.7) !important; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(255,255,255,0.06); }
@@ -340,14 +333,6 @@
   </style>
 </head>
 <body>
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="preloader-content">
-      <div class="preloader-ring"></div>
-      <span class="preloader-brand">RD Vendora</span>
-    </div>
-  </div>
-
   <!-- NAVBAR (same as index) -->
   <header class="navbar glass" id="navbar"></header>
 
@@ -401,7 +386,7 @@
               <h3 class="feature-title" style="font-size: 20px;">Payment Processing</h3>
               <p class="feature-description" style="margin-bottom: 12px;">Accept payments from anywhere in the world. PCI-compliant infrastructure with fraud protection built-in.</p>
               <ul style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--text-secondary);">
-                <li style="display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Stripe, PayPal, Square</li>
+                <li style="display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Paystack and Flutterwave</li>
                 <li style="display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Apple Pay & Google Pay</li>
                 <li style="display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Fraud detection</li>
               </ul>
@@ -620,21 +605,17 @@
       }
     };
 
-    // Preloader fade out
-    window.addEventListener('load', () => {
-      const preloader = document.getElementById('preloader');
-      if (preloader) setTimeout(() => preloader.classList.add('fade-out'), 400);
-    });
-
     document.addEventListener('DOMContentLoaded', () => {
       DB.init(); Theme.init(); UI.injectNavbar(); UI.injectFooter(); UI.initScrollReveal();
 
       // Glass navbar scroll effect (identical to index)
       const navbar = document.getElementById('navbar');
-      window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) navbar.classList.add('scrolled', 'glass');
-        else navbar.classList.remove('scrolled', 'glass');
-      });
+      if (navbar) {
+        window.addEventListener('scroll', () => {
+          if (window.scrollY > 50) navbar.classList.add('scrolled', 'glass');
+          else navbar.classList.remove('scrolled', 'glass');
+        });
+      }
 
       // World-class mobile menu overlay (identical to index)
       const toggle = document.getElementById('mobile-menu-toggle');
@@ -678,17 +659,20 @@
       const progressText = document.querySelector('.progress-percentage');
       const circumference = 2 * Math.PI * 21;
       function updateScrollProgress() {
+        if (!scrollBtn) return;
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-        progressFill.style.strokeDashoffset = circumference - (scrolled / 100) * circumference;
-        progressText.textContent = Math.round(scrolled) + '%';
+        if (progressFill) progressFill.style.strokeDashoffset = circumference - (scrolled / 100) * circumference;
+        if (progressText) progressText.textContent = Math.round(scrolled) + '%';
         if (scrollTop > 300) scrollBtn.classList.add('visible');
         else scrollBtn.classList.remove('visible');
       }
       window.addEventListener('scroll', updateScrollProgress, { passive: true });
       window.addEventListener('resize', updateScrollProgress);
-      scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      if (scrollBtn) {
+        scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      }
 
       // ========== AI CHATBOT (Groq API) ==========
       const chatbotMessages = document.getElementById('chatbot-messages');
@@ -755,19 +739,12 @@
         sendMessageToAI(text);
       }
 
-      chatbotSend.addEventListener('click', handleSend);
-      chatbotInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
-      function openChat() { chatbotPanel.classList.add('open'); }
-      function closeChat() { chatbotPanel.classList.remove('open'); }
-      chatbotToggle.addEventListener('click', openChat);
-      chatbotClose.addEventListener('click', closeChat);
-
-      // Cookie consent logic (identical to index)
-      const cookieBanner = document.getElementById('cookie-banner');
-      const acceptBtn = document.getElementById('accept-cookies');
-      const COOKIE_CONSENT_KEY = 'RD Vendora_cookies_accepted';
-      if (!localStorage.getItem(COOKIE_CONSENT_KEY)) { setTimeout(() => cookieBanner.classList.add('visible'), 500); }
-      acceptBtn.addEventListener('click', () => { localStorage.setItem(COOKIE_CONSENT_KEY, 'true'); cookieBanner.classList.remove('visible'); });
+      chatbotSend && chatbotSend.addEventListener('click', handleSend);
+      chatbotInput && chatbotInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
+      function openChat() { chatbotPanel && chatbotPanel.classList.add('open'); }
+      function closeChat() { chatbotPanel && chatbotPanel.classList.remove('open'); }
+      chatbotToggle && chatbotToggle.addEventListener('click', openChat);
+      chatbotClose && chatbotClose.addEventListener('click', closeChat);
 
       // Theme toggle (on the left, same as index)
       const themeToggle = document.createElement('button');
@@ -777,5 +754,6 @@
       document.body.appendChild(themeToggle);
     });
   </script>
+  <script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

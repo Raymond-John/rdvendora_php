@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /app/
+Disallow: /storage/
+Disallow: /vendor/
+Disallow: /archive/
+Disallow: /includes/
+Disallow: /dashboard.php
+Disallow: /analytics.php
+Disallow: /products.php
+Disallow: /orders.php
+Disallow: /customers.php
+Disallow: /settings.php
+Disallow: /checkout.php
+Disallow: /cart.php
+Disallow: /login.php
+Disallow: /login-customer.php
+Disallow: /register.php
+Disallow: /register-customer.php
+Disallow: /reset-password.php
+Disallow: /logout.php
+Disallow: /admin_login.php
+Disallow: /webhook.php
+Disallow: /chat_
+Disallow: /csrf-token.php
+Disallow: /newsletter-subscribe.php
+
+Sitemap: https://rdvendora.com/sitemap.xml

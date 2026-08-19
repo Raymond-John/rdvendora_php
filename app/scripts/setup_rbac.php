@@ -33,7 +33,7 @@ $conn->query("INSERT IGNORE INTO roles (name, description) VALUES ('super_admin'
 $roleId = $conn->query("SELECT id FROM roles WHERE name = 'super_admin'")->fetch_assoc()['id'];
 
 // Grant all permissions
-$pages = ['dashboard','users','stores','pricing','testimonials','contacts','about','chat','orders','transport','customers','send_email','marketplace_design','settings'];
+$pages = ['dashboard','users','stores','pricing','testimonials','contacts','newsletter','blog','about','chat','orders','transport','customers','send_email','marketplace_design','settings'];
 foreach ($pages as $page) {
     $conn->query("INSERT IGNORE INTO role_permissions (role_id, page_name, can_access) VALUES ($roleId, '$page', 1)");
 }

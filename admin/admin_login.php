@@ -1,13 +1,11 @@
 <?php
-session_start();
 require_once __DIR__ . '/../includes/connection.php';
-require_once __DIR__ . '/../includes/admin_auth.php'; // for permission helper functions
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// If already logged in as admin, redirect to their permitted page
-if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
+if (rdv_hydrate_admin_session($conn) && rdv_admin_flag_is_set()) {
     $target = getFirstAllowedPage($conn);
     if ($target) {
         header("Location: $target");
@@ -27,132 +25,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = 'Please enter email and password.';
     } else {
-        // Fetch user with role_id (if it exists; fallback to 'role' column for backward compatibility)
-        $stmt = $conn->prepare("SELECT id, fullname, email, password, is_admin, role_id, role FROM users WHERE email = ? AND is_admin = 1");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $user = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['fullname'] = $user['fullname'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['is_admin'] = true;
-
-            // Determine role – prefer role_id + roles table, else fallback to 'role' column
-            if (!empty($user['role_id'])) {
-                $_SESSION['role_id'] = $user['role_id'];
-                // Fetch role name from roles table
-                $roleStmt = $conn->prepare("SELECT name FROM roles WHERE id = ?");
-                $roleStmt->bind_param("i", $user['role_id']);
-                $roleStmt->execute();
-                $roleRes = $roleStmt->get_result();
-                $roleRow = $roleRes->fetch_assoc();
-                $_SESSION['role_name'] = $roleRow ? $roleRow['name'] : 'admin';
-                $roleStmt->close();
-            } else {
-                // Fallback to old 'role' column
-                $_SESSION['role_name'] = $user['role'] ?? 'admin';
-                $_SESSION['role_id'] = null;
+        $user = null;
+        try {
+            $stmt = $conn->prepare('SELECT * FROM users WHERE email = ? AND is_admin = 1 LIMIT 1');
+            if ($stmt) {
+                $stmt->bind_param('s', $email);
+                $stmt->execute();
+                $user = $stmt->get_result()->fetch_assoc() ?: null;
+                $stmt->close();
             }
+        } catch (Throwable $e) {
+            error_log('Admin login query failed: ' . $e->getMessage());
+            $user = null;
+        }
+
+        $hash = (string) ($user['password'] ?? '');
+        if ($user && $hash !== '' && password_verify($password, $hash)) {
+            $_SESSION['user_id'] = (int) $user['id'];
+            $_SESSION['fullname'] = (string) ($user['fullname'] ?? $user['full_name'] ?? $user['email']);
+            $_SESSION['email'] = (string) $user['email'];
+            $_SESSION['is_admin'] = true;
+            rdv_hydrate_admin_session($conn);
+            require_once __DIR__ . '/../includes/log_activity.php';
+            logUserActivity((int) $user['id'], 'admin_login', 'admin_login.php', 'Signed in to the admin panel');
 
             $target = getFirstAllowedPage($conn);
             if ($target) {
                 header("Location: $target");
-            } else {
-                session_destroy();
-                $error = 'Your account has no page permissions. Contact super admin.';
+                exit;
             }
-            exit;
+            session_destroy();
+            $error = 'Your account has no page permissions. Contact super admin.';
         } else {
             $error = 'Invalid admin credentials.';
         }
     }
-}
-
-/**
- * Get the first allowed page for the current admin.
- * Super admin (role_name = 'super_admin') always goes to admin.php.
- * For other admins, uses role_permissions (new RBAC) or fallback to admin_permissions.
- */
-function getFirstAllowedPage($conn) {
-    // Super admin check (based on role_name)
-    if (isset($_SESSION['role_name']) && $_SESSION['role_name'] === 'super_admin') {
-        return 'admin.php';
-    }
-
-    if (!isset($_SESSION['user_id'])) return null;
-
-    $roleId = $_SESSION['role_id'] ?? null;
-
-    // If role_id is set, use role_permissions (new RBAC)
-    if ($roleId) {
-        // Check dashboard permission via role_permissions
-        $stmt = $conn->prepare("SELECT can_access FROM role_permissions WHERE role_id = ? AND page_name = 'dashboard'");
-        $stmt->bind_param("i", $roleId);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $dashboardPerm = $res->fetch_assoc();
-        $stmt->close();
-        if ($dashboardPerm && $dashboardPerm['can_access'] == 1) {
-            return 'admin.php';
-        }
-
-        // Otherwise, fetch any page they have access to
-        $stmt = $conn->prepare("SELECT page_name FROM role_permissions WHERE role_id = ? AND can_access = 1 ORDER BY page_name ASC");
-        $stmt->bind_param("i", $roleId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $allowed = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-    } else {
-        // Fallback to old admin_permissions table (if role_id not present)
-        $stmt = $conn->prepare("SELECT can_access FROM admin_permissions WHERE admin_id = ? AND page_name = 'dashboard'");
-        $stmt->bind_param("i", $_SESSION['user_id']);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $dashboardPerm = $res->fetch_assoc();
-        $stmt->close();
-        if ($dashboardPerm && $dashboardPerm['can_access'] == 1) {
-            return 'admin.php';
-        }
-
-        $stmt = $conn->prepare("SELECT page_name FROM admin_permissions WHERE admin_id = ? AND can_access = 1 ORDER BY page_name ASC");
-        $stmt->bind_param("i", $_SESSION['user_id']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $allowed = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-    }
-
-    if (empty($allowed)) return null;
-
-    // Map page_key to actual file name
-    $pageFiles = [
-        'dashboard' => 'admin.php',
-        'users' => 'admin-users.php',
-        'stores' => 'admin-stores.php',
-        'pricing' => 'admin-pricing.php',
-        'testimonials' => 'admin-testimonies.php',
-        'contacts' => 'admin-contacts.php',
-        'about' => 'admin-about.php',
-        'chat' => 'admin-chat.php',
-        'orders' => 'admin-receive-order.php',
-        'transport' => 'admin-transport.php',
-        'customers' => 'admin-customers.php',
-        'send_email' => 'admin-send-email.php',
-        'marketplace_design' => 'admin-marketplace-design.php',
-        'settings' => 'adminsettings.php'
-    ];
-
-    foreach ($allowed as $perm) {
-        $pageKey = $perm['page_name'];
-        if (isset($pageFiles[$pageKey])) {
-            return $pageFiles[$pageKey];
-        }
-    }
-    return null;
 }
 ?>
 <!DOCTYPE html>

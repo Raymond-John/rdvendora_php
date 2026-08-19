@@ -38,26 +38,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $confirm = (string) ($_POST['confirm_password'] ?? '');
 
         if ($fullname === '' || $email === '' || $password === '') {
-            $error = 'All fields are required.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'All fields are required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Enter a valid email address.';
-        } elseif (strlen($password) < 6) {
-            $error = 'Password must be at least 6 characters.';
-        } elseif ($password !== $confirm) {
-            $error = 'Passwords do not match.';
-        } else {
+    } elseif (strlen($password) < 6) {
+        $error = 'Password must be at least 6 characters.';
+    } elseif ($password !== $confirm) {
+        $error = 'Passwords do not match.';
+    } else {
             $stmt = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
             $stmt->bind_param('s', $email);
-            $stmt->execute();
+        $stmt->execute();
             $exists = $stmt->get_result()->fetch_assoc();
             $stmt->close();
             if ($exists) {
                 $error = 'That email is already registered. Try logging in.';
-            } else {
+        } else {
                 $cols = rdv_users_columns_reg($conn);
                 $nameCol = !empty($cols['fullname']) ? 'fullname' : (!empty($cols['full_name']) ? 'full_name' : 'name');
                 $passCol = !empty($cols['password']) ? 'password' : 'password_hash';
-                $hashed = password_hash($password, PASSWORD_DEFAULT);
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
                 $fields = [$nameCol, 'email', $passCol];
                 $values = [$fullname, $email, $hashed];
                 $types = 'sss';
@@ -73,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($ins->execute()) {
                         $user_id = (int) $ins->insert_id;
                         $ins->close();
-                        $_SESSION['user_id'] = $user_id;
-                        $_SESSION['fullname'] = $fullname;
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['fullname'] = $fullname;
                         $_SESSION['email'] = $email;
                         $prof = @$conn->query("SHOW TABLES LIKE 'seller_profiles'");
                         if ($prof && $prof->num_rows > 0) {
@@ -88,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (file_exists(__DIR__ . '/includes/email_functions.php')) {
                             require_once __DIR__ . '/includes/email_functions.php';
                             if (function_exists('sendWelcomeEmail')) {
-                                sendWelcomeEmail($email, $fullname);
+                sendWelcomeEmail($email, $fullname);
                             }
                         }
-                        header('Location: create-store.php');
-                        exit;
+                header('Location: create-store.php');
+                exit;
                     }
                     $error = 'Could not create the account. Please try again.';
                     $ins->close();

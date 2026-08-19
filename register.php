@@ -16,6 +16,7 @@ if (!empty($_SESSION['user_id'])) {
 }
 
 $error = (string) ($_GET['error'] ?? '');
+$googleOauth = rdv_google_oauth_config($conn);
 
 function rdv_users_columns_reg(mysqli $conn): array {
     $cols = [];
@@ -161,6 +162,7 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <button type="submit" class="btn btn-primary w-full" style="justify-content:center;" id="reg-btn">Create account</button>
         </form>
 
+        <?php if (!empty($googleOauth['configured'])): ?>
         <div class="auth-divider"><span>or</span></div>
         <a href="oauth2callback.php" class="btn btn-google">
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -171,5 +173,6 @@ require __DIR__ . '/includes/auth_layout_start.php';
           </svg>
           Sign up with Google
         </a>
+        <?php endif; ?>
         <div class="auth-footer">Already have an account? <a href="login.php">Log in</a></div>
 <?php require __DIR__ . '/includes/auth_layout_end.php'; ?>

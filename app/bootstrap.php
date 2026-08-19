@@ -17,6 +17,22 @@ define('VENDOR_PATH', BASE_PATH . '/vendor');
 require_once APP_PATH . '/config/env.php';
 rdv_load_env(BASE_PATH . '/.env');
 
+if (!function_exists('rdv_request_is_https')) {
+    function rdv_request_is_https() {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+        if ((int) ($_SERVER['SERVER_PORT'] ?? 0) === 443) {
+            return true;
+        }
+        $fwd = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+        if ($fwd === 'https' || strpos($fwd, 'https') !== false) {
+            return true;
+        }
+        return strtolower((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')) === 'on';
+    }
+}
+
 $appEnv = (string) rdv_env('APP_ENV', 'local');
 $appDebug = (bool) rdv_env('APP_DEBUG', $appEnv !== 'production');
 
@@ -53,7 +69,7 @@ if (!$appDebug) {
 }
 
 if (session_status() === PHP_SESSION_NONE) {
-    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    $secure = function_exists('rdv_request_is_https') ? rdv_request_is_https() : (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     $cookiePath = '/';
     if (!empty($_SERVER['SCRIPT_NAME'])) {
         $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
@@ -81,6 +97,7 @@ require_once APP_PATH . '/config/app.php';
 require_once APP_PATH . '/helpers/ads.php';
 require_once APP_PATH . '/helpers/analytics.php';
 require_once APP_PATH . '/config/database.php';
+require_once APP_PATH . '/helpers/google_oauth.php';
 
 if (!function_exists('rdv_load_phpmailer')) {
     function rdv_load_phpmailer() {

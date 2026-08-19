@@ -163,6 +163,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "SMTP settings saved.";
         $messageType = "success";
     }
+    elseif (isset($_POST['update_google_oauth'])) {
+        $gid = trim((string) ($_POST['google_client_id'] ?? ''));
+        $gsecret = trim((string) ($_POST['google_client_secret'] ?? ''));
+        $gredir = trim((string) ($_POST['google_redirect_uri'] ?? ''));
+        if ($gredir === '') {
+            $gredir = rtrim((string) APP_URL, '/') . '/oauth2callback.php';
+        }
+        if ($gid !== '' && !preg_match('/\.apps\.googleusercontent\.com$/', $gid)) {
+            $message = 'Google Client ID should end with .apps.googleusercontent.com';
+            $messageType = 'error';
+        } else {
+            setSetting($conn, 'google_client_id', $gid);
+            if ($gsecret !== '' && $gsecret !== '********') {
+                setSetting($conn, 'google_client_secret', $gsecret);
+            }
+            setSetting($conn, 'google_redirect_uri', $gredir);
+            $message = 'Google Sign-In settings updated.';
+            $messageType = 'success';
+        }
+    }
 
     // ----- SUPER ADMIN ONLY ACTIONS -----
     if ($isSuperAdmin) {
@@ -334,6 +354,9 @@ $smtp_port = getSetting($conn, 'smtp_port');
 $smtp_user = getSetting($conn, 'smtp_user');
 $smtp_pass = getSetting($conn, 'smtp_pass');
 $smtp_encryption = getSetting($conn, 'smtp_encryption');
+$google_client_id = getSetting($conn, 'google_client_id');
+$google_client_secret = getSetting($conn, 'google_client_secret');
+$google_redirect_uri = getSetting($conn, 'google_redirect_uri', rtrim((string) APP_URL, '/') . '/oauth2callback.php');
 
 // Fetch roles (for super admin)
 $roles = [];
@@ -438,6 +461,28 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 <div class="form-group"><label>SMTP Password</label><input type="password" name="smtp_pass" value="<?= htmlspecialchars($smtp_pass) ?>"></div>
                 <div class="form-group"><label>Encryption</label><select name="smtp_encryption"><option value="tls" <?= $smtp_encryption == 'tls' ? 'selected' : '' ?>>TLS</option><option value="ssl" <?= $smtp_encryption == 'ssl' ? 'selected' : '' ?>>SSL</option><option value="none" <?= $smtp_encryption == 'none' ? 'selected' : '' ?>>None</option></select></div>
                 <button type="submit" name="update_smtp" class="btn">Save SMTP Settings</button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <h3>🔐 Google Sign-In</h3>
+            <?php if ($message && strpos($message, 'Google') !== false) echo '<div class="message '.$messageType.'">'.htmlspecialchars($message).'</div>'; ?>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Create a Web application OAuth client in Google Cloud, then paste the values here (or in production <code>.env</code>).</p>
+            <form method="POST">
+                <div class="form-group">
+                    <label>Client ID</label>
+                    <input type="text" name="google_client_id" value="<?= htmlspecialchars($google_client_id) ?>" placeholder="xxxxx.apps.googleusercontent.com" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Client Secret</label>
+                    <input type="password" name="google_client_secret" value="<?= $google_client_secret !== '' ? '********' : '' ?>" placeholder="Leave blank to keep current" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label>Authorized redirect URI</label>
+                    <input type="url" name="google_redirect_uri" value="<?= htmlspecialchars($google_redirect_uri) ?>" placeholder="https://rdvendora.com/oauth2callback.php">
+                    <small style="display:block;color:var(--text-muted);font-size:0.7rem;margin-top:4px;">Must match Google Cloud exactly. Also add Authorized JavaScript origins <code>https://rdvendora.com</code> and <code>https://www.rdvendora.com</code>.</small>
+                </div>
+                <button type="submit" name="update_google_oauth" class="btn">Save Google Sign-In</button>
             </form>
         </div>
 

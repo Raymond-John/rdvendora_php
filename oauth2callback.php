@@ -1,104 +1,192 @@
 <?php
-session_start();
-require_once 'includes/connection.php';
-require_once 'includes/email_functions.php';
+require_once __DIR__ . '/includes/connection.php';
 require_once APP_PATH . '/lib/GoogleOAuth.php';
 
-if (!isset($conn) && isset($connect)) $conn = $connect;
-if (!$conn) die('Database connection failed.');
+if (!isset($conn) && isset($connect)) {
+    $conn = $connect;
+}
+if (!$conn) {
+    rdv_google_oauth_fail('Database connection failed.');
+}
 
-$google = new GoogleOAuth(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+$oauth = rdv_google_oauth_config($conn);
+if (!$oauth['configured']) {
+    rdv_google_oauth_fail('Google Sign-In is not configured on this server yet.');
+}
 
-// Step 1: If no code, redirect to Google consent screen
-if (!isset($_GET['code'])) {
-    $authUrl = $google->getAuthUrl();
-    header('Location: ' . $authUrl);
+$google = new GoogleOAuth($oauth['client_id'], $oauth['client_secret'], $oauth['redirect_uri']);
+
+if (empty($_GET['code'])) {
+    if (!empty($_GET['error'])) {
+        rdv_google_oauth_fail('Google sign-in was cancelled.');
+    }
+    $_SESSION['oauth_state'] = bin2hex(random_bytes(16));
+    $next = trim((string) ($_GET['next'] ?? ''));
+    if ($next !== '' && preg_match('/^[a-z0-9_\\-]+\\.php(?:\\?.*)?$/i', $next) && stripos($next, '://') === false) {
+        $_SESSION['oauth_next'] = $next;
+    }
+    header('Location: ' . $google->getAuthUrl($_SESSION['oauth_state']));
     exit;
 }
 
-// Step 2: Exchange code for access token
+$state = (string) ($_GET['state'] ?? '');
+if ($state === '' || empty($_SESSION['oauth_state']) || !hash_equals((string) $_SESSION['oauth_state'], $state)) {
+    unset($_SESSION['oauth_state']);
+    rdv_google_oauth_fail('Google sign-in expired. Please try again.');
+}
+unset($_SESSION['oauth_state']);
+
 try {
-    $tokenData = $google->getAccessToken($_GET['code']);
-    $accessToken = $tokenData['access_token'];
+    $tokenData = $google->getAccessToken((string) $_GET['code']);
+    $userInfo = $google->getUserInfo($tokenData['access_token']);
 } catch (Exception $e) {
-    die('Error getting access token: ' . $e->getMessage());
+    rdv_google_oauth_fail('Google sign-in failed. Check that the live redirect URI matches Google Cloud exactly.');
 }
 
-// Step 3: Fetch user info from Google
-try {
-    $userInfo = $google->getUserInfo($accessToken);
-} catch (Exception $e) {
-    die('Error fetching user info: ' . $e->getMessage());
+$google_id = (string) $userInfo['id'];
+$email = strtolower(trim((string) $userInfo['email']));
+$fullname = trim((string) ($userInfo['name'] ?? ''));
+if ($fullname === '') {
+    $fullname = $email;
 }
 
-$google_id = $userInfo['id'];
-$email     = $userInfo['email'];
-$fullname  = $userInfo['name'];
+$cols = [];
+$colRes = $conn->query('SHOW COLUMNS FROM users');
+if ($colRes) {
+    while ($row = $colRes->fetch_assoc()) {
+        $cols[$row['Field']] = true;
+    }
+}
 
-// Step 4: Check if user already exists (by google_id or email)
-$stmt = $conn->prepare("SELECT id, full_name, google_id FROM users WHERE google_id = ? OR email = ?");
-$stmt->bind_param("ss", $google_id, $email);
+if (empty($cols['google_id'])) {
+    @$conn->query("ALTER TABLE users ADD COLUMN google_id VARCHAR(255) NULL");
+    @$conn->query('ALTER TABLE users ADD UNIQUE KEY google_id (google_id)');
+    $cols['google_id'] = true;
+}
+
+$nameCol = !empty($cols['full_name']) ? 'full_name' : (!empty($cols['fullname']) ? 'fullname' : null);
+$passCol = !empty($cols['password_hash']) ? 'password_hash' : (!empty($cols['password']) ? 'password' : null);
+
+$selectName = $nameCol ? "`$nameCol` AS display_name" : 'email AS display_name';
+$stmt = $conn->prepare("SELECT id, email, $selectName, google_id FROM users WHERE google_id = ? OR email = ? LIMIT 1");
+if (!$stmt) {
+    rdv_google_oauth_fail('Could not look up that account.');
+}
+$stmt->bind_param('ss', $google_id, $email);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+$user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 $isNewUser = false;
 
 if ($user) {
-    // Existing user – log them in
-    $_SESSION['user_id']   = $user['id'];
-    $_SESSION['fullname']  = $user['full_name'];
-    
-    // If the user existed by email but google_id is missing, update it
-    if (empty($user['google_id'])) {
-        $stmt = $conn->prepare("UPDATE users SET google_id = ? WHERE id = ?");
-        $stmt->bind_param("si", $google_id, $user['id']);
-        $stmt->execute();
-        $stmt->close();
+    $userId = (int) $user['id'];
+    if (empty($user['google_id']) && !empty($cols['google_id'])) {
+        $upd = $conn->prepare('UPDATE users SET google_id = ? WHERE id = ?');
+        $upd->bind_param('si', $google_id, $userId);
+        $upd->execute();
+        $upd->close();
     }
-    
-    // Optional: update full_name if it changed in Google
-    if ($user['full_name'] !== $fullname) {
-        $stmt = $conn->prepare("UPDATE users SET full_name = ? WHERE id = ?");
-        $stmt->bind_param("si", $fullname, $user['id']);
-        $stmt->execute();
-        $stmt->close();
-        $_SESSION['fullname'] = $fullname;
+    if ($nameCol && (string) ($user['display_name'] ?? '') !== $fullname) {
+        $upd = $conn->prepare("UPDATE users SET `$nameCol` = ? WHERE id = ?");
+        $upd->bind_param('si', $fullname, $userId);
+        $upd->execute();
+        $upd->close();
     }
-    
-    // ***** SEND LOGIN NOTIFICATION (using the styled function from email_functions.php) *****
-    sendLoginNotification($email, $user['full_name']);
-    
 } else {
-    // Create new user (dummy password because they will use Google)
-    $dummy_password = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
-    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash, google_id, created_at) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->bind_param("ssss", $fullname, $email, $dummy_password, $google_id);
-    if ($stmt->execute()) {
-        $user_id = $stmt->insert_id;
-        $_SESSION['user_id']   = $user_id;
-        $_SESSION['fullname']  = $fullname;
-        $isNewUser = true;
-    } else {
-        die('Database error: ' . $stmt->error);
+    $dummy = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
+    $fields = ['email'];
+    $placeholders = ['?'];
+    $types = 's';
+    $values = [$email];
+
+    if ($nameCol) {
+        $fields[] = $nameCol;
+        $placeholders[] = '?';
+        $types .= 's';
+        $values[] = $fullname;
     }
-    $stmt->close();
+    if ($passCol) {
+        $fields[] = $passCol;
+        $placeholders[] = '?';
+        $types .= 's';
+        $values[] = $dummy;
+        if ($passCol === 'password_hash' && !empty($cols['password'])) {
+            $fields[] = 'password';
+            $placeholders[] = '?';
+            $types .= 's';
+            $values[] = $dummy;
+        }
+    }
+    if (!empty($cols['google_id'])) {
+        $fields[] = 'google_id';
+        $placeholders[] = '?';
+        $types .= 's';
+        $values[] = $google_id;
+    }
+    if (!empty($cols['email_verified'])) {
+        $fields[] = 'email_verified';
+        $placeholders[] = '1';
+    }
+    if (!empty($cols['role']) && empty($cols['role_id'])) {
+        $fields[] = 'role';
+        $placeholders[] = "'vendor'";
+    }
+
+    $sql = 'INSERT INTO users (' . implode(', ', $fields) . ') VALUES (' . implode(', ', $placeholders) . ')';
+    $ins = $conn->prepare($sql);
+    if (!$ins) {
+        rdv_google_oauth_fail('Could not create your account.');
+    }
+    $ins->bind_param($types, ...$values);
+    if (!$ins->execute()) {
+        error_log('Google OAuth insert: ' . $ins->error);
+        $ins->close();
+        rdv_google_oauth_fail('Could not create your account.');
+    }
+    $userId = (int) $ins->insert_id;
+    $ins->close();
+    $isNewUser = true;
 }
 
-// Step 5: If new user, send welcome email (styled)
-if ($isNewUser) {
-    // Now uses the premium styled function from email_functions.php
-    $emailSent = sendWelcomeEmail($email, $fullname);
-    if (!$emailSent) {
-        // The function already logs errors; we can set a session warning
-        $_SESSION['registration_warning'] = "Account created via Google, but welcome email could not be sent. Please check your email settings.";
-    } else {
-        $_SESSION['registration_success'] = "Welcome email sent! Check your inbox.";
+$_SESSION['user_id'] = $userId;
+$_SESSION['user_email'] = $email;
+$_SESSION['email'] = $email;
+$_SESSION['user_name'] = $fullname;
+$_SESSION['fullname'] = $fullname;
+
+if (file_exists(__DIR__ . '/includes/email_functions.php')) {
+    require_once __DIR__ . '/includes/email_functions.php';
+}
+if ($isNewUser && function_exists('sendWelcomeEmail')) {
+    try {
+        sendWelcomeEmail($email, $fullname);
+    } catch (Throwable $e) {
+        error_log('Google welcome email: ' . $e->getMessage());
+    }
+} elseif (!$isNewUser && function_exists('sendLoginNotification')) {
+    try {
+        sendLoginNotification($email, $fullname);
+    } catch (Throwable $e) {
+        error_log('Google login email: ' . $e->getMessage());
     }
 }
 
-// Step 6: Redirect to store creation page (or dashboard if store already exists)
-header('Location: create-store.php');
+$next = (string) ($_SESSION['oauth_next'] ?? '');
+unset($_SESSION['oauth_next']);
+if ($next !== '' && preg_match('/^[a-z0-9_\\-]+\\.php(?:\\?.*)?$/i', $next) && stripos($next, '://') === false) {
+    header('Location: ' . $next);
+    exit;
+}
+
+$hasStore = false;
+$storeStmt = $conn->prepare('SELECT id FROM stores WHERE user_id = ? LIMIT 1');
+if ($storeStmt) {
+    $storeStmt->bind_param('i', $userId);
+    $storeStmt->execute();
+    $hasStore = (bool) $storeStmt->get_result()->fetch_assoc();
+    $storeStmt->close();
+}
+
+header('Location: ' . ($hasStore ? 'dashboard.php' : 'create-store.php'));
 exit;
-?>

@@ -26,6 +26,12 @@
   height: 44px;
   max-width: 170px;
 }
+.navbar-brand .rdv-brand-logo {
+  height: 30px;
+  max-width: 110px;
+  padding: 1px 4px;
+  border-radius: 6px;
+}
 .sidebar.collapsed .rdv-brand-logo,
 .sidebar.collapsed .rdv-brand-logo--sidebar {
   height: 32px;
@@ -205,6 +211,11 @@
   .rdv-cookie { left: 8px; right: 8px; bottom: 8px; }
   .rdv-cookie-actions { flex-direction: column; }
   .rdv-cookie-actions .btn { width: 100%; justify-content: center; }
+  .navbar-brand .rdv-brand-logo {
+    height: 26px;
+    max-width: 92px;
+    padding: 1px 3px;
+  }
 }
 
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

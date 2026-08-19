@@ -192,13 +192,13 @@ $conn->close();
       color: var(--text-primary);
     }
     .navbar-brand .rdv-brand-logo {
-      height: 42px;
+      height: 30px;
       width: auto;
-      max-width: 180px;
+      max-width: 110px;
       object-fit: contain;
       background: #fff;
-      border-radius: 8px;
-      padding: 2px 6px;
+      border-radius: 6px;
+      padding: 1px 4px;
       display: block;
     }
     /* ========== Maintenance Card ========== */

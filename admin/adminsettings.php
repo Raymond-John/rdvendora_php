@@ -180,6 +180,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $messageType = 'success';
         }
     }
+    elseif (isset($_POST['update_payment_keys'])) {
+        $publicKeys = [
+            'paystack_public_key' => trim((string) ($_POST['paystack_public_key'] ?? '')),
+            'flutterwave_public_key' => trim((string) ($_POST['flutterwave_public_key'] ?? '')),
+        ];
+        foreach ($publicKeys as $key => $val) {
+            setSetting($conn, $key, $val);
+        }
+        $secrets = [
+            'paystack_secret_key' => trim((string) ($_POST['paystack_secret_key'] ?? '')),
+            'flutterwave_secret_key' => trim((string) ($_POST['flutterwave_secret_key'] ?? '')),
+            'flutterwave_encryption_key' => trim((string) ($_POST['flutterwave_encryption_key'] ?? '')),
+        ];
+        foreach ($secrets as $key => $val) {
+            if ($val !== '' && $val !== '********') {
+                setSetting($conn, $key, $val);
+            }
+        }
+        $message = 'Payment keys saved.';
+        $messageType = 'success';
+    }
 
     // ----- SUPER ADMIN ONLY ACTIONS -----
     if ($isSuperAdmin) {
@@ -354,6 +375,12 @@ $smtp_encryption = getSetting($conn, 'smtp_encryption');
 $google_client_id = getSetting($conn, 'google_client_id');
 $google_client_secret = getSetting($conn, 'google_client_secret');
 $google_redirect_uri = 'https://rdvendora.com/oauth2callback.php';
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+$paystack_public_key = getSetting($conn, 'paystack_public_key', $payKeys['paystack_public'] ?? '');
+$paystack_secret_key = getSetting($conn, 'paystack_secret_key', $payKeys['paystack_secret'] ?? '');
+$flutterwave_public_key = getSetting($conn, 'flutterwave_public_key', $payKeys['flutterwave_public'] ?? '');
+$flutterwave_secret_key = getSetting($conn, 'flutterwave_secret_key', $payKeys['flutterwave_secret'] ?? '');
+$flutterwave_encryption_key = getSetting($conn, 'flutterwave_encryption_key', $payKeys['flutterwave_encryption'] ?? '');
 
 // Fetch roles (for super admin)
 $roles = [];
@@ -480,6 +507,37 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     <small style="display:block;color:var(--text-muted);font-size:0.7rem;margin-top:4px;">Locked to the production HTTPS callback. Add this exact URI on the <strong>Web application</strong> OAuth client in Google Cloud. Authorized JavaScript origin: <code>https://rdvendora.com</code>.</small>
                 </div>
                 <button type="submit" name="update_google_oauth" class="btn">Save Google Sign-In</button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <h3>💳 Payment Keys</h3>
+            <?php if ($message && strpos($message, 'Payment') !== false) echo '<div class="message '.$messageType.'">'.htmlspecialchars($message).'</div>'; ?>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Keys saved here are used for checkout and verification. Secret keys stay on the server and are not shown after save.</p>
+            <form method="POST" autocomplete="off">
+                <h4 style="margin:0 0 0.75rem;font-size:0.95rem;">Paystack</h4>
+                <div class="form-group">
+                    <label>Public key</label>
+                    <input type="text" name="paystack_public_key" value="<?= htmlspecialchars($paystack_public_key) ?>" placeholder="pk_live_... or pk_test_..." autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Secret key</label>
+                    <input type="password" name="paystack_secret_key" value="<?= $paystack_secret_key !== '' ? '********' : '' ?>" placeholder="Leave blank to keep current" autocomplete="new-password">
+                </div>
+                <h4 style="margin:1.25rem 0 0.75rem;font-size:0.95rem;">Flutterwave</h4>
+                <div class="form-group">
+                    <label>Public key</label>
+                    <input type="text" name="flutterwave_public_key" value="<?= htmlspecialchars($flutterwave_public_key) ?>" placeholder="FLWPUBK_..." autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Secret key</label>
+                    <input type="password" name="flutterwave_secret_key" value="<?= $flutterwave_secret_key !== '' ? '********' : '' ?>" placeholder="Leave blank to keep current" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label>Encryption key</label>
+                    <input type="password" name="flutterwave_encryption_key" value="<?= $flutterwave_encryption_key !== '' ? '********' : '' ?>" placeholder="Leave blank to keep current" autocomplete="new-password">
+                </div>
+                <button type="submit" name="update_payment_keys" class="btn">Save Payment Keys</button>
             </form>
         </div>
 

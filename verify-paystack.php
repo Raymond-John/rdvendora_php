@@ -10,7 +10,8 @@ if (!$conn) {
 }
 
 // Your Paystack secret key (test/live)
-$paystackSecretKey = rdv_env('PAYSTACK_SECRET_KEY', '');
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+$paystackSecretKey = $payKeys['paystack_secret'] ?? '';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $reference = $input['reference'] ?? '';

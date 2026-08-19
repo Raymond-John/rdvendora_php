@@ -95,8 +95,9 @@ $g = hexdec(substr($brandColor,3,2));
 $b = hexdec(substr($brandColor,5,2));
 
 // ----- Payment Gateway Keys -----
-$paystackPublicKey = rdv_env('PAYSTACK_PUBLIC_KEY', '');
-$flutterwavePublicKey = rdv_env('FLUTTERWAVE_PUBLIC_KEY', '');
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+$paystackPublicKey = $payKeys['paystack_public'] ?? '';
+$flutterwavePublicKey = $payKeys['flutterwave_public'] ?? '';
 
 // ========== FETCH SHIPPING & TAX SETTINGS ==========
 function getMarketplaceSetting($key, $default = '') {

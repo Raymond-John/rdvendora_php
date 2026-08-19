@@ -13,8 +13,9 @@ if (!$conn) {
 }
 
 // ---------- CONFIGURATION ----------
-$paystackSecretKey    = rdv_env('PAYSTACK_SECRET_KEY', '');
-$flutterwaveSecretKey = rdv_env('FLUTTERWAVE_SECRET_KEY', '');
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+$paystackSecretKey    = $payKeys['paystack_secret'] ?? '';
+$flutterwaveSecretKey = $payKeys['flutterwave_secret'] ?? '';
 
 // ---------- DETECT REQUEST TYPE ----------
 $gateway = '';

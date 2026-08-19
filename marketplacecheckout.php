@@ -124,12 +124,22 @@ define('DB_NAME', 'rdvendora_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
-define('PAYSTACK_SECRET_KEY', rdv_env('PAYSTACK_SECRET_KEY', ''));
-define('PAYSTACK_PUBLIC_KEY', rdv_env('PAYSTACK_PUBLIC_KEY', ''));
-
-define('FLUTTERWAVE_SECRET_KEY', rdv_env('FLUTTERWAVE_SECRET_KEY', ''));
-define('FLUTTERWAVE_PUBLIC_KEY', rdv_env('FLUTTERWAVE_PUBLIC_KEY', ''));
-define('FLUTTERWAVE_ENCRYPTION_KEY', rdv_env('FLUTTERWAVE_ENCRYPTION_KEY', ''));
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+if (!defined('PAYSTACK_SECRET_KEY')) {
+    define('PAYSTACK_SECRET_KEY', $payKeys['paystack_secret'] ?? '');
+}
+if (!defined('PAYSTACK_PUBLIC_KEY')) {
+    define('PAYSTACK_PUBLIC_KEY', $payKeys['paystack_public'] ?? '');
+}
+if (!defined('FLUTTERWAVE_SECRET_KEY')) {
+    define('FLUTTERWAVE_SECRET_KEY', $payKeys['flutterwave_secret'] ?? '');
+}
+if (!defined('FLUTTERWAVE_PUBLIC_KEY')) {
+    define('FLUTTERWAVE_PUBLIC_KEY', $payKeys['flutterwave_public'] ?? '');
+}
+if (!defined('FLUTTERWAVE_ENCRYPTION_KEY')) {
+    define('FLUTTERWAVE_ENCRYPTION_KEY', $payKeys['flutterwave_encryption'] ?? '');
+}
 
 try {
     $pdo = new PDO("mysql:host=" . DB_HOST, DB_USER, DB_PASS);

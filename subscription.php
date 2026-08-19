@@ -182,8 +182,13 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-define('FLW_PUBLIC_KEY', rdv_env('FLUTTERWAVE_PUBLIC_KEY', ''));
-define('FLW_SECRET_KEY', rdv_env('FLUTTERWAVE_SECRET_KEY', ''));
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+if (!defined('FLW_PUBLIC_KEY')) {
+    define('FLW_PUBLIC_KEY', $payKeys['flutterwave_public'] ?? '');
+}
+if (!defined('FLW_SECRET_KEY')) {
+    define('FLW_SECRET_KEY', $payKeys['flutterwave_secret'] ?? '');
+}
 define('FLW_SANDBOX', true);
 define('FLW_BASE_URL', FLW_SANDBOX ? 'https://api.flutterwave.com/v3' : 'https://api.flutterwave.com/v3');
 ini_set('log_errors', 1);

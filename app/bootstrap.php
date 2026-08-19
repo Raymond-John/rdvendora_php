@@ -153,6 +153,7 @@ require_once APP_PATH . '/helpers/ads.php';
 require_once APP_PATH . '/helpers/analytics.php';
 require_once APP_PATH . '/config/database.php';
 require_once APP_PATH . '/helpers/google_oauth.php';
+require_once APP_PATH . '/helpers/payment_keys.php';
 
 if (!function_exists('rdv_load_phpmailer')) {
     function rdv_load_phpmailer() {

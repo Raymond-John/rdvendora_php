@@ -8,7 +8,8 @@ if (!$conn) {
     die('Database connection failed.');
 }
 
-$flutterwaveSecretKey = rdv_env('FLUTTERWAVE_SECRET_KEY', '');
+$payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+$flutterwaveSecretKey = $payKeys['flutterwave_secret'] ?? '';
 
 // --- Read input from either GET (Flutterwave redirect) or POST (AJAX) ---
 $transactionId = '';

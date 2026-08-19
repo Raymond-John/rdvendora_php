@@ -6,15 +6,9 @@ require_once 'includes/public_site.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-$maintenanceMode = '0';
-$stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'maintenance_mode'");
-if ($stmt) {
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
-        $maintenanceMode = $row['setting_value'];
-    }
-    $stmt->close();
+$maintenanceMode = rdv_site_setting($conn, 'maintenance_mode');
+if ($maintenanceMode === '') {
+    $maintenanceMode = '0';
 }
 if ($maintenanceMode == '1') {
     $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;

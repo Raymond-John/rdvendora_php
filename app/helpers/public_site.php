@@ -20,13 +20,7 @@ if (!function_exists('rdv_site_contact_email')) {
     function rdv_site_contact_email($conn = null) {
         $email = '';
         if ($conn instanceof mysqli) {
-            $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'site_email' LIMIT 1");
-            if ($stmt) {
-                $stmt->execute();
-                $row = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
-                $email = trim((string) ($row['setting_value'] ?? ''));
-            }
+            $email = rdv_site_setting($conn, 'site_email');
         }
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $email = trim((string) rdv_env('SMTP_FROM', rdv_env('SMTP_USER', '')));
@@ -43,15 +37,20 @@ if (!function_exists('rdv_site_setting')) {
         if (!$conn instanceof mysqli) {
             return '';
         }
-        $stmt = $conn->prepare('SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1');
-        if (!$stmt) {
+        try {
+            $stmt = $conn->prepare('SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1');
+            if (!$stmt) {
+                return '';
+            }
+            $stmt->bind_param('s', $key);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            return trim((string) ($row['setting_value'] ?? ''));
+        } catch (Throwable $e) {
+            error_log('rdv_site_setting(' . $key . '): ' . $e->getMessage());
             return '';
         }
-        $stmt->bind_param('s', $key);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        return trim((string) ($row['setting_value'] ?? ''));
     }
 }
 

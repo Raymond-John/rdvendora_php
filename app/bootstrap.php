@@ -55,6 +55,48 @@ require_once APP_PATH . '/helpers/ads.php';
 require_once APP_PATH . '/helpers/analytics.php';
 require_once APP_PATH . '/config/database.php';
 
+if (!is_dir(STORAGE_PATH . '/logs')) {
+    @mkdir(STORAGE_PATH . '/logs', 0755, true);
+}
+
+if (!function_exists('rdv_handle_uncaught')) {
+    function rdv_handle_uncaught($e) {
+        error_log('Uncaught ' . get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+        if (PHP_SAPI === 'cli') {
+            fwrite(STDERR, $e->getMessage() . PHP_EOL);
+            exit(1);
+        }
+        if (!headers_sent()) {
+            http_response_code(500);
+        }
+        if (rdv_env('APP_DEBUG', false)) {
+            echo 'Application error. Details are in storage/logs/php_errors.log.';
+            exit;
+        }
+        $page = PUBLIC_PATH . '/500.php';
+        if (is_readable($page)) {
+            include $page;
+        } else {
+            echo 'Something went wrong.';
+        }
+        exit;
+    }
+}
+set_exception_handler('rdv_handle_uncaught');
+set_error_handler(function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+    error_log("PHP error [$severity] $message in $file:$line");
+    if (rdv_env('APP_DEBUG', false)) {
+        return false;
+    }
+    if ($severity === E_ERROR || $severity === E_PARSE || $severity === E_CORE_ERROR || $severity === E_COMPILE_ERROR || $severity === E_USER_ERROR) {
+        rdv_handle_uncaught(new ErrorException($message, 0, $severity, $file, $line));
+    }
+    return true;
+});
+
 if (!function_exists('rdv_load_phpmailer')) {
     function rdv_load_phpmailer() {
         static $loaded = false;

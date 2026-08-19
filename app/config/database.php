@@ -26,3 +26,19 @@ if (!$connect->real_connect($host, $username, $password, $dbname, $port)) {
 
 $connect->set_charset(rdv_env('DB_CHARSET', 'utf8mb4'));
 $conn = $connect;
+
+if (!function_exists('rdv_db_table_exists')) {
+    function rdv_db_table_exists(mysqli $db, $table) {
+        $table = preg_replace('/[^a-zA-Z0-9_]/', '', (string) $table);
+        if ($table === '') {
+            return false;
+        }
+        try {
+            $res = $db->query("SHOW TABLES LIKE '" . $db->real_escape_string($table) . "'");
+            return $res && $res->num_rows > 0;
+        } catch (Throwable $e) {
+            error_log('rdv_db_table_exists: ' . $e->getMessage());
+            return false;
+        }
+    }
+}

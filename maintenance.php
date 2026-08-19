@@ -6,12 +6,19 @@ if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
 // ------------------ REDIRECT IF MAINTENANCE IS OFF ------------------
-$modeStmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'maintenance_mode'");
-$modeStmt->execute();
-$modeResult = $modeStmt->get_result();
 $maintenanceMode = '0';
-if ($row = $modeResult->fetch_assoc()) {
-    $maintenanceMode = $row['setting_value'];
+try {
+    $modeStmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'maintenance_mode'");
+    if ($modeStmt) {
+        $modeStmt->execute();
+        $modeResult = $modeStmt->get_result();
+        if ($row = $modeResult->fetch_assoc()) {
+            $maintenanceMode = $row['setting_value'];
+        }
+        $modeStmt->close();
+    }
+} catch (Throwable $e) {
+    error_log('maintenance.php settings: ' . $e->getMessage());
 }
 if ($maintenanceMode !== '1') {
     header('Location: index.php');
@@ -21,11 +28,19 @@ if ($maintenanceMode !== '1') {
 
 // Fetch maintenance end time (only used if maintenance is on)
 $maintenanceEnd = '';
-$stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'maintenance_end_time'");
-$stmt->execute();
-$result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $maintenanceEnd = $row['setting_value'];
+$maintenanceEnd = '';
+try {
+    $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'maintenance_end_time'");
+    if ($stmt) {
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $maintenanceEnd = $row['setting_value'];
+        }
+        $stmt->close();
+    }
+} catch (Throwable $e) {
+    error_log('maintenance.php end_time: ' . $e->getMessage());
 }
 $conn->close();
 ?>

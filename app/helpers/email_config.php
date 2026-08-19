@@ -13,13 +13,17 @@ if (!$conn) {
 
 // Helper to get a setting value
 function getEmailSetting($conn, $key, $default = '') {
-    $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
-    if (!$stmt) return $default;
-    $stmt->bind_param("s", $key);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
-        return $row['setting_value'];
+    try {
+        $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+        if (!$stmt) return $default;
+        $stmt->bind_param("s", $key);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return $row['setting_value'];
+        }
+    } catch (Throwable $e) {
+        error_log('getEmailSetting: ' . $e->getMessage());
     }
     return $default;
 }

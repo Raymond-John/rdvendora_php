@@ -37,16 +37,8 @@
 .rdv-crumbs a { color: var(--primary); }
 
 .rdv-footer-heading { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; color: var(--text-primary); }
-.rdv-footer-newsletter { margin-top: 20px; }
+.rdv-footer-newsletter { min-width: 0; text-align: left; }
 .rdv-footer-newsletter p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 10px; }
-
-.footer .rdv-footer-newsletter {
-  margin: 0 0 var(--space-12, 3rem);
-  padding-top: var(--space-8, 2rem);
-  border-top: 1px solid var(--border-primary);
-  max-width: 480px;
-  text-align: left;
-}
 .footer .rdv-footer-newsletter h4 {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);

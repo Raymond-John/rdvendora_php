@@ -1089,9 +1089,10 @@ select.form-input {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr repeat(3, 1fr);
-  gap: var(--space-12);
+  grid-template-columns: 1.4fr repeat(3, 0.75fr) minmax(240px, 1.5fr);
+  gap: var(--space-10);
   margin-bottom: var(--space-12);
+  align-items: start;
 }
 
 .footer-logo {

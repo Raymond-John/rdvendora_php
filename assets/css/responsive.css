@@ -56,6 +56,10 @@
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-8);
   }
+
+  .footer .rdv-footer-newsletter {
+    grid-column: 2;
+  }
   
   /* Sidebar */
   .sidebar {
@@ -242,6 +246,12 @@
     grid-template-columns: 1fr;
     gap: var(--space-8);
     text-align: center;
+  }
+
+  .footer .rdv-footer-newsletter {
+    grid-column: auto;
+    text-align: left;
+    max-width: 100%;
   }
   
   .footer-brand {

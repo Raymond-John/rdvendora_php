@@ -42,11 +42,11 @@ $year = (int) date('Y');
             <a href="community-guidelines.php">Community Guidelines</a>
           </div>
         </div>
-      </div>
-      <div class="rdv-footer-newsletter">
-        <h4>Newsletter</h4>
-        <p>Subscribe to the RD Vendora newsletter to receive updates, useful business resources, platform news, and other relevant information.</p>
-        <?= rdv_newsletter_form('footer') ?>
+        <div class="rdv-footer-newsletter">
+          <h4>Newsletter</h4>
+          <p>Subscribe to the RD Vendora newsletter to receive updates, useful business resources, platform news, and other relevant information.</p>
+          <?= rdv_newsletter_form('footer') ?>
+        </div>
       </div>
       <div class="footer-bottom">
         <p class="footer-copyright">&copy; <?= $year ?> RD Vendora. All rights reserved. Designed By RD NEXA TECH</p>

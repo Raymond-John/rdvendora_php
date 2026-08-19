@@ -5,13 +5,34 @@ require_once __DIR__ . '/../includes/connection.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
+require_once dirname(__DIR__) . '/app/helpers/schema_install.php';
+require_once dirname(__DIR__) . '/app/helpers/admin_auth.php';
+
+$installMessage = '';
+$installOk = false;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install_schema'])) {
+    $result = rdv_install_schema($conn);
+    $installOk = !empty($result['ok']);
+    $installMessage = (string) ($result['message'] ?? '');
+    if ($installOk) {
+        header('Location: admin_register.php?installed=1');
+        exit;
+    }
+}
+
 if (!function_exists('rdv_db_table_exists') || !rdv_db_table_exists($conn, 'users')) {
     http_response_code(503);
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Database not installed</title></head><body style="font-family:sans-serif;max-width:40rem;margin:3rem auto;line-height:1.5">';
+    $err = htmlspecialchars($installMessage, ENT_QUOTES, 'UTF-8');
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Install database</title></head>';
+    echo '<body style="font-family:sans-serif;max-width:40rem;margin:3rem auto;line-height:1.5;color:#0f172a">';
     echo '<h1>Database not installed</h1>';
     echo '<p>The production database is connected, but required tables (including <code>users</code>) are missing.</p>';
-    echo '<p>In Hostinger phpMyAdmin, select database <code>u711829883_rdvendora</code>, then Import <code>database/schema.sql</code> from the site files (public_html/database/schema.sql).</p>';
-    echo '<p>After the import finishes, reload this page to create the first super admin.</p>';
+    if ($err !== '') {
+        echo '<p style="color:#b91c1c">' . $err . '</p>';
+    }
+    echo '<p>Click the button below to create the tables from <code>database/schema.sql</code> on this server. This does not drop existing data.</p>';
+    echo '<form method="post"><button type="submit" name="install_schema" value="1" style="padding:0.75rem 1.25rem;background:#1d4ed8;color:#fff;border:0;border-radius:8px;font-size:1rem;cursor:pointer">Install database now</button></form>';
+    echo '<p style="margin-top:2rem;color:#64748b;font-size:0.9rem">If the button fails, import the same file in Hostinger phpMyAdmin: database <code>u711829883_rdvendora</code> → Import → <code>public_html/database/schema.sql</code>.</p>';
     echo '</body></html>';
     exit;
 }
@@ -30,16 +51,22 @@ try {
     $adminExists = false;
 }
 
-// If already logged in as admin, redirect to dashboard
-if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
-    header('Location: admin.php');
+rdv_hydrate_admin_session($conn);
+$isSuperAdmin = isset($_SESSION['role_name']) && $_SESSION['role_name'] === 'super_admin';
+
+if ($adminExists && !$isSuperAdmin) {
+    header('Location: admin_login.php');
     exit;
 }
 
 $error = '';
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['install_schema'])) {
+    if ($adminExists && !$isSuperAdmin) {
+        header('Location: admin_login.php');
+        exit;
+    }
     $fullname = trim($_POST['fullname'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -63,18 +90,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered.';
         } else {
             $stmt->close();
+            $stmt = null;
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $is_admin = 1;
-            $stmt = $conn->prepare("INSERT INTO users (fullname, email, password, is_admin, created_at) VALUES (?, ?, ?, ?, NOW())");
-            $stmt->bind_param("sssi", $fullname, $email, $hashed_password, $is_admin);
-            if ($stmt->execute()) {
-                $success = 'Super admin account created successfully. Please login.';
-                // Optionally auto-login? Better to redirect to login.
-                header('Refresh: 2; url=admin_login.php');
-            } else {
-                $error = 'Database error: ' . $conn->error;
+            $roleId = rdv_admin_super_role_id($conn);
+            if ($roleId > 0) {
+                $try = $conn->prepare("INSERT INTO users (fullname, full_name, email, password, password_hash, is_admin, role_id, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'admin', NOW())");
+                if ($try) {
+                    $stmt = $try;
+                    $stmt->bind_param("sssssii", $fullname, $fullname, $email, $hashed_password, $hashed_password, $is_admin, $roleId);
+                }
             }
-            $stmt->close();
+            if (!$stmt) {
+                $stmt = $conn->prepare("INSERT INTO users (fullname, email, password, is_admin, created_at) VALUES (?, ?, ?, ?, NOW())");
+                if ($stmt) {
+                    $stmt->bind_param("sssi", $fullname, $email, $hashed_password, $is_admin);
+                }
+            }
+            if ($stmt && $stmt->execute()) {
+                $success = $adminExists
+                    ? 'Admin account created. They can sign in at the admin login page.'
+                    : 'Super admin account created successfully. Please login.';
+                if (!$adminExists) {
+                    header('Refresh: 2; url=admin_login.php');
+                }
+            } else {
+                $error = 'Database error: ' . ($stmt ? $stmt->error : $conn->error);
+            }
+            if ($stmt) {
+                $stmt->close();
+            }
         }
     }
 }
@@ -147,21 +192,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="register-container">
     <div class="register-header">
-        <h1>Super Admin Registration</h1>
-        <p>Create the first administrator account</p>
+        <h1><?= $adminExists ? 'Add an admin' : 'Super Admin Registration' ?></h1>
+        <p><?= $adminExists ? 'Only a super admin can create another administrator' : 'Create the first administrator account' ?></p>
     </div>
     <div class="register-body">
-        <?php if ($adminExists): ?>
-            <div class="alert alert-error">
-                ⚠️ An admin account already exists. Registration is disabled.<br>
-                <a href="admin_login.php" style="color:#667eea; font-weight:600;">Go to Login</a>
-            </div>
-        <?php else: ?>
-            <?php if ($error): ?>
+        <?php if ($error): ?>
                 <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
             <?php if ($success): ?>
                 <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+            <?php endif; ?>
+            <?php if ($adminExists && $isSuperAdmin): ?>
+                <div class="info-message">You are signed in as super admin. New accounts created here get admin access.</div>
             <?php endif; ?>
             <form method="POST">
                 <div class="form-group">
@@ -180,10 +222,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Confirm Password</label>
                     <input type="password" name="confirm_password" required>
                 </div>
-                <button type="submit" class="btn">Register Super Admin</button>
+                <button type="submit" class="btn"><?= $adminExists ? 'Create admin' : 'Register Super Admin' ?></button>
             </form>
-            <div class="login-link">Already have an admin account? <a href="admin_login.php">Login here</a></div>
-        <?php endif; ?>
+            <?php if ($isSuperAdmin): ?>
+                <div class="login-link"><a href="admin.php">Back to dashboard</a></div>
+            <?php else: ?>
+                <div class="login-link">Already have an admin account? <a href="admin_login.php">Login here</a></div>
+            <?php endif; ?>
         <div class="back-link"><a href="../index.php">← Back to Store</a></div>
     </div>
 </div>

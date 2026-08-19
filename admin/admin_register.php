@@ -5,14 +5,29 @@ require_once __DIR__ . '/../includes/connection.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// Check if any admin already exists
-$checkAdmin = $conn->query("SELECT COUNT(*) as count FROM users WHERE is_admin = 1");
+if (!function_exists('rdv_db_table_exists') || !rdv_db_table_exists($conn, 'users')) {
+    http_response_code(503);
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Database not installed</title></head><body style="font-family:sans-serif;max-width:40rem;margin:3rem auto;line-height:1.5">';
+    echo '<h1>Database not installed</h1>';
+    echo '<p>The production database is connected, but required tables (including <code>users</code>) are missing.</p>';
+    echo '<p>In Hostinger phpMyAdmin, select database <code>u711829883_rdvendora</code>, then Import <code>database/schema.sql</code> from the site files (public_html/database/schema.sql).</p>';
+    echo '<p>After the import finishes, reload this page to create the first super admin.</p>';
+    echo '</body></html>';
+    exit;
+}
+
 $adminExists = false;
-if ($checkAdmin) {
-    $row = $checkAdmin->fetch_assoc();
-    if ($row['count'] > 0) {
-        $adminExists = true;
+try {
+    $checkAdmin = $conn->query("SELECT COUNT(*) as count FROM users WHERE is_admin = 1");
+    if ($checkAdmin) {
+        $row = $checkAdmin->fetch_assoc();
+        if (!empty($row['count'])) {
+            $adminExists = true;
+        }
     }
+} catch (Throwable $e) {
+    error_log('admin_register.php: ' . $e->getMessage());
+    $adminExists = false;
 }
 
 // If already logged in as admin, redirect to dashboard

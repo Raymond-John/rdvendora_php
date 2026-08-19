@@ -17,11 +17,15 @@ if (!$connect) {
 
 $connect->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
 
-if (!$connect->real_connect($host, $username, $password, $dbname, $port)) {
+$connected = false;
+try {
+    $connected = $connect->real_connect($host, $username, $password, $dbname, $port);
+} catch (Throwable $e) {
+    error_log('Database connection failed: ' . $e->getMessage());
+    $connected = false;
+}
+if (!$connected) {
     error_log('Database connection failed: ' . mysqli_connect_error());
-    if (rdv_env('APP_DEBUG', false)) {
-        die('Connection failed: ' . mysqli_connect_error());
-    }
     die('Database connection failed.');
 }
 

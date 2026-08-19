@@ -18,9 +18,15 @@ if ($maintenanceMode == '1') {
     }
 }
 
-$table_check = $conn->query("SHOW TABLES LIKE 'testimonials'");
+$table_check = false;
+try {
+    $table_check = $conn->query("SHOW TABLES LIKE 'testimonials'");
+} catch (Throwable $e) {
+    error_log('index.php testimonials check: ' . $e->getMessage());
+}
 if ($table_check && $table_check->num_rows === 0) {
-    $conn->query("CREATE TABLE testimonials (
+    try {
+        $conn->query("CREATE TABLE IF NOT EXISTS testimonials (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NULL,
         name VARCHAR(100) NOT NULL,
@@ -33,6 +39,9 @@ if ($table_check && $table_check->num_rows === 0) {
         INDEX (status),
         INDEX (user_id)
     )");
+    } catch (Throwable $e) {
+        error_log('index.php testimonials create: ' . $e->getMessage());
+    }
 }
 
 $activePlans = [];

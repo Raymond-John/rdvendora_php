@@ -39,10 +39,6 @@ if (!function_exists('rdv_handle_uncaught')) {
         if (!headers_sent()) {
             http_response_code(500);
         }
-        if (function_exists('rdv_env') && rdv_env('APP_DEBUG', false)) {
-            echo 'Application error. Details are in storage/logs/php_errors.log.';
-            exit;
-        }
         $page = PUBLIC_PATH . '/500.php';
         if (is_readable($page)) {
             include $page;
@@ -52,7 +48,9 @@ if (!function_exists('rdv_handle_uncaught')) {
         exit;
     }
 }
-set_exception_handler('rdv_handle_uncaught');
+if (!$appDebug) {
+    set_exception_handler('rdv_handle_uncaught');
+}
 
 if (session_status() === PHP_SESSION_NONE) {
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');

@@ -209,6 +209,174 @@ $adminPageHeading = 'Marketplace Design';
 $adminPageSubtitle = 'Control marketplace appearance';
 $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
+$adminPageStyles = <<<'CSS'
+.design-section { padding: 1rem 2rem 2rem; }
+.settings-group {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+.settings-group-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+}
+.settings-group-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+.settings-group-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.settings-group-body { padding: 1.5rem; }
+.design-section .form-group { margin-bottom: 1.25rem; }
+.design-section .form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+.design-section .form-input,
+.design-section .form-select {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+.design-section input[type="checkbox"],
+.design-section input[type="radio"],
+.design-section input[type="file"] {
+    width: auto;
+    padding: 0;
+    border: none;
+    background: none;
+}
+.design-section .color-input,
+.design-section input[type="color"] {
+    width: 60px;
+    height: 40px;
+    padding: 2px;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: var(--bg-secondary);
+}
+.store-checkbox-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius);
+}
+.store-checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+.shipping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius);
+}
+.shipping-grid .form-group { margin-bottom: 0; }
+.shipping-grid .form-group label {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.design-section .btn-primary,
+.design-section button[type="submit"].btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    width: auto;
+    display: inline-flex;
+}
+.design-section .alert {
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin: 0 0 1rem;
+}
+.design-section .alert-success {
+    background: var(--success-light);
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+.design-section .alert-error {
+    background: var(--error-light);
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+.color-preview-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.preview-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    width: 200px;
+    text-align: center;
+}
+.preview-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    display: inline-block;
+    font-size: 0.8rem;
+}
+.hero-preview {
+    background: linear-gradient(135deg, #1e2a3e, #0f172a);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    color: white;
+    gap: 1rem;
+}
+.hero-preview-text h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+.hero-preview-text p { color: #cbd5e1; }
+.hero-preview img {
+    max-width: 150px;
+    border-radius: 12px;
+}
+@media (max-width: 768px) {
+    .design-section { padding: 1rem; }
+}
+CSS;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
     <div class="design-section">

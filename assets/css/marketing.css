@@ -5,6 +5,7 @@
   --mk-navy-2: #12305f;
   --mk-gold: #d4af37;
   --mk-ink: #0f172a;
+  overflow-x: clip;
 }
 
 .rdv-public-page.mk-marketing main {
@@ -50,7 +51,9 @@
 .mk-kicker {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  max-width: 100%;
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
   background: rgba(255,255,255,0.12);
@@ -64,11 +67,12 @@
 
 .mk-hero h1,
 .mk-page-hero h1 {
-  font-size: clamp(2.1rem, 4.4vw, 3.6rem);
+  font-size: clamp(1.75rem, 6.5vw, 3.6rem);
   line-height: 1.12;
   font-weight: 800;
   letter-spacing: -0.03em;
   margin: 0 0 1rem;
+  overflow-wrap: anywhere;
 }
 
 .mk-hero p.lead,
@@ -78,6 +82,7 @@
   color: rgba(255,255,255,0.86);
   max-width: 38rem;
   margin: 0 0 1.75rem;
+  overflow-wrap: anywhere;
 }
 
 .mk-page-hero p.lead { margin-left: auto; margin-right: auto; }
@@ -232,15 +237,29 @@
 .mk-market p { max-width: 36rem; margin: 0 auto 1.5rem; color: rgba(255,255,255,0.86); }
 
 .mk-cta-band {
-  margin: 0 1.25rem 5rem;
+  margin: 0 0 5rem;
   border-radius: 24px;
-  padding: 3.5rem 1.5rem;
+  padding: 3.5rem 2rem;
   text-align: center;
   color: #fff;
   background: linear-gradient(135deg, #12305f 0%, #1d4ed8 60%, #c9a227 160%);
 }
-.mk-cta-band h2 { color: #fff; margin-bottom: 0.7rem; font-size: 2rem; }
-.mk-cta-band p { color: rgba(255,255,255,0.88); max-width: 32rem; margin: 0 auto 1.5rem; }
+.mk-cta-band h2 {
+  color: #fff;
+  margin-bottom: 0.7rem;
+  font-size: clamp(1.45rem, 3.2vw, 2rem);
+  overflow-wrap: anywhere;
+}
+.mk-cta-band p {
+  color: rgba(255,255,255,0.88);
+  max-width: 32rem;
+  margin: 0 auto 1.5rem;
+  overflow-wrap: anywhere;
+}
+.mk-cta-band .btn {
+  white-space: normal;
+  max-width: 100%;
+}
 
 .mk-page-hero { text-align: center; }
 .mk-page-hero h1 .gradient-text,
@@ -257,8 +276,20 @@
   gap: 3rem;
   align-items: start;
 }
+.mk-split > *,
+.mk-values-grid > *,
+.mk-team-grid > *,
+.mk-stat-grid > * {
+  min-width: 0;
+}
+.mk-prose { overflow-wrap: anywhere; }
+.mk-prose h2:first-child { margin-top: 0; }
 .mk-prose h2 { font-size: 1.35rem; margin: 1.6rem 0 0.6rem; color: var(--mk-ink); }
 .mk-prose p { color: var(--text-secondary); line-height: 1.75; margin-bottom: 1rem; }
+
+.mk-aside-card { padding: 2rem; }
+.mk-aside-card h3 { margin: 0 0 0.6rem; color: var(--mk-ink); }
+.mk-aside-card p { color: var(--text-secondary); line-height: 1.7; margin: 0; overflow-wrap: anywhere; }
 
 .mk-stat-grid {
   display: grid;
@@ -272,8 +303,13 @@
   padding: 1.4rem;
   text-align: center;
 }
-.mk-stat b { display: block; font-size: 1.7rem; color: #1d4ed8; }
-.mk-stat span { font-size: 0.85rem; color: var(--text-secondary); }
+.mk-stat b {
+  display: block;
+  font-size: clamp(1.15rem, 3.4vw, 1.7rem);
+  color: #1d4ed8;
+  overflow-wrap: anywhere;
+}
+.mk-stat span { font-size: 0.85rem; color: var(--text-secondary); overflow-wrap: anywhere; }
 
 .mk-values-grid {
   display: grid;
@@ -335,12 +371,27 @@
 
 .mk-team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 1.25rem;
 }
 .mk-team-card { text-align: center; padding: 1.75rem 1.25rem; }
+.mk-team-card h3 { margin: 0 0 0.35rem; font-size: 1.1rem; overflow-wrap: anywhere; }
+.mk-team-role {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 0.6rem;
+  overflow-wrap: anywhere;
+}
+.mk-team-bio {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 .mk-team-card img, .mk-avatar {
-  width: 84px; height: 84px; border-radius: 50%;
+  width: 84px; height: 84px; max-width: 84px;
+  border-radius: 50%;
   object-fit: cover; margin: 0 auto 0.9rem; display: grid; place-items: center;
   font-weight: 800; font-size: 1.4rem;
 }
@@ -378,15 +429,49 @@
 .reveal, .reveal-left, .reveal-right { opacity: 0; transform: translateY(16px); transition: 0.55s ease; }
 .reveal.revealed, .reveal-left.revealed, .reveal-right.revealed { opacity: 1; transform: none; }
 
+@media (max-width: 1024px) {
+  .mk-split { gap: 2rem; }
+  .mk-section { padding: 4rem 0; }
+  .mk-cta-band { padding: 3rem 1.5rem; }
+}
+
 @media (max-width: 960px) {
-  .mk-hero-grid, .mk-split, .mk-contact-grid, .mk-steps, .mk-values-grid { grid-template-columns: 1fr; }
+  .mk-hero-grid, .mk-split, .mk-contact-grid, .mk-steps { grid-template-columns: 1fr; }
+  .mk-values-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mk-preview { max-width: 480px; margin: 0 auto; }
-  .mk-cta-band { margin: 0 0 3.5rem; border-radius: 0; }
+  .mk-cta-band { margin-bottom: 3.5rem; }
 }
 
 @media (max-width: 767px) {
-  .mk-hero, .mk-hero--compact { padding: 7.2rem 0 3rem; }
-  .mk-section { padding: 3.25rem 0; }
+  .mk-hero, .mk-hero--compact { padding: 6.5rem 0 2.5rem; }
+  .mk-section { padding: 2.75rem 0; }
+  .mk-section-head { margin-bottom: 1.75rem; padding: 0 0.25rem; }
+  .mk-split { gap: 1.5rem; }
   .mk-preview-stats { grid-template-columns: 1fr; }
   .mk-marketing .feature-grid, .mk-marketing .pricing-grid { grid-template-columns: 1fr; }
+  .mk-page-hero p.lead { font-size: 1rem; margin-bottom: 0; }
+  .mk-cta-band {
+    padding: 2.25rem 1.15rem;
+    border-radius: 18px;
+    margin-bottom: 2.5rem;
+  }
+  .mk-cta-band .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .mk-stat { padding: 1.1rem 0.75rem; }
+  .mk-value-card { padding: 1.4rem 1.15rem; }
+  .mk-aside-card { padding: 1.4rem 1.15rem; }
+  .mk-prose h2 { font-size: 1.2rem; }
+  .mk-team-card { padding: 1.4rem 1rem; }
+}
+
+@media (max-width: 640px) {
+  .mk-values-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .mk-hero, .mk-hero--compact { padding: 5.85rem 0 2.15rem; }
+  .mk-stat-grid { grid-template-columns: 1fr; }
+  .mk-kicker { font-size: 0.7rem; }
 }

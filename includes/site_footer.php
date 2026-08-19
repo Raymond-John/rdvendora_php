@@ -9,8 +9,7 @@ $year = (int) date('Y');
       <div class="footer-grid">
         <div class="footer-brand">
           <a href="index.php" class="footer-logo">
-            <div class="navbar-brand-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-            RD Vendora
+            <?= rdv_brand_logo('', 'rdv-brand-logo--footer') ?>
           </a>
           <p class="footer-brand-desc">The complete multi-vendor eCommerce platform. Build, manage, and scale your online business with powerful tools.</p>
         </div>

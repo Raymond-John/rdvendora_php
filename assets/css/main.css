@@ -475,10 +475,22 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
+.nav-logo .rdv-brand-logo,
+.auth-logo .rdv-brand-logo {
+  height: 42px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  padding: 2px 6px;
+  display: block;
+}
+
 .nav-logo-icon {
   width: 36px;
   height: 36px;
-  background: var(--primary-gradient);
+  background: #fff;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;

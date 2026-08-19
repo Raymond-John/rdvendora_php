@@ -7,10 +7,7 @@ $rdvActiveNav = $rdvActiveNav ?? basename($_SERVER['SCRIPT_NAME'] ?? 'index.php'
   <header class="navbar glass" id="navbar" data-rdv-chrome="1">
     <div class="navbar-inner">
       <a href="index.php" class="navbar-brand">
-        <div class="navbar-brand-icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        RD Vendora
+        <?= rdv_brand_logo() ?>
       </a>
       <nav class="navbar-nav" id="navbar-nav" aria-label="Primary">
         <?php foreach (rdv_public_nav_items() as $href => $label): ?>

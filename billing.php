@@ -713,8 +713,7 @@
         nav.innerHTML = `
           <div class="navbar-inner">
             <a href="index.php" class="navbar-brand">
-              <div class="navbar-brand-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-              RD Vendora
+              <img src="assets/brand-logo.png" alt="RD Vendora" style="height:42px;width:auto;max-width:180px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px;display:block;">
             </a>
             <nav class="navbar-nav" id="navbar-nav">
               <a href="index.php" class="nav-link">Home</a>
@@ -739,8 +738,7 @@
             <div class="footer-grid">
               <div class="footer-brand">
                 <a href="index.php" class="navbar-brand" style="margin-bottom:16px;">
-                  <div class="navbar-brand-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-                  RD Vendora
+                  <img src="assets/brand-logo.png" alt="RD Vendora" style="height:42px;width:auto;max-width:180px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px;display:block;">
                 </a>
                 <p class="footer-brand-desc">The complete multi-vendor eCommerce platform. Build, manage, and scale your online business with powerful tools.</p>
               </div>
@@ -889,8 +887,7 @@
         overlay.className = 'mobile-overlay';
         overlay.innerHTML = `
           <div class="mobile-menu-brand">
-            <svg class="brand-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            RD Vendora
+            <img src="assets/brand-logo.png" alt="RD Vendora" style="height:36px;width:auto;max-width:140px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px;">
           </div>
           <button class="menu-close" id="menu-close">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

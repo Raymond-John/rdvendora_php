@@ -1,3 +1,38 @@
+/* Brand logo (navbar, footer, auth, dashboards) */
+.rdv-brand-logo {
+  display: block;
+  height: 42px;
+  width: auto;
+  max-width: min(180px, 52vw);
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+.rdv-brand-logo--sidebar {
+  height: 36px;
+  max-width: 140px;
+}
+.rdv-brand-logo--auth {
+  height: 52px;
+  max-width: 220px;
+}
+.rdv-brand-logo--footer {
+  height: 48px;
+  max-width: 200px;
+}
+.rdv-brand-logo--market {
+  height: 44px;
+  max-width: 170px;
+}
+.sidebar.collapsed .rdv-brand-logo,
+.sidebar.collapsed .rdv-brand-logo--sidebar {
+  height: 32px;
+  max-width: 40px;
+  padding: 1px;
+}
+
 /* Public extras: cookie consent, ads, newsletter, legal content, a11y */
 
 .rdv-skip-link {

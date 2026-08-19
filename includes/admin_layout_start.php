@@ -19,8 +19,7 @@ $adminRoleLabel = htmlspecialchars($adminRoleLabel, ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($adminPageTitle, ENT_QUOTES, 'UTF-8') ?></title>
-    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link rel="icon" href="../assets/brand-logo.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <?= $adminHeadExtra ?>

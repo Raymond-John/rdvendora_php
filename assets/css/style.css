@@ -1019,15 +1019,29 @@ select.form-input {
   color: var(--text-primary);
 }
 
+.navbar-brand .rdv-brand-logo {
+  height: 42px;
+  max-width: min(180px, 52vw);
+}
+
 .navbar-brand-icon {
   width: 36px;
   height: 36px;
-  background: var(--gradient-primary);
+  background: #fff;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.navbar-brand-icon img,
+.navbar-brand-icon .rdv-brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .navbar-nav {
@@ -1102,6 +1116,10 @@ select.form-input {
   font-size: var(--text-xl);
   font-weight: var(--font-bold);
   color: var(--text-primary);
+}
+.footer-logo .rdv-brand-logo {
+  height: 48px;
+  max-width: 200px;
 }
 
 .footer-brand {

@@ -279,6 +279,16 @@ $conn->close();
             white-space: nowrap;
         }
         .logo i { font-size: 1.4rem; color: #2563eb; }
+        .logo .rdv-brand-logo {
+            height: 42px;
+            width: auto;
+            max-width: 170px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 8px;
+            padding: 2px 6px;
+            display: block;
+        }
         .search-wrapper {
             flex: 1;
             max-width: 480px;
@@ -978,7 +988,7 @@ $conn->close();
             <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
             <div class="logo">
                 <a href="marketplace.php">
-                    <i class="fas fa-store"></i> <span>RD Vendora</span>
+                    <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
                 </a>
             </div>
         </div>

@@ -74,7 +74,7 @@ elseif ($payment_method === 'flutterwave') {
         'currency' => 'NGN',
         'redirect_url' => $callback_url,
         'customer' => ['email' => $order['customer_email'], 'name' => $order['customer_name']],
-        'customizations' => ['title' => 'RD Vendora - Order #' . $order_id, 'logo' => 'https://YOUR_DOMAIN.com/assets/logo.png']
+        'customizations' => ['title' => 'RD Vendora - Order #' . $order_id, 'logo' => (defined('APP_URL') ? rtrim(APP_URL, '/') : 'https://rdvendora.com') . '/assets/brand-logo.png']
     ];
     try {
         $response = $flutterwave->transactions->initialize($payload);

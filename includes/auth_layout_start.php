@@ -35,10 +35,7 @@ $checkIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
       <div class="auth-visual-bg"></div>
       <div class="auth-visual-content">
         <a href="index.php" class="auth-visual-brand">
-          <div class="auth-visual-brand-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </div>
-          RD Vendora
+          <?= rdv_brand_logo('', 'rdv-brand-logo--auth') ?>
         </a>
       </div>
       <div class="auth-visual-body">

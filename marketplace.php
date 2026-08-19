@@ -282,6 +282,18 @@ $conn->close();
       letter-spacing: -1px;
       flex: 0 0 auto;
     }
+    .logo a { display: flex; align-items: center; }
+    .logo .rdv-brand-logo,
+    .rdv-brand-logo--market {
+      height: 44px;
+      width: auto;
+      max-width: 170px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 8px;
+      padding: 2px 6px;
+      display: block;
+    }
     .logo span { color: #b8f5d0; }
     .search-bar {
       flex: 0 1 auto;
@@ -1245,7 +1257,7 @@ $conn->close();
 
 <!-- HEADER -->
 <header>
-  <div class="logo">RD<span>Vendora</span></div>
+  <div class="logo"><a href="marketplace.php"><img class="rdv-brand-logo rdv-brand-logo--market" src="assets/brand-logo.png" alt="RD Vendora"></a></div>
   <div class="search-bar">
     <form method="get" action="" style="display:flex; flex:1; width:100%;">
       <input type="text" name="q" id="searchInput" placeholder="Search products, brands and categories…" value="<?= htmlspecialchars($search) ?>" />
@@ -1286,8 +1298,7 @@ $slides[] = [
   'badges' => ['<i class="fas fa-truck"></i> Free Delivery', '<i class="fas fa-shield-alt"></i> 100% Genuine', '<i class="fas fa-undo"></i> Easy Returns'],
   'visual' => '
     <div class="brand-logo-big">
-      <div class="brand-logo-icon"><i class="fas fa-leaf"></i></div>
-      <div class="brand-logo-text">RD<em>Vendora</em></div>
+      <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora" style="height:88px;width:auto;max-width:260px;object-fit:contain;background:#fff;border-radius:12px;padding:8px 12px;margin:0 auto;">
       <div class="brand-logo-sub">Premium Marketplace</div>
     </div>
     <div class="floating-circle c1"></div>

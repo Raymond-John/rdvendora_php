@@ -58,7 +58,7 @@ const UI = {
         let currentSection = '';
         let html = '<div class="sidebar-header">\n' +
                    '  <a href="dashboard.php" class="sidebar-brand">\n' +
-                   '    <div class="sidebar-brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>\n' +
+                   '    <div class="sidebar-brand-icon"><img src="assets/brand-logo.png" alt="RD Vendora" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:6px;"></div>\n' +
                    '    RD Vendora\n' +
                    '  </a>\n' +
                    '  <button class="sidebar-toggle" id="sidebarToggle">◀</button>\n' +

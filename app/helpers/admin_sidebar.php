@@ -34,8 +34,7 @@ $item = static function ($url, $label, $icon) use ($currentPage) {
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <a href="../index.php" class="nav-logo">
-            <div class="nav-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
-            <span>RD Vendora</span>
+            <img class="rdv-brand-logo rdv-brand-logo--sidebar" src="../assets/brand-logo.png" alt="RD Vendora">
         </a>
         <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse sidebar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg></button>
     </div>

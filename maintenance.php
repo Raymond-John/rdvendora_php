@@ -191,10 +191,15 @@ $conn->close();
       font-size: var(--text-lg);
       color: var(--text-primary);
     }
-    .navbar-brand-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke: var(--primary);
+    .navbar-brand .rdv-brand-logo {
+      height: 42px;
+      width: auto;
+      max-width: 180px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 8px;
+      padding: 2px 6px;
+      display: block;
     }
     /* ========== Maintenance Card ========== */
     .maintenance-wrapper {
@@ -353,14 +358,7 @@ $conn->close();
   <header class="navbar">
     <div class="container navbar-inner">
       <a href="index.php" class="navbar-brand">
-        <span class="navbar-brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </span>
-        RD Vendora
+        <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
       </a>
       <!-- No action buttons -->
     </div>

@@ -204,6 +204,16 @@ function getStatusIcon($status) {
             background-clip: text;
         }
         .logo i { color: var(--primary); font-size: 1.6rem; }
+        .logo .rdv-brand-logo {
+            height: 42px;
+            width: auto;
+            max-width: 170px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 8px;
+            padding: 2px 6px;
+            display: block;
+        }
         .header-right {
             display: flex;
             align-items: center;
@@ -685,7 +695,7 @@ function getStatusIcon($status) {
     <div class="header-container">
         <div class="logo">
             <a href="marketplace.php">
-                <i class="fas fa-store-alt"></i> RD Vendora
+                <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
             </a>
         </div>
         <div class="header-right">

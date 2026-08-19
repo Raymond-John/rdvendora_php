@@ -237,6 +237,16 @@ $conn->close();
             align-items: center;
             gap: 6px;
         }
+        .logo .rdv-brand-logo {
+            height: 44px;
+            width: auto;
+            max-width: 170px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 8px;
+            padding: 2px 6px;
+            display: block;
+        }
         .logo span { color: #b8f5d0; }
         .logo i { color: var(--btn-text); font-size: 22px; }
         .search-bar {
@@ -546,7 +556,7 @@ $conn->close();
 
 <!-- HEADER -->
 <header>
-    <a href="marketplace.php" class="logo"><i class="fas fa-store"></i> RD<span>Vendora</span></a>
+    <a href="marketplace.php" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora"></a>
     <div class="search-bar">
         <form method="get" action="marketplace.php" style="display:flex; flex:1; width:100%;">
             <input type="text" name="q" placeholder="Search products, brands and categories…" />

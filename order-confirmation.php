@@ -103,6 +103,16 @@ foreach ($items as $item) {
             gap: 0.5rem;
             text-decoration: none;
         }
+        .logo .rdv-brand-logo {
+            height: 44px;
+            width: auto;
+            max-width: 170px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 8px;
+            padding: 2px 6px;
+            display: block;
+        }
         .logo i {
             color: #4f46e5;
         }
@@ -271,7 +281,7 @@ foreach ($items as $item) {
 <nav class="navbar">
     <div class="container nav-container">
         <a href="marketplace.php" class="logo">
-            <i class="fas fa-store"></i> RD Vendora
+            <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
         </a>
         <a href="cart.php" class="cart-link">
             <i class="fas fa-shopping-cart"></i> Cart <span id="cartCount" class="cart-count">0</span>

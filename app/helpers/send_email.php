@@ -60,7 +60,7 @@ function sendOrderConfirmation($order_id, $customer_email, $customer_name = 'Cus
     $companyWebsite = 'https://rdvendora.com';
     
     // ---------- LOCAL LOGO (Base64) ----------
-    $localLogoPath = (defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__, 2)) . '/assets/logo.png';
+    $localLogoPath = (defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__, 2)) . '/assets/brand-logo.png';
     if (file_exists($localLogoPath)) {
         $imageData = base64_encode(file_get_contents($localLogoPath));
         $logoUrl = 'data:image/png;base64,' . $imageData;

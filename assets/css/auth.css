@@ -62,15 +62,21 @@
   font-weight: var(--font-bold);
 }
 
+.auth-visual-brand .rdv-brand-logo {
+  height: 52px;
+  max-width: 220px;
+}
+
 .auth-visual-brand-icon {
   width: 40px;
   height: 40px;
-  background: rgba(255,255,255,0.2);
+  background: #fff;
   backdrop-filter: blur(10px);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .auth-visual-body {

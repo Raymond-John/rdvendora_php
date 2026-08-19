@@ -54,12 +54,20 @@ if (!function_exists('rdv_site_setting')) {
     }
 }
 
+if (!function_exists('rdv_brand_logo')) {
+    function rdv_brand_logo($prefix = '', $extraClass = '') {
+        $src = htmlspecialchars($prefix . 'assets/brand-logo.png', ENT_QUOTES, 'UTF-8');
+        $class = trim('rdv-brand-logo ' . $extraClass);
+        return '<img class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" src="' . $src . '" alt="RD Vendora">';
+    }
+}
+
 if (!function_exists('rdv_favicon_tags')) {
     function rdv_favicon_tags($prefix = '') {
         $base = htmlspecialchars((string) $prefix, ENT_QUOTES, 'UTF-8');
-        return '  <link rel="icon" href="' . $base . 'assets/favicon.svg" type="image/svg+xml">' . "\n"
-            . '  <link rel="icon" href="' . $base . 'assets/logo.png" type="image/png">' . "\n"
-            . '  <link rel="apple-touch-icon" href="' . $base . 'assets/logo.png">' . "\n";
+        return '  <link rel="icon" href="' . $base . 'assets/brand-logo.png" type="image/png">' . "\n"
+            . '  <link rel="icon" href="' . $base . 'assets/favicon.svg" type="image/svg+xml">' . "\n"
+            . '  <link rel="apple-touch-icon" href="' . $base . 'assets/brand-logo.png">' . "\n";
     }
 }
 
@@ -70,6 +78,9 @@ if (!function_exists('rdv_seo_tags')) {
         $description = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
         $canonicalEsc = htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8');
         $ogImage = '';
+        if ($image === '') {
+            $image = rtrim(APP_URL, '/') . '/assets/brand-logo.png';
+        }
         if ($image !== '') {
             $ogImage = '<meta property="og:image" content="' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8') . '">' . "\n";
         }

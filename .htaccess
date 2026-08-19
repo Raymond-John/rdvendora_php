@@ -40,7 +40,7 @@ ServerSignature Off
     RewriteRule ^admin-([a-z0-9-]+)\.php$ admin/admin-$1.php [R=301,L,QSA]
 
     # Browser default icon request
-    RewriteRule ^favicon\.ico$ assets/favicon.svg [L]
+    RewriteRule ^favicon\.ico$ assets/brand-logo.png [L]
 
     # Canonical HTTPS apex on live (do not send www or http to Google OAuth)
     RewriteCond %{HTTP_HOST} ^(www\.)?rdvendora\.com$ [NC]

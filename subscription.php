@@ -637,6 +637,8 @@ if (!$current_subscription) {
             color: var(--text-primary);
             white-space: nowrap;
         }
+                .rdv-brand-logo { height: 36px; width: auto; max-width: 140px; object-fit: contain; background: #fff; border-radius: 8px; padding: 2px 6px; display: block; }
+        .sidebar.collapsed .rdv-brand-logo { max-width: 40px; height: 32px; padding: 1px; }
         .sidebar-brand-icon {
             width: 34px; height: 34px;
             background: var(--gradient-primary);
@@ -1000,8 +1002,7 @@ if (!$current_subscription) {
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="index.php" class="sidebar-brand">
-                <div class="sidebar-brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
-                <span class="sidebar-brand-text">RD Vendora</span>
+                <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
             </a>
             <button class="sidebar-toggle" id="sidebarToggle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg></button>
         </div>

@@ -51,7 +51,7 @@ $rdvPageTitle = 'About RD Vendora';
 $rdvPageDescription = 'RD Vendora helps independent sellers run an online store: catalogue, orders, marketplace, and checkout with Paystack or Flutterwave.';
 $rdvPagePath = 'about.php';
 $rdvActiveNav = 'about.php';
-$rdvBodyClass = 'mk-marketing';
+$rdvBodyClass = 'mk-marketing about-page';
 $rdvHeaderAds = false;
 require __DIR__ . '/includes/public_layout_start.php';
 ?>
@@ -65,7 +65,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 </section>
 
 <section class="mk-section">
-    <div class="container">
+  <div class="container">
     <div class="mk-split">
       <div class="mk-prose reveal">
         <h2><?= htmlspecialchars($story_title) ?></h2>
@@ -81,17 +81,17 @@ require __DIR__ . '/includes/public_layout_start.php';
         <?php if ($stat4_number !== ''): ?><div class="mk-stat"><b><?= htmlspecialchars($stat4_number) ?></b><span><?= htmlspecialchars($stat4_label) ?></span></div><?php endif; ?>
       </div>
       <?php else: ?>
-      <div class="mk-card reveal" style="padding:2rem;">
-        <h3 style="margin-bottom:0.6rem;">Built for real shops</h3>
-        <p style="color:var(--text-secondary);line-height:1.7;margin:0;">We focus on a working storefront, honest listings, and checkout through established payment providers — not inflated metrics.</p>
+      <div class="mk-card mk-aside-card reveal">
+        <h3>Built for real shops</h3>
+        <p>We focus on a working storefront, honest listings, and checkout through established payment providers — not inflated metrics.</p>
       </div>
       <?php endif; ?>
-      </div>
     </div>
-  </section>
+  </div>
+</section>
 
 <section class="mk-section alt">
-    <div class="container">
+  <div class="container">
     <div class="mk-section-head">
       <div class="section-label">How we work</div>
       <h2>Mission, vision, and who we serve</h2>
@@ -107,7 +107,7 @@ require __DIR__ . '/includes/public_layout_start.php';
       <article class="mk-card mk-value-card reveal">
         <div class="mk-value-icon" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </div>
+        </div>
         <h3>Vision</h3>
         <p>A marketplace where independent sellers can be found, paid, and managed without pretending the platform is bigger than it is.</p>
       </article>
@@ -119,8 +119,8 @@ require __DIR__ . '/includes/public_layout_start.php';
         <p>Sellers who need a storefront, buyers who want to purchase from those stores, and the operators who moderate the platform. Start from <a href="register.php">create an account</a> or <a href="contact.php">contact us</a>.</p>
       </article>
     </div>
-    </div>
-  </section>
+  </div>
+</section>
 
 <?php if (!empty($team_members)): ?>
 <section class="mk-section">

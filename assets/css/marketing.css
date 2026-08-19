@@ -475,3 +475,68 @@
   .mk-stat-grid { grid-template-columns: 1fr; }
   .mk-kicker { font-size: 0.7rem; }
 }
+
+/* About page: story + highlight cards stay compact on phones */
+.about-page .mk-stat b {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 0.2rem;
+}
+.about-page .mk-stat span {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .about-page .mk-section { padding: 1.75rem 0; }
+  .about-page .mk-split { gap: 1rem; }
+  .about-page .mk-prose h2 {
+    font-size: 1.05rem;
+    margin: 0 0 0.4rem;
+  }
+  .about-page .mk-prose p {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin-bottom: 0.7rem;
+  }
+  .about-page .mk-stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+  }
+  .about-page .mk-stat {
+    padding: 0.7rem 0.55rem;
+    border-radius: 12px;
+  }
+  .about-page .mk-stat b { font-size: 0.88rem; }
+  .about-page .mk-stat span { font-size: 0.7rem; }
+  .about-page .mk-aside-card {
+    padding: 0.9rem 0.85rem;
+  }
+  .about-page .mk-aside-card h3 { font-size: 0.95rem; }
+  .about-page .mk-aside-card p { font-size: 0.85rem; line-height: 1.5; }
+  .about-page .mk-section-head { margin-bottom: 1.15rem; }
+  .about-page .mk-section-head h2 { font-size: 1.15rem; }
+  .about-page .mk-value-card { padding: 1rem 0.9rem; }
+  .about-page .mk-value-card h3 { font-size: 1rem; }
+  .about-page .mk-value-card p { font-size: 0.85rem; line-height: 1.5; }
+}
+
+@media (max-width: 480px) {
+  .about-page .mk-hero--compact { padding: 5.5rem 0 1.6rem; }
+  .about-page .mk-page-hero h1 { font-size: 1.45rem; }
+  .about-page .mk-page-hero p.lead { font-size: 0.88rem; line-height: 1.5; }
+  .about-page .mk-stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .about-page .mk-stat { padding: 0.6rem 0.45rem; }
+  .about-page .mk-stat b { font-size: 0.82rem; }
+  .about-page .mk-stat span { font-size: 0.65rem; }
+}
+
+@media (max-width: 360px) {
+  .about-page .mk-stat-grid { gap: 0.4rem; }
+  .about-page .mk-prose h2 { font-size: 0.98rem; }
+  .about-page .mk-prose p { font-size: 0.84rem; }
+}

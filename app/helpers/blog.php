@@ -24,7 +24,8 @@ if (!function_exists('rdv_blog_category_label')) {
 
 if (!function_exists('rdv_ensure_blog_table')) {
     function rdv_ensure_blog_table(mysqli $conn) {
-        $conn->query("CREATE TABLE IF NOT EXISTS blog_posts (
+        try {
+            $conn->query("CREATE TABLE IF NOT EXISTS blog_posts (
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             slug VARCHAR(160) NOT NULL,
             title VARCHAR(220) NOT NULL,
@@ -43,7 +44,10 @@ if (!function_exists('rdv_ensure_blog_table')) {
             KEY idx_category (category),
             KEY idx_featured (is_featured)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-        rdv_blog_seed_if_empty($conn);
+            rdv_blog_seed_if_empty($conn);
+        } catch (Throwable $e) {
+            error_log('rdv_ensure_blog_table: ' . $e->getMessage());
+        }
     }
 }
 

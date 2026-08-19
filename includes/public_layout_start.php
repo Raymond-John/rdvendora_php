@@ -20,6 +20,7 @@ $rdvBodyClass = trim('rdv-public-page ' . ($rdvBodyClass ?? ''));
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?= rdv_seo_tags($rdvPageTitle, $rdvPageDescription, $rdvPagePath, $rdvOgType) ?>
+  <?= rdv_favicon_tags() ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="assets/css/style.css">

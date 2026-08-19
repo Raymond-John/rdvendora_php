@@ -6,6 +6,7 @@
   <?php require __DIR__ . '/includes/adsense_head.php'; ?>
   <title>Access denied | RD Vendora</title>
   <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/public-extras.css">
 </head>

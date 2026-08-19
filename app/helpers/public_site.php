@@ -54,6 +54,15 @@ if (!function_exists('rdv_site_setting')) {
     }
 }
 
+if (!function_exists('rdv_favicon_tags')) {
+    function rdv_favicon_tags($prefix = '') {
+        $base = htmlspecialchars((string) $prefix, ENT_QUOTES, 'UTF-8');
+        return '  <link rel="icon" href="' . $base . 'assets/favicon.svg" type="image/svg+xml">' . "\n"
+            . '  <link rel="icon" href="' . $base . 'assets/logo.png" type="image/png">' . "\n"
+            . '  <link rel="apple-touch-icon" href="' . $base . 'assets/logo.png">' . "\n";
+    }
+}
+
 if (!function_exists('rdv_seo_tags')) {
     function rdv_seo_tags($title, $description, $path = null, $type = 'website', $image = '') {
         $canonical = rdv_canonical_url($path);

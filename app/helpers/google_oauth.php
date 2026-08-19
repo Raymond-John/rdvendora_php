@@ -4,10 +4,13 @@
  */
 if (!function_exists('rdv_google_callback_uri_for_host')) {
     function rdv_google_callback_uri_for_host() {
-        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        $host = function_exists('rdv_request_host') ? rdv_request_host() : strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
         $host = preg_replace('/:\d+$/', '', $host);
-        if ($host === 'rdvendora.com' || $host === 'www.rdvendora.com') {
+        if ($host === 'rdvendora.com' || $host === 'www.rdvendora.com' || str_ends_with($host, '.rdvendora.com')) {
             return 'https://rdvendora.com/oauth2callback.php';
+        }
+        if (function_exists('rdv_host_is_local') && !rdv_host_is_local($host) && $host !== '') {
+            return 'https://' . $host . '/oauth2callback.php';
         }
 
         $https = function_exists('rdv_request_is_https') && rdv_request_is_https();
@@ -59,11 +62,11 @@ if (!function_exists('rdv_google_oauth_config')) {
                     }
                 }
                 if ($val !== '') {
-                    if ($local === 'clientId') {
+                    if ($local === 'clientId' && $clientId === '') {
                         $clientId = $val;
-                    } elseif ($local === 'clientSecret') {
+                    } elseif ($local === 'clientSecret' && $clientSecret === '') {
                         $clientSecret = $val;
-                    } else {
+                    } elseif ($local === 'redirectUri' && $redirectUri === '') {
                         $redirectUri = $val;
                     }
                 }
@@ -71,13 +74,15 @@ if (!function_exists('rdv_google_oauth_config')) {
         }
 
         $computed = rdv_google_callback_uri_for_host();
-        $currentHost = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
-        $configuredHost = strtolower((string) (parse_url($redirectUri, PHP_URL_HOST) ?? ''));
-        $liveHost = ($currentHost === 'rdvendora.com' || $currentHost === 'www.rdvendora.com');
+        $currentHost = function_exists('rdv_request_host') ? rdv_request_host() : strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+        $requestIsLocal = function_exists('rdv_host_is_local') && rdv_host_is_local($currentHost);
+        $redirectIsLocal = function_exists('rdv_uri_is_local') && rdv_uri_is_local($redirectUri);
 
-        if ($liveHost) {
+        if ($currentHost === 'rdvendora.com' || $currentHost === 'www.rdvendora.com' || str_ends_with($currentHost, '.rdvendora.com')) {
             $redirectUri = 'https://rdvendora.com/oauth2callback.php';
-        } elseif ($redirectUri === '' || $configuredHost === '' || ($configuredHost !== $currentHost && $configuredHost !== 'www.' . $currentHost && 'www.' . $configuredHost !== $currentHost)) {
+        } elseif ($redirectIsLocal && !$requestIsLocal) {
+            $redirectUri = $computed;
+        } elseif ($redirectUri === '' || $redirectIsLocal !== $requestIsLocal) {
             $redirectUri = $computed;
         }
 

@@ -6,6 +6,9 @@
 
 // ----- Load PHPMailer (if available) -----
 $phpmailer_available = function_exists('rdv_load_phpmailer') ? rdv_load_phpmailer() : false;
+if (!function_exists('rdv_smtp_settings')) {
+    require_once APP_PATH . '/helpers/smtp_config.php';
+}
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

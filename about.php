@@ -7,17 +7,25 @@ if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
 $content = [];
-$result = $conn->query("SELECT section_key, content FROM about_content");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $content[$row['section_key']] = $row['content'];
+try {
+    $result = $conn->query("SELECT section_key, content FROM about_content");
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $content[$row['section_key']] = $row['content'];
+        }
     }
+} catch (Throwable $e) {
+    error_log('about.php about_content: ' . $e->getMessage());
 }
 
 $team_members = [];
-$teamResult = $conn->query("SELECT * FROM team_members WHERE status = 'active' ORDER BY display_order ASC");
-if ($teamResult) {
-    $team_members = $teamResult->fetch_all(MYSQLI_ASSOC);
+try {
+    $teamResult = $conn->query("SELECT * FROM team_members WHERE status = 'active' ORDER BY display_order ASC");
+    if ($teamResult) {
+        $team_members = $teamResult->fetch_all(MYSQLI_ASSOC);
+    }
+} catch (Throwable $e) {
+    error_log('about.php team_members: ' . $e->getMessage());
 }
 
 $hero_title = $content['hero_title'] ?? 'Helping people sell <span class="gradient-text">online</span>';

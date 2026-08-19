@@ -155,20 +155,23 @@ function sendStoreApprovalEmail($user_id, $store_name = '') {
 
     // ---------- Send email ----------
     try {
+        if (!function_exists('rdv_smtp_settings')) {
+            require_once APP_PATH . '/helpers/smtp_config.php';
+        }
+        $smtp = rdv_smtp_settings();
         $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-
-        // === SMTP Configuration ===
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'mrrayjohnson2@gmail.com';
-        $mail->Password   = 'tpkt rcnc lgmw wzzp';
-        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
-
-        $mail->setFrom('noreply@rdvendora.com', 'RD Vendora');
+        $mail->Host       = $smtp['host'];
+        $mail->SMTPAuth   = ($smtp['username'] !== '' && $smtp['password'] !== '');
+        $mail->Username   = $smtp['username'];
+        $mail->Password   = $smtp['password'];
+        $mail->SMTPSecure = (strtolower((string) $smtp['encryption']) === 'ssl')
+            ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS
+            : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = (int) $smtp['port'];
+        $mail->setFrom($smtp['from'], $smtp['from_name']);
         $mail->addAddress($email, $name);
-        $mail->addReplyTo('support@rdvendora.com', 'Support');
+        $mail->addReplyTo($smtp['from'], 'Support');
 
         // --- (Optional) Embed company logo – we can skip because we are not using an image in this template ---
         // The header now uses plain text, so no logo embedding needed.

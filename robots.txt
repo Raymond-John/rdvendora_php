@@ -5,7 +5,7 @@ Disallow: /admin/
 Disallow: /app/
 Disallow: /storage/
 Disallow: /vendor/
-Disallow: /archive/
+Disallow: /database/
 Disallow: /includes/
 Disallow: /dashboard.php
 Disallow: /analytics.php

@@ -1,7 +1,8 @@
 <?php
 /**
  * Database connection for RD Vendora.
- * Credentials come from .env with local XAMPP fallbacks.
+ * Credentials come from .env. Fallbacks (localhost / root / empty password)
+ * are for local XAMPP only. Production MUST set DB_* in .env.
  */
 $host     = rdv_env('DB_HOST', 'localhost');
 $username = rdv_env('DB_USER', 'root');

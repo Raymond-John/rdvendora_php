@@ -143,15 +143,11 @@ function sendExpiredSubscriptionEmail($user_id, $plan, $end_date, $conn) {
     global $phpmailer_available;
     if ($phpmailer_available) {
         try {
-            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-            $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'mrrayjohnson2@gmail.com';
-            $mail->Password   = 'tpkt rcnc lgmw wzzp';
-            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
-            $mail->setFrom('subscriptions@rdvendora.com', 'RD Vendora');
+            if (!function_exists('getMailer')) {
+                require_once APP_PATH . '/helpers/email_functions.php';
+            }
+            $mail = getMailer();
+            $mail->clearAddresses();
             $mail->addAddress($user['email']);
             $mail->isHTML(true);
             $mail->Subject = $subject;

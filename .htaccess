@@ -17,12 +17,15 @@ ServerSignature Off
 <Files "composer.lock">
     Require all denied
 </Files>
+<FilesMatch "\.(sql|env|log)$">
+    Require all denied
+</FilesMatch>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
     # Block private application folders
-    RewriteRule ^(app|storage|vendor|archive|config)(/|$) - [F,L]
+    RewriteRule ^(app|storage|vendor|archive|config|database)(/|$) - [F,L]
 
     RewriteRule ^login-customer\.php$ login.php [R=301,L,QSA]
     RewriteRule ^register-customer\.php$ register.php [R=301,L,QSA]

@@ -9,27 +9,18 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
+require_once 'includes/smtp_config.php';
 
-// ========== SMTP CONFIGURATION – EDIT THESE ==========
-$smtp_host   = 'smtp.gmail.com';
-$smtp_port   = 587;
-$smtp_user   = 'mrrayjohnson2@gmail.com';
-$smtp_pass   = 'tpkt rcnc lgmw wzzp';
-$smtp_from   = 'mrrayjohnson2@gmail.com';
-$smtp_from_name = 'RD Vendora Marketplace'; // fallback
-
-if (file_exists('includes/email_config.php')) {
-    require_once 'includes/email_config.php';
-    $smtp_host   = isset($smtp_host) ? $smtp_host : 'smtp.gmail.com';
-    $smtp_port   = isset($smtp_port) ? $smtp_port : 587;
-    $smtp_user   = isset($smtp_user) ? $smtp_user : '';
-    $smtp_pass   = isset($smtp_pass) ? $smtp_pass : '';
-    $smtp_from   = isset($smtp_from) ? $smtp_from : '';
-    $smtp_from_name = isset($smtp_from_name) ? $smtp_from_name : 'RD Vendora Marketplace';
-}
+$smtp = rdv_smtp_settings();
+$smtp_host   = $smtp['host'];
+$smtp_port   = $smtp['port'];
+$smtp_user   = $smtp['username'];
+$smtp_pass   = $smtp['password'];
+$smtp_from   = $smtp['from'];
+$smtp_from_name = $smtp['from_name'];
 
 if (empty($smtp_user) || empty($smtp_pass)) {
-    error_log("SMTP credentials missing in email_config.php. Emails cannot be sent.");
+    error_log("SMTP credentials missing. Emails cannot be sent until SMTP is set in .env or Admin Settings.");
 }
 
 // ---------- Ensure store exists and get store_id ----------

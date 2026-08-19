@@ -169,17 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 
                 if ($phpmailer_available) {
                     try {
-                        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-                        $mail->isSMTP();
-                        $mail->Host       = 'smtp.gmail.com';
-                        $mail->SMTPAuth   = true;
-                        $mail->Username   = 'mrrayjohnson2@gmail.com ';
-                        $mail->Password   = 'tpkt rcnc lgmw wzzp';
-                        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = 587;
-                        $mail->setFrom('noreply@rdvendora.com', 'RD Vendora');
+                        require_once APP_PATH . '/helpers/email_functions.php';
+                        $mail = getMailer();
+                        $mail->clearAddresses();
                         $mail->addAddress($email);
-                        $mail->addReplyTo('support@rdvendora.com', 'Support');
                         $mail->isHTML(false);
                         $mail->Subject = "Invitation to join " . $_SESSION['store_name'] . " on RD Vendora";
                         $mail->Body    = "Hello,\n\nYou have been invited to join the store \"" . $_SESSION['store_name'] . "\" as a $role.\n\nClick the link below to accept the invitation:\n$inviteLink\n\nThis invite expires in 7 days.\n\nBest regards,\nRD Vendora Team";

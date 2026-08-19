@@ -7,9 +7,13 @@ if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
 $activePlans = [];
-$plansQuery = $conn->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY price ASC");
-if ($plansQuery && $plansQuery->num_rows > 0) {
-    $activePlans = $plansQuery->fetch_all(MYSQLI_ASSOC);
+try {
+    $plansQuery = $conn->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY price ASC");
+    if ($plansQuery && $plansQuery->num_rows > 0) {
+        $activePlans = $plansQuery->fetch_all(MYSQLI_ASSOC);
+    }
+} catch (Throwable $e) {
+    error_log('pricing.php subscription_plans: ' . $e->getMessage());
 }
 
 $rdvPageTitle = 'Pricing — RD Vendora';

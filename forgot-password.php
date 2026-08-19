@@ -5,13 +5,14 @@ require_once 'includes/connection.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// ========== SMTP CONFIGURATION – EDIT THESE ==========
-$smtp_host   = 'smtp.gmail.com';        // Your SMTP server
-$smtp_port   = 587;                      // 587 for TLS, 465 for SSL
-$smtp_user   = 'mrrayjohnson2@gmail.com';   // Your email address
-$smtp_pass   = 'tpkt rcnc lgmw wzzp';      // Your app password (Gmail requires App Password)
-$smtp_from   = 'mrrayjohnson2@gmail.com';
-$smtp_from_name = 'RD Vendora Marketplace';
+require_once APP_PATH . '/helpers/smtp_config.php';
+$smtp = rdv_smtp_settings();
+$smtp_host   = $smtp['host'];
+$smtp_port   = $smtp['port'];
+$smtp_user   = $smtp['username'];
+$smtp_pass   = $smtp['password'];
+$smtp_from   = $smtp['from'];
+$smtp_from_name = $smtp['from_name'];
 
 // ========== SMTP Function ==========
 function sendSmtpMail($to, $subject, $htmlBody, $fromEmail, $fromName, $smtpHost, $smtpPort, $smtpUser, $smtpPass) {

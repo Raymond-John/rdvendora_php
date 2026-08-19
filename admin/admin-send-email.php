@@ -20,16 +20,19 @@ if (!adminHasPermission('send_email', $conn)) {
     die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to send emails.</p><a href="admin.php">Go to Dashboard</a></div>');
 }
 
-$emails = $conn->query("SELECT DISTINCT user_email, user_name FROM orders WHERE user_email IS NOT NULL AND user_email != '' ORDER BY user_name ASC")->fetch_all(MYSQLI_ASSOC);
+$emails = $conn->query("SELECT DISTINCT user_email, user_name FROM orders WHERE user_email IS NOT NULL AND user_email != '' ORDER BY user_name ASC");
+$emails = ($emails) ? $emails->fetch_all(MYSQLI_ASSOC) : [];
 $sendStatus = '';
 $sendError = '';
 
-$smtp_host   = 'smtp.gmail.com';
-$smtp_port   = 587;
-$smtp_user   = 'mrrayjohnson2@gmail.com';
-$smtp_pass   = 'tpkt rcnc lgmw wzzp';
-$smtp_from   = 'mrrayjohnson2@gmail.com';
-$smtp_from_name = 'RD Vendora Marketplace';
+require_once __DIR__ . '/../includes/smtp_config.php';
+$smtp = rdv_smtp_settings();
+$smtp_host   = $smtp['host'];
+$smtp_port   = $smtp['port'];
+$smtp_user   = $smtp['username'];
+$smtp_pass   = $smtp['password'];
+$smtp_from   = $smtp['from'];
+$smtp_from_name = $smtp['from_name'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
     $subject = trim($_POST['subject'] ?? '');

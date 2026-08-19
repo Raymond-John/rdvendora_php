@@ -17,17 +17,3 @@ $googleBtnLabel = $googleBtnLabel ?? 'Continue with Google';
           </svg>
           <?= htmlspecialchars($googleBtnLabel, ENT_QUOTES, 'UTF-8') ?>
         </a>
-        <?php
-        $showGoogleUriHint = false;
-        if (function_exists('rdv_env') && rdv_env('APP_DEBUG', false)) {
-            $h = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-            $showGoogleUriHint = (strpos($h, 'localhost') !== false || strpos($h, '127.0.0.1') !== false);
-        }
-        if ($showGoogleUriHint && !empty($googleOauth['redirect_uri'])):
-        ?>
-        <p class="auth-alert" style="margin-top:0.75rem;font-size:0.75rem;line-height:1.4;">
-          Local Google login needs this exact Authorized redirect URI in
-          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Credentials</a>:<br>
-          <code><?= htmlspecialchars($googleOauth['redirect_uri'], ENT_QUOTES, 'UTF-8') ?></code>
-        </p>
-        <?php endif; ?>

@@ -33,6 +33,37 @@ if (!function_exists('rdv_request_is_https')) {
     }
 }
 
+if (!function_exists('rdv_request_host')) {
+    function rdv_request_host() {
+        foreach (['HTTP_X_FORWARDED_HOST', 'HTTP_HOST', 'SERVER_NAME'] as $key) {
+            $raw = (string) ($_SERVER[$key] ?? '');
+            if ($raw === '') {
+                continue;
+            }
+            $host = strtolower(trim(explode(',', $raw)[0]));
+            $host = preg_replace('/:\d+$/', '', $host);
+            $host = rtrim($host, '.');
+            if ($host !== '') {
+                return $host;
+            }
+        }
+        return '';
+    }
+}
+
+if (!function_exists('rdv_host_is_local')) {
+    function rdv_host_is_local($host) {
+        $host = strtolower((string) $host);
+        return $host === 'localhost' || $host === '127.0.0.1' || $host === '::1';
+    }
+}
+
+if (!function_exists('rdv_uri_is_local')) {
+    function rdv_uri_is_local($uri) {
+        return (bool) preg_match('#://(localhost|127\\.0\\.0\\.1|::1)(/|:|$)#i', (string) $uri);
+    }
+}
+
 $appEnv = (string) rdv_env('APP_ENV', 'local');
 $appDebug = (bool) rdv_env('APP_DEBUG', $appEnv !== 'production');
 

@@ -13,28 +13,40 @@ class GoogleOAuth {
         $this->redirectUri = $redirectUri;
     }
 
-    public function getAuthUrl($state) {
+    public static function createPkcePair() {
+        $verifier = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+        $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
+        return [$verifier, $challenge];
+    }
+
+    public function getAuthUrl($state, $codeChallenge = '') {
         $params = [
             'client_id' => $this->clientId,
             'redirect_uri' => $this->redirectUri,
             'response_type' => 'code',
-            'scope' => 'email profile',
-            'access_type' => 'online',
-            'prompt' => 'select_account',
+            'scope' => 'openid email profile',
             'state' => $state,
-            'include_granted_scopes' => 'true',
+            'prompt' => 'select_account',
         ];
+        if ($codeChallenge !== '') {
+            $params['code_challenge'] = $codeChallenge;
+            $params['code_challenge_method'] = 'S256';
+        }
         return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
 
-    public function getAccessToken($code) {
-        $data = $this->curlJson('https://oauth2.googleapis.com/token', [
+    public function getAccessToken($code, $codeVerifier = '') {
+        $post = [
             'code' => $code,
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
             'redirect_uri' => $this->redirectUri,
             'grant_type' => 'authorization_code',
-        ], true);
+        ];
+        if ($codeVerifier !== '') {
+            $post['code_verifier'] = $codeVerifier;
+        }
+        $data = $this->curlJson('https://oauth2.googleapis.com/token', $post, true);
 
         if (empty($data['access_token'])) {
             $err = $data['error_description'] ?? $data['error'] ?? 'Invalid token response';
@@ -65,7 +77,7 @@ class GoogleOAuth {
         }
         if ($asPost) {
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post, '', '&', PHP_QUERY_RFC3986));
         }
         $response = curl_exec($ch);
         $curlErr = curl_error($ch);

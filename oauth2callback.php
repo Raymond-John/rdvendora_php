@@ -28,15 +28,19 @@ if (empty($_GET['code'])) {
         $msg = 'Google sign-in was cancelled.';
         if ($err === 'redirect_uri_mismatch') {
             $msg = 'Google rejected the redirect URI. In Google Cloud → Credentials, add exactly: ' . $oauth['redirect_uri'];
+        } elseif ($err === 'invalid_request') {
+            $msg = 'Google rejected the sign-in request. Use https://rdvendora.com/login.php (not http) and confirm the OAuth client is a Web application.';
         }
         rdv_google_oauth_fail($msg);
     }
     $_SESSION['oauth_state'] = bin2hex(random_bytes(16));
+    list($codeVerifier, $codeChallenge) = GoogleOAuth::createPkcePair();
+    $_SESSION['oauth_code_verifier'] = $codeVerifier;
     $next = trim((string) ($_GET['next'] ?? ''));
     if ($next !== '' && preg_match('/^[a-z0-9_\\-]+\\.php(?:\\?.*)?$/i', $next) && stripos($next, '://') === false) {
         $_SESSION['oauth_next'] = $next;
     }
-    header('Location: ' . $google->getAuthUrl($_SESSION['oauth_state']));
+    header('Location: ' . $google->getAuthUrl($_SESSION['oauth_state'], $codeChallenge));
     exit;
 }
 
@@ -46,9 +50,11 @@ if ($state === '' || empty($_SESSION['oauth_state']) || !hash_equals((string) $_
     rdv_google_oauth_fail('Google sign-in expired. Please try again.');
 }
 unset($_SESSION['oauth_state']);
+$codeVerifier = (string) ($_SESSION['oauth_code_verifier'] ?? '');
+unset($_SESSION['oauth_code_verifier']);
 
 try {
-    $tokenData = $google->getAccessToken((string) $_GET['code']);
+    $tokenData = $google->getAccessToken((string) $_GET['code'], $codeVerifier);
     $userInfo = $google->getUserInfo($tokenData['access_token']);
 } catch (Exception $e) {
     rdv_google_oauth_fail('Google sign-in failed. Check that the live redirect URI matches Google Cloud exactly.');

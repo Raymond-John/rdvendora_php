@@ -13,20 +13,27 @@ use PHPMailer\PHPMailer\Exception;
 // ---------- SMTP Mailer ----------
 function getMailer() {
     $mail = new PHPMailer(true);
+    $smtp = function_exists('rdv_smtp_settings') ? rdv_smtp_settings() : [
+        'host' => rdv_env('SMTP_HOST', 'smtp.gmail.com'),
+        'port' => (int) rdv_env('SMTP_PORT', 587),
+        'username' => rdv_env('SMTP_USER', ''),
+        'password' => rdv_env('SMTP_PASS', ''),
+        'encryption' => rdv_env('SMTP_ENCRYPTION', 'tls'),
+        'from' => rdv_env('SMTP_FROM', rdv_env('SMTP_USER', 'notifications@rdvendora.com')),
+        'from_name' => rdv_env('SMTP_FROM_NAME', 'RD Vendora'),
+    ];
     $mail->isSMTP();
-    $mail->Host       = rdv_env('SMTP_HOST', 'smtp.gmail.com');
-    $mail->SMTPAuth   = true;
-    $mail->Username   = rdv_env('SMTP_USER', '');
-    $mail->Password   = rdv_env('SMTP_PASS', '');
-    $encryption       = strtolower((string) rdv_env('SMTP_ENCRYPTION', 'tls'));
+    $mail->Host       = $smtp['host'];
+    $mail->SMTPAuth   = ($smtp['username'] !== '' && $smtp['password'] !== '');
+    $mail->Username   = $smtp['username'];
+    $mail->Password   = $smtp['password'];
+    $encryption       = strtolower((string) $smtp['encryption']);
     $mail->SMTPSecure = ($encryption === 'ssl')
         ? PHPMailer::ENCRYPTION_SMTPS
         : PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port       = (int) rdv_env('SMTP_PORT', 587);
-    $from             = rdv_env('SMTP_FROM', rdv_env('SMTP_USER', 'notifications@rdvendora.com'));
-    $fromName         = rdv_env('SMTP_FROM_NAME', 'RD Vendora');
-    $mail->setFrom($from, $fromName);
-    $mail->addReplyTo($from, 'Support');
+    $mail->Port       = (int) $smtp['port'];
+    $mail->setFrom($smtp['from'], $smtp['from_name']);
+    $mail->addReplyTo($smtp['from'], 'Support');
     $mail->XMailer = ' ';
     return $mail;
 }

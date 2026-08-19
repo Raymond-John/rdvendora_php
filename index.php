@@ -36,15 +36,23 @@ if ($table_check && $table_check->num_rows === 0) {
 }
 
 $activePlans = [];
-$plansQuery = $conn->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY price ASC");
-if ($plansQuery && $plansQuery->num_rows > 0) {
-    $activePlans = $plansQuery->fetch_all(MYSQLI_ASSOC);
+try {
+    $plansQuery = $conn->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY price ASC");
+    if ($plansQuery && $plansQuery->num_rows > 0) {
+        $activePlans = $plansQuery->fetch_all(MYSQLI_ASSOC);
+    }
+} catch (Throwable $e) {
+    error_log('index.php subscription_plans: ' . $e->getMessage());
 }
 
 $testimonials = [];
-$testimonialQuery = $conn->query("SELECT name, rating, review, created_at FROM testimonials WHERE status = 'approved' ORDER BY created_at DESC LIMIT 6");
-if ($testimonialQuery && $testimonialQuery->num_rows > 0) {
-    $testimonials = $testimonialQuery->fetch_all(MYSQLI_ASSOC);
+try {
+    $testimonialQuery = $conn->query("SELECT name, rating, review, created_at FROM testimonials WHERE status = 'approved' ORDER BY created_at DESC LIMIT 6");
+    if ($testimonialQuery && $testimonialQuery->num_rows > 0) {
+        $testimonials = $testimonialQuery->fetch_all(MYSQLI_ASSOC);
+    }
+} catch (Throwable $e) {
+    error_log('index.php testimonials: ' . $e->getMessage());
 }
 
 $rdvPageTitle = 'RD Vendora — Build your online store';

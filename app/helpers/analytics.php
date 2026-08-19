@@ -18,11 +18,12 @@ if (!function_exists('rdv_ga_measurement_id')) {
         if ($id === '') {
             $conn = $GLOBALS['conn'] ?? $GLOBALS['connect'] ?? null;
             if ($conn instanceof mysqli) {
-                $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'google_analytics_id' LIMIT 1");
-                if ($stmt) {
-                    $stmt->execute();
-                    $row = $stmt->get_result()->fetch_assoc();
-                    $stmt->close();
+                try {
+                    $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'google_analytics_id' LIMIT 1");
+                    if ($stmt) {
+                        $stmt->execute();
+                        $row = $stmt->get_result()->fetch_assoc();
+                        $stmt->close();
                     $fromDb = trim((string) ($row['setting_value'] ?? ''));
                     if ($fromDb !== '') {
                         $id = $fromDb;

@@ -55,10 +55,14 @@ if (!function_exists('rdv_site_setting')) {
 }
 
 if (!function_exists('rdv_brand_logo')) {
-    function rdv_brand_logo($prefix = '', $extraClass = '') {
+    function rdv_brand_logo($prefix = '', $extraClass = '', $showName = true) {
         $src = htmlspecialchars($prefix . 'assets/brand-logo.png', ENT_QUOTES, 'UTF-8');
         $class = trim('rdv-brand-logo ' . $extraClass);
-        return '<img class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" src="' . $src . '" alt="RD Vendora">';
+        $html = '<img class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" src="' . $src . '" alt="">';
+        if ($showName) {
+            $html .= '<span class="rdv-brand-name">RD Vendora</span>';
+        }
+        return $html;
     }
 }
 

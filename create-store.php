@@ -164,8 +164,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-bg"></div>
 
     <div class="wizard-container">
-        <div class="auth-logo" style="margin-bottom:1.5rem">
-            <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora" style="height:48px;width:auto;max-width:200px;object-fit:contain;background:#fff;border-radius:8px;padding:4px 8px;">
+        <div class="auth-logo" style="margin-bottom:1.5rem;display:flex;align-items:center;gap:0.6rem;">
+            <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="" style="height:40px;width:auto;max-width:120px;object-fit:contain;background:#fff;border-radius:8px;padding:4px 8px;">
+            <span class="rdv-brand-name">RD Vendora</span>
         </div>
 
         <div class="auth-card">

@@ -132,7 +132,8 @@ body.admin-app {
 }
 .sidebar.collapsed .sidebar-item span,
 .sidebar.collapsed .sidebar-section-title,
-.sidebar.collapsed .nav-logo span {
+.sidebar.collapsed .nav-logo span,
+.sidebar.collapsed .rdv-brand-name {
     opacity: 0; width: 0; overflow: hidden;
 }
 

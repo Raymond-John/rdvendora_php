@@ -695,7 +695,7 @@ function getStatusIcon($status) {
     <div class="header-container">
         <div class="logo">
             <a href="marketplace.php">
-                <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
+                <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
         </div>
         <div class="header-right">

@@ -713,7 +713,8 @@
         nav.innerHTML = `
           <div class="navbar-inner">
             <a href="index.php" class="navbar-brand">
-              <img src="assets/brand-logo.png" alt="RD Vendora" style="height:42px;width:auto;max-width:180px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px;display:block;">
+              <img src="assets/brand-logo.png" alt="" class="rdv-brand-logo" style="height:28px;width:auto;max-width:100px;object-fit:contain;background:#fff;border-radius:6px;padding:1px 4px;display:block;">
+              <span class="rdv-brand-name">RD Vendora</span>
             </a>
             <nav class="navbar-nav" id="navbar-nav">
               <a href="index.php" class="nav-link">Home</a>
@@ -738,7 +739,8 @@
             <div class="footer-grid">
               <div class="footer-brand">
                 <a href="index.php" class="navbar-brand" style="margin-bottom:16px;">
-                  <img src="assets/brand-logo.png" alt="RD Vendora" style="height:42px;width:auto;max-width:180px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px;display:block;">
+                  <img src="assets/brand-logo.png" alt="" class="rdv-brand-logo" style="height:28px;width:auto;max-width:100px;object-fit:contain;background:#fff;border-radius:6px;padding:1px 4px;display:block;">
+                  <span class="rdv-brand-name">RD Vendora</span>
                 </a>
                 <p class="footer-brand-desc">The complete multi-vendor eCommerce platform. Build, manage, and scale your online business with powerful tools.</p>
               </div>
@@ -887,7 +889,8 @@
         overlay.className = 'mobile-overlay';
         overlay.innerHTML = `
           <div class="mobile-menu-brand">
-            <img src="assets/brand-logo.png" alt="RD Vendora" style="height:36px;width:auto;max-width:140px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px;">
+            <img src="assets/brand-logo.png" alt="" style="height:28px;width:auto;max-width:100px;object-fit:contain;background:#fff;border-radius:6px;padding:1px 4px;">
+            <span class="rdv-brand-name">RD Vendora</span>
           </div>
           <button class="menu-close" id="menu-close">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

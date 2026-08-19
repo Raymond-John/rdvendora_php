@@ -281,7 +281,7 @@ foreach ($items as $item) {
 <nav class="navbar">
     <div class="container nav-container">
         <a href="marketplace.php" class="logo">
-            <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
+            <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
         </a>
         <a href="cart.php" class="cart-link">
             <i class="fas fa-shopping-cart"></i> Cart <span id="cartCount" class="cart-count">0</span>

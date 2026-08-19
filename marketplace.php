@@ -282,7 +282,13 @@ $conn->close();
       letter-spacing: -1px;
       flex: 0 0 auto;
     }
-    .logo a { display: flex; align-items: center; }
+    .logo a { display: flex; align-items: center; gap: 0.5rem; }
+    .logo .rdv-brand-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--btn-text);
+    }
     .logo .rdv-brand-logo,
     .rdv-brand-logo--market {
       height: 44px;
@@ -1257,7 +1263,7 @@ $conn->close();
 
 <!-- HEADER -->
 <header>
-  <div class="logo"><a href="marketplace.php"><img class="rdv-brand-logo rdv-brand-logo--market" src="assets/brand-logo.png" alt="RD Vendora"></a></div>
+  <div class="logo"><a href="marketplace.php"><img class="rdv-brand-logo rdv-brand-logo--market" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a></div>
   <div class="search-bar">
     <form method="get" action="" style="display:flex; flex:1; width:100%;">
       <input type="text" name="q" id="searchInput" placeholder="Search products, brands and categories…" value="<?= htmlspecialchars($search) ?>" />

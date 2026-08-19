@@ -254,6 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             flex-shrink: 0;
         }
                 .rdv-brand-logo { height: 36px; width: auto; max-width: 140px; object-fit: contain; background: #fff; border-radius: 8px; padding: 2px 6px; display: block; }
+        .rdv-brand-name { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.03em; white-space: nowrap; }
         .sidebar.collapsed .rdv-brand-logo { max-width: 40px; height: 32px; padding: 1px; }
         .sidebar-brand-icon {
             width: 34px; height: 34px;
@@ -622,7 +623,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="index.php" class="sidebar-brand">
-                <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
+                <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -62,9 +62,13 @@
   font-weight: var(--font-bold);
 }
 
-.auth-visual-brand .rdv-brand-logo {
-  height: 52px;
-  max-width: 220px;
+.auth-visual-brand .rdv-brand-logo,
+.rdv-brand-logo--auth {
+  height: 36px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .auth-visual-brand-icon {
@@ -375,6 +379,34 @@
 .auth-alert.error { background: var(--error-light); border: 1px solid var(--error); color: var(--error-dark, #b91c1c); }
 .auth-alert.success { background: var(--success-light); border: 1px solid var(--success); color: var(--success-dark); }
 
+.auth-page img.rdv-brand-logo {
+  width: auto;
+  height: 28px;
+  max-width: 100px;
+  object-fit: contain;
+}
+.auth-page .auth-visual-brand img.rdv-brand-logo {
+  height: 36px;
+  max-width: 120px;
+}
+.auth-page .footer-logo img.rdv-brand-logo {
+  height: 32px;
+  max-width: 120px;
+}
+.auth-page .auth-form-side {
+  min-width: 0;
+}
+.auth-page .auth-form-container {
+  width: 100%;
+  max-width: 420px;
+}
+.auth-page .form-input,
+.auth-page .btn.w-full,
+.auth-page .btn-google {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 /* ---- Responsive Auth ---- */
 @media (max-width: 1024px) {
   .auth-visual {
@@ -383,5 +415,21 @@
   
   .auth-form-side {
     padding: var(--space-6);
+  }
+}
+
+@media (max-width: 767px) {
+  .auth-page .auth-layout {
+    margin-top: 64px;
+    min-height: calc(100vh - 64px);
+  }
+  .auth-page .auth-form-side {
+    padding: 1.25rem 1rem 2rem;
+    align-items: flex-start;
+  }
+  .auth-page .auth-form-title { font-size: 1.35rem; }
+  .auth-page .auth-options {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 }

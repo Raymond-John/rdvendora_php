@@ -82,7 +82,8 @@
   transition: opacity var(--transition-fast), width var(--transition-fast);
 }
 
-.sidebar.collapsed .sidebar-brand-text {
+.sidebar.collapsed .sidebar-brand-text,
+.sidebar.collapsed .rdv-brand-name {
   opacity: 0;
   width: 0;
   overflow: hidden;

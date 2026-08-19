@@ -458,7 +458,7 @@ $conn->close();
 
 <!-- HEADER -->
 <header>
-    <a href="marketplace.php" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora"></a>
+    <a href="marketplace.php" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
     <div class="search-bar">
         <form method="get" action="marketplace.php" style="display:flex; flex:1; width:100%;">
             <input type="text" name="q" placeholder="Search products, brands and categories…" />

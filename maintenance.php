@@ -192,9 +192,9 @@ $conn->close();
       color: var(--text-primary);
     }
     .navbar-brand .rdv-brand-logo {
-      height: 30px;
+      height: 20px;
       width: auto;
-      max-width: 110px;
+      max-width: 20px;
       object-fit: contain;
       background: #fff;
       border-radius: 6px;
@@ -358,7 +358,8 @@ $conn->close();
   <header class="navbar">
     <div class="container navbar-inner">
       <a href="index.php" class="navbar-brand">
-        <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
+        <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="">
+        <span class="rdv-brand-name">RD Vendora</span>
       </a>
       <!-- No action buttons -->
     </div>

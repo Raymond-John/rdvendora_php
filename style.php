@@ -988,7 +988,7 @@ $conn->close();
             <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
             <div class="logo">
                 <a href="marketplace.php">
-                    <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora">
+                    <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
                 </a>
             </div>
         </div>

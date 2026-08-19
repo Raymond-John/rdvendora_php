@@ -1020,10 +1020,23 @@ select.form-input {
 }
 
 .navbar-brand .rdv-brand-logo {
-  height: 30px;
-  max-width: 110px;
+  height: 28px;
+  width: auto;
+  max-width: 100px;
   padding: 1px 4px;
   border-radius: 6px;
+  object-fit: contain;
+}
+
+.navbar-brand .rdv-brand-name,
+.footer-logo .rdv-brand-name,
+.rdv-brand-name {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: inherit;
+  line-height: 1;
 }
 
 .navbar-brand-icon {

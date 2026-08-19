@@ -198,6 +198,15 @@ if (!function_exists('rdv_fs_path')) {
     }
 }
 
+if (!function_exists('rdv_asset')) {
+    function rdv_asset($path, $prefix = '') {
+        $web = rdv_web_relative($path);
+        $fs = rdv_fs_path($web);
+        $version = is_file($fs) ? (string) filemtime($fs) : (string) time();
+        return $prefix . $web . '?v=' . rawurlencode($version);
+    }
+}
+
 if (!function_exists('rdv_admin_src')) {
     function rdv_admin_src($webRelative) {
         if ($webRelative === '' || $webRelative === null) {

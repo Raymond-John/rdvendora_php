@@ -56,7 +56,7 @@ if (!function_exists('rdv_site_setting')) {
 
 if (!function_exists('rdv_brand_logo')) {
     function rdv_brand_logo($prefix = '', $extraClass = '', $showName = true) {
-        $src = htmlspecialchars($prefix . 'assets/brand-logo.png', ENT_QUOTES, 'UTF-8');
+        $src = htmlspecialchars(rdv_asset('assets/brand-logo.png', $prefix), ENT_QUOTES, 'UTF-8');
         $class = trim('rdv-brand-logo ' . $extraClass);
         $html = '<img class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" src="' . $src . '" alt="">';
         if ($showName) {
@@ -68,10 +68,11 @@ if (!function_exists('rdv_brand_logo')) {
 
 if (!function_exists('rdv_favicon_tags')) {
     function rdv_favicon_tags($prefix = '') {
-        $base = htmlspecialchars((string) $prefix, ENT_QUOTES, 'UTF-8');
-        return '  <link rel="icon" href="' . $base . 'assets/brand-logo.png" type="image/png">' . "\n"
-            . '  <link rel="icon" href="' . $base . 'assets/favicon.svg" type="image/svg+xml">' . "\n"
-            . '  <link rel="apple-touch-icon" href="' . $base . 'assets/brand-logo.png">' . "\n";
+        $logo = htmlspecialchars(rdv_asset('assets/brand-logo.png', $prefix), ENT_QUOTES, 'UTF-8');
+        $icon = htmlspecialchars(rdv_asset('assets/favicon.svg', $prefix), ENT_QUOTES, 'UTF-8');
+        return '  <link rel="icon" href="' . $logo . '" type="image/png">' . "\n"
+            . '  <link rel="icon" href="' . $icon . '" type="image/svg+xml">' . "\n"
+            . '  <link rel="apple-touch-icon" href="' . $logo . '">' . "\n";
     }
 }
 

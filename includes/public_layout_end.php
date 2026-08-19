@@ -9,7 +9,7 @@ $rdvShowAds = $rdvShowAds ?? true;
     <div class="container rdv-ad-wrap rdv-ad-wrap--footer"><?= rdv_render_ad_slot('footer') ?></div>
   <?php endif; ?>
 <?php require __DIR__ . '/site_footer.php'; ?>
-  <script src="assets/js/rdv-public.js" defer></script>
+  <script src="<?= htmlspecialchars(rdv_asset('assets/js/rdv-public.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>
   <?= $rdvFooterExtra ?? '' ?>
 </body>
 </html>

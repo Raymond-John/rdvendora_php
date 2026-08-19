@@ -23,11 +23,11 @@ $rdvBodyClass = trim('rdv-public-page ' . ($rdvBodyClass ?? ''));
   <?= rdv_favicon_tags() ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/responsive.css">
-  <link rel="stylesheet" href="assets/css/animations.css">
-  <link rel="stylesheet" href="assets/css/public-extras.css">
-  <link rel="stylesheet" href="assets/css/marketing.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/style.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/responsive.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/animations.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/public-extras.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/marketing.css'), ENT_QUOTES, 'UTF-8') ?>">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <?= rdv_org_schema() ?>
   <?= rdv_adsense_head_script() ?>

@@ -2,7 +2,7 @@
     </div>
   </div>
 <?php require __DIR__ . '/site_footer.php'; ?>
-  <script src="assets/js/rdv-public.js" defer></script>
+  <script src="<?= htmlspecialchars(rdv_asset('assets/js/rdv-public.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>
   <script>
     function checkStrength(pw) {
       var el = document.getElementById('password-strength');

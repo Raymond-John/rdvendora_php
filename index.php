@@ -70,7 +70,7 @@ $rdvPagePath = 'index.php';
 $rdvActiveNav = 'index.php';
 $rdvBodyClass = 'mk-marketing';
 $rdvHeaderAds = false;
-$rdvFooterExtra = '<script src="assets/js/marketing.js" defer></script>';
+$rdvFooterExtra = '<script src="' . htmlspecialchars(rdv_asset('assets/js/marketing.js'), ENT_QUOTES, 'UTF-8') . '" defer></script>';
 require __DIR__ . '/includes/public_layout_start.php';
 ?>
 

@@ -235,8 +235,9 @@ img.rdv-brand-logo,
   .rdv-cookie-actions { flex-direction: column; }
   .rdv-cookie-actions .btn { width: 100%; justify-content: center; }
   .navbar-brand .rdv-brand-logo {
-    height: 20px;
-    max-width: 20px;
+    height: 24px;
+    width: auto;
+    max-width: 88px;
     padding: 1px 3px;
   }
 }

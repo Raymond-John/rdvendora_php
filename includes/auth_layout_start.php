@@ -22,11 +22,11 @@ $checkIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
   <?= rdv_favicon_tags() ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/auth.css">
-  <link rel="stylesheet" href="assets/css/animations.css">
-  <link rel="stylesheet" href="assets/css/public-extras.css">
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/style.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/auth.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/animations.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/public-extras.css'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/responsive.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="auth-page">
   <?php require __DIR__ . '/site_navbar.php'; ?>

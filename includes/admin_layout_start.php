@@ -1,4 +1,7 @@
 <?php
+if (!function_exists('rdv_asset')) {
+    require_once dirname(__DIR__) . '/app/bootstrap.php';
+}
 $currentPage = basename($_SERVER['PHP_SELF']);
 $adminPageTitle = $adminPageTitle ?? 'Admin - RD Vendora';
 $adminSearchPlaceholder = $adminSearchPlaceholder ?? 'Search platform...';
@@ -19,9 +22,9 @@ $adminRoleLabel = htmlspecialchars($adminRoleLabel, ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($adminPageTitle, ENT_QUOTES, 'UTF-8') ?></title>
-    <link rel="icon" href="../assets/brand-logo.png" type="image/png">
+    <link rel="icon" href="<?= htmlspecialchars(rdv_asset('assets/brand-logo.png', '../'), ENT_QUOTES, 'UTF-8') ?>" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(rdv_asset('assets/css/admin.css', '../'), ENT_QUOTES, 'UTF-8') ?>">
     <?= $adminHeadExtra ?>
     <?php if ($adminPageStyles !== ''): ?>
     <style><?= $adminPageStyles ?></style>

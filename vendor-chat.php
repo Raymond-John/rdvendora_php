@@ -912,15 +912,18 @@ $conn->close();
                         const container = document.getElementById('chatMessages');
                         container.innerHTML = '';
                         data.messages.forEach(msg => {
-                            if (msg.message.startsWith('__PEER_ID__')) {
-                                if (msg.sender_type === 'admin') {
-                                    adminPeerId = msg.message.replace('__PEER_ID__', '');
+                            const text = String(msg.message || '');
+                            // Internal call signaling — never show in the chat UI
+                            if (text.startsWith('__')) {
+                                if (text.startsWith('__PEER_ID__') && msg.sender_type === 'admin') {
+                                    adminPeerId = text.replace('__PEER_ID__', '');
                                 }
-                                return;
-                            }
-                            if (msg.message === '__REQUEST_PEER_ID__' && msg.sender_type === 'admin') {
-                                if (window.myPeerId) {
-                                    sendMessage(`__PEER_ID__${window.myPeerId}`);
+                                if (text === '__REQUEST_PEER_ID__' && msg.sender_type === 'admin' && window.myPeerId) {
+                                    fetch('chat_save_peer_id', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                        body: `vendor_id=<?= (int) $_SESSION['user_id'] ?>&peer_id=${encodeURIComponent(window.myPeerId)}`
+                                    }).catch(() => {});
                                 }
                                 return;
                             }
@@ -1080,7 +1083,6 @@ $conn->close();
             peer = new Peer({ config: PEER_ICE, debug: 1 });
             peer.on('open', id => {
                 window.myPeerId = id;
-                sendMessage(`__PEER_ID__${id}`);
                 fetch('chat_save_peer_id', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1133,7 +1135,6 @@ $conn->close();
                 await fetchAdminPeerId();
             }
             if (!adminPeerId) {
-                sendMessage('__REQUEST_PEER_ID__');
                 showToast('info', 'Waiting', 'Open Admin Chat on the other side, then try again.');
                 return;
             }

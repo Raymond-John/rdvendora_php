@@ -63,8 +63,8 @@ $vendorQuery = $conn->query("
 if ($vendorQuery) {
     while ($row = $vendorQuery->fetch_assoc()) {
         // Last message and unread count
-        $lastMsg = $conn->query("SELECT message, created_at, sender_type FROM chat_messages WHERE vendor_id = {$row['user_id']} ORDER BY created_at DESC LIMIT 1");
-        $last = $lastMsg->fetch_assoc();
+        $lastMsg = $conn->query("SELECT message, created_at, sender_type FROM chat_messages WHERE vendor_id = {$row['user_id']} AND message NOT LIKE '\\_\\_%' ORDER BY created_at DESC LIMIT 1");
+        $last = $lastMsg ? $lastMsg->fetch_assoc() : null;
         $row['last_message'] = $last ? htmlspecialchars(substr($last['message'], 0, 50)) : 'No messages yet';
         $row['last_time'] = $last ? date('H:i', strtotime($last['created_at'])) : '';
         $unreadResult = $conn->query("SELECT COUNT(*) as cnt FROM chat_messages WHERE vendor_id = {$row['user_id']} AND sender_type = 'vendor' AND is_read = 0");
@@ -437,11 +437,11 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     const container = document.getElementById('chatMessages');
                     container.innerHTML = '';
                     data.messages.forEach(msg => {
-                        // Skip internal peer ID messages
-                        if (msg.message.startsWith('__PEER_ID__')) {
-                            // Save peer ID to DB if from vendor
-                            if (msg.sender_type === 'vendor') {
-                                const peerId = msg.message.replace('__PEER_ID__', '');
+                        const text = String(msg.message || '');
+                        // Internal call signaling — never show in the chat UI
+                        if (text.startsWith('__')) {
+                            if (text.startsWith('__PEER_ID__') && msg.sender_type === 'vendor') {
+                                const peerId = text.replace('__PEER_ID__', '');
                                 vendorPeerId = peerId;
                                 fetch('../chat_save_peer_id', {
                                     method: 'POST',
@@ -449,13 +449,12 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                                     body: `vendor_id=${currentVendorId}&peer_id=${encodeURIComponent(peerId)}`
                                 }).catch(() => {});
                             }
-                            return;
-                        }
-                        // Also handle request for peer ID
-                        if (msg.message === '__REQUEST_PEER_ID__' && msg.sender_type === 'vendor') {
-                            // Admin should resend its peer ID
-                            if (window.myPeerId) {
-                                sendMessage(`__PEER_ID__${window.myPeerId}`);
+                            if (text === '__REQUEST_PEER_ID__' && msg.sender_type === 'vendor' && window.myPeerId) {
+                                fetch('../chat_save_peer_id', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: `peer_id=${encodeURIComponent(window.myPeerId)}`
+                                }).catch(() => {});
                             }
                             return;
                         }
@@ -537,12 +536,18 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         // Get peer ID from DB first
         const found = await fetchVendorPeerIdFromDB(vendorId);
         if (!found) {
-            sendMessage('__REQUEST_PEER_ID__');
+            // Retry a few times while vendor chat is open — do not post signal text into chat
+            let tries = 0;
+            const timer = setInterval(async () => {
+                tries += 1;
+                if (await fetchVendorPeerIdFromDB(vendorId) || tries >= 8) {
+                    clearInterval(timer);
+                }
+            }, 2000);
         }
         
-        // Send admin's peer ID
+        // Send admin's peer ID to DB only (do not post signal text into chat)
         if (window.myPeerId) {
-            sendMessage(`__PEER_ID__${window.myPeerId}`);
             window.peerIdSentToVendor = true;
             fetch('../chat_save_peer_id', {
                 method: 'POST',
@@ -679,7 +684,6 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 body: `peer_id=${encodeURIComponent(id)}`
             }).catch(() => {});
             if (currentVendorId && !window.peerIdSentToVendor) {
-                sendMessage(`__PEER_ID__${id}`);
                 window.peerIdSentToVendor = true;
             }
         });
@@ -738,7 +742,6 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             await fetchVendorPeerIdFromDB(currentVendorId);
         }
         if (!vendorPeerId) {
-            sendMessage('__REQUEST_PEER_ID__');
             alert('Vendor is not ready for calls yet. Ask them to keep Vendor Chat open, then try again.');
             return;
         }

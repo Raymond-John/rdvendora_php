@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/connection.php';
+require_once __DIR__ . '/app/helpers/marketplace_urls.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -19,9 +20,9 @@ function getMarketplaceSetting($key, $default = '') {
 
 // ----- Hero Settings -----
 $hero_image = getMarketplaceSetting('hero_image', '');
-$hero_title = getMarketplaceSetting('hero_title', 'Up to 50% OFF on everything');
-$hero_subtitle = getMarketplaceSetting('hero_subtitle', 'Shop the biggest sale of the year. Limited time offer.');
-$hero_btn_text = getMarketplaceSetting('hero_btn_text', 'Shop Now');
+$hero_title = getMarketplaceSetting('hero_title', 'Discover products from businesses on RD Vendora');
+$hero_subtitle = getMarketplaceSetting('hero_subtitle', 'Browse freely. Add to cart. Checkout as a guest — no account required to shop.');
+$hero_btn_text = getMarketplaceSetting('hero_btn_text', 'Start shopping');
 $hero_btn_link = getMarketplaceSetting('hero_btn_link', '#');
 
 // ----- Promotional Banners -----
@@ -35,9 +36,9 @@ $promo2_link = getMarketplaceSetting('promo2_link', '#');
 $promo2_enabled = getMarketplaceSetting('promo2_enabled', '1');
 
 // ----- Color Settings -----
-$body_bg_color = getMarketplaceSetting('body_bg_color', '#f7faf8');
-$text_primary_color = getMarketplaceSetting('text_primary_color', '#1a1a1a');
-$primary_btn_bg = getMarketplaceSetting('primary_btn_bg', '#27a85a');
+$body_bg_color = getMarketplaceSetting('body_bg_color', '#f3f5f9');
+$text_primary_color = getMarketplaceSetting('text_primary_color', '#0f172a');
+$primary_btn_bg = getMarketplaceSetting('primary_btn_bg', '#0A3D91');
 $primary_btn_text = getMarketplaceSetting('primary_btn_text', '#ffffff');
 $card_bg_color = getMarketplaceSetting('card_bg_color', '#ffffff');
 $sidebar_bg_color = getMarketplaceSetting('sidebar_bg_color', '#ffffff');
@@ -225,13 +226,16 @@ $conn->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <?php require __DIR__ . '/includes/adsense_head.php'; ?>
-  <title>RD Vendora – Premium Marketplace</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <title>RD Vendora Marketplace</title>
+  <meta name="description" content="Shop products from independent businesses on RD Vendora. Browse, add to cart, and checkout as a guest.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="<?= htmlspecialchars(function_exists('rdv_asset') ? rdv_asset('assets/css/marketplace.css') : 'assets/css/marketplace.css', ENT_QUOTES, 'UTF-8') ?>">
   <style>
-    /* ── DYNAMIC COLORS ── */
     :root {
       --body-bg: <?= htmlspecialchars($body_bg_color) ?>;
       --text-primary: <?= htmlspecialchars($text_primary_color) ?>;
@@ -240,1658 +244,273 @@ $conn->close();
       --card-bg: <?= htmlspecialchars($card_bg_color) ?>;
       --sidebar-bg: <?= htmlspecialchars($sidebar_bg_color) ?>;
       --sidebar-text: <?= htmlspecialchars($sidebar_text_color) ?>;
-      --btn-bg-dark: <?= $btn_bg_dark ?>;
-      --btn-bg-darker: <?= $btn_bg_darker ?>;
-      --orange: #f97316;
-    }
-
-    /* ── BASE ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--body-bg);
-      color: var(--text-primary);
-      overflow-x: hidden;
-    }
-    /* ── TOP STRIP ── */
-    .top-strip {
-      background: var(--btn-bg-dark);
-      color: var(--btn-text);
-      font-size: 12px;
-      text-align: center;
-      padding: 6px 16px;
-      letter-spacing: .5px;
-    }
-
-    /* ── HEADER ── */
-    header {
-      background: var(--btn-bg);
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      backdrop-filter: blur(2px);
-    }
-    .logo {
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--btn-text);
-      white-space: nowrap;
-      letter-spacing: -1px;
-      flex: 0 0 auto;
-    }
-    .logo a { display: flex; align-items: center; gap: 0.5rem; }
-    .logo .rdv-brand-name {
-      font-size: 1.05rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: var(--btn-text);
-    }
-    .logo .rdv-brand-logo,
-    .rdv-brand-logo--market {
-      height: 44px;
-      width: auto;
-      max-width: 170px;
-      object-fit: contain;
-      background: #fff;
-      border-radius: 8px;
-      padding: 2px 6px;
-      display: block;
-    }
-    .logo span { color: #b8f5d0; }
-    .search-bar {
-      flex: 0 1 auto;
-      margin: 0 auto;
-      max-width: 640px;
-      width: 100%;
-      display: flex;
-      border-radius: 30px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.2);
-      border: 2px solid rgba(255,255,255,0.15);
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    .search-bar:focus-within {
-      border-color: rgba(255,255,255,0.6);
-      box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
-    }
-    .search-bar input {
-      flex: 1;
-      padding: 10px 18px;
-      border: none;
-      font-size: 14px;
-      outline: none;
-      background: transparent;
-      color: var(--btn-text);
-      min-width: 0;
-    }
-    .search-bar input::placeholder { color: rgba(255,255,255,0.7); }
-    .search-bar button {
-      background: var(--btn-bg-dark);
-      border: none;
-      padding: 0 20px;
-      color: var(--btn-text);
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-      flex-shrink: 0;
-    }
-    .search-bar button:hover { background: var(--btn-bg-darker); }
-
-    .header-actions {
-      display: flex;
-      gap: 18px;
-      align-items: center;
-      color: var(--btn-text);
-      font-size: 13px;
-      flex: 0 0 auto;
-      margin-left: auto;
-    }
-    .header-actions a {
-      color: var(--btn-text);
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      cursor: pointer;
-      transition: transform 0.2s, opacity 0.2s;
-      position: relative;
-    }
-    .header-actions a:hover { transform: translateY(-2px); opacity: 0.85; }
-    .header-actions a i { font-size: 22px; }
-    .header-actions a span {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-    }
-    .cart-badge { position: relative; }
-    .cart-badge .badge {
-      position: absolute;
-      top: -8px;
-      right: -10px;
-      background: var(--orange);
-      color: #fff;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-size: 10px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(249,115,22,0.4);
-    }
-
-    /* ── NAV ── */
-    nav {
-      background: var(--btn-bg-dark);
-      display: flex;
-      gap: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 0 10px;
-    }
-    nav::-webkit-scrollbar { display: none; }
-    nav a {
-      color: var(--btn-text);
-      text-decoration: none;
-      padding: 10px 18px;
-      font-size: 13px;
-      white-space: nowrap;
-      transition: background 0.2s, transform 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 500;
-    }
-    nav a:hover, nav a.active { background: var(--btn-bg); transform: scale(1.02); }
-
-    /* ── HERO CAROUSEL ── */
-    .hero-carousel { position: relative; overflow: hidden; height: 360px; user-select: none; }
-    .hero-slide {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transform: translateX(60px);
-      transition: opacity .55s ease, transform .55s ease;
-      pointer-events: none;
-    }
-    .hero-slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
-    .hero-slide.exit { opacity: 0; transform: translateX(-60px); }
-    .hero-slide-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 100%;
-      padding: 0 60px;
-      gap: 20px;
-    }
-    .hero-text { color: #fff; max-width: 480px; flex-shrink: 0; }
-    .hero-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 14px;
-      letter-spacing: .5px;
-      backdrop-filter: blur(4px);
-    }
-    .flash-tag { background: rgba(249,115,22,.25); border-color: rgba(249,115,22,.5); }
-    .hero-text h1 {
-      font-size: 40px;
-      font-weight: 900;
-      line-height: 1.1;
-      margin-bottom: 12px;
-      text-shadow: 0 2px 12px rgba(0,0,0,.2);
-    }
-    .hero-text p { font-size: 15px; opacity: .88; margin-bottom: 22px; line-height: 1.6; }
-    .brand-word  { color: #b8f5d0; }
-    .brand-word2 { color: #fff; }
-    .highlight-orange { color: #fbbf24; }
-    .highlight-mint   { color: #86efac; }
-    .hero-cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-    .hero-btn-primary {
-      background: #fff;
-      color: var(--btn-bg-dark);
-      border: none;
-      padding: 11px 26px;
-      border-radius: 5px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex; align-items: center; gap: 8px;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 14px rgba(0,0,0,.2);
-    }
-    .hero-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.25); }
-    .hero-btn-primary.orange-btn { background: #f97316; color: #fff; }
-    .hero-btn-secondary {
-      background: rgba(255,255,255,.15);
-      color: #fff;
-      border: 2px solid rgba(255,255,255,.5);
-      padding: 11px 22px;
-      border-radius: 5px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      backdrop-filter: blur(4px);
-      transition: background .2s;
-    }
-    .hero-btn-secondary:hover { background: rgba(255,255,255,.25); }
-    .hero-badges { display: flex; gap: 12px; flex-wrap: wrap; }
-    .hero-badges span {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 12px; opacity: .85;
-      background: rgba(0,0,0,.15);
-      padding: 4px 10px; border-radius: 12px;
-    }
-    .mini-countdown {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 13px; font-weight: 700; color: #fff; margin-top: 4px;
-    }
-    .mini-time {
-      background: rgba(0,0,0,.3);
-      border-radius: 5px;
-      padding: 4px 10px;
-      font-family: monospace;
-      font-size: 18px;
-      min-width: 40px;
-      text-align: center;
-    }
-    .mini-sep { font-size: 18px; opacity: .7; }
-    .hero-visual { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; }
-    .brand-visual { justify-content: flex-end; padding-right: 20px; }
-    .brand-logo-big {
-      text-align: center;
-      background: rgba(255,255,255,.08);
-      border: 2px solid rgba(255,255,255,.2);
-      border-radius: 20px;
-      padding: 28px 36px;
-      backdrop-filter: blur(8px);
-      position: relative;
-      z-index: 2;
-      box-shadow: 0 8px 32px rgba(0,0,0,.2);
-    }
-    .brand-logo-icon {
-      font-size: 52px;
-      color: #86efac;
-      margin-bottom: 8px;
-      animation: leafPulse 2.5s ease-in-out infinite;
-    }
-    @keyframes leafPulse {
-      0%, 100% { transform: scale(1) rotate(-5deg); }
-      50%       { transform: scale(1.1) rotate(5deg); }
-    }
-    .brand-logo-text {
-      font-size: 36px;
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: -1px;
-      line-height: 1;
-    }
-    .brand-logo-text em { color: #86efac; font-style: normal; }
-    .brand-logo-sub {
-      font-size: 11px;
-      color: rgba(255,255,255,.65);
-      margin-top: 6px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .floating-circle {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,.07);
-      animation: floatCircle 4s ease-in-out infinite;
-    }
-    .c1 { width: 120px; height: 120px; top: 10%; right: 5%;  animation-delay: 0s; }
-    .c2 { width: 70px;  height: 70px;  bottom: 15%; right: 30%; animation-delay: 1s; }
-    .c3 { width: 50px;  height: 50px;  top: 30%; right: 50%; animation-delay: 2s; }
-    @keyframes floatCircle {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-16px); }
-    }
-    .deals-visual { flex-direction: column; gap: 16px; }
-    .deal-tag-float {
-      font-size: 72px;
-      font-weight: 900;
-      color: #fbbf24;
-      text-shadow: 0 4px 20px rgba(0,0,0,.3);
-      line-height: 1;
-      animation: pricePop 1.5s ease-in-out infinite alternate;
-    }
-    @keyframes pricePop {
-      from { transform: scale(1) rotate(-3deg); }
-      to   { transform: scale(1.08) rotate(3deg); }
-    }
-    .deal-icons-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .deal-icon-box {
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 12px;
-      width: 64px; height: 64px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
-      color: #fff;
-      backdrop-filter: blur(4px);
-      transition: transform .2s;
-    }
-    .deal-icon-box:hover { transform: scale(1.08); }
-    .delivery-truck-wrap {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .delivery-truck-icon {
-      font-size: 100px;
-      color: #fff;
-      opacity: .9;
-      animation: truckDrive 3s ease-in-out infinite;
-      filter: drop-shadow(0 8px 20px rgba(0,0,0,.3));
-    }
-    @keyframes truckDrive {
-      0%, 100% { transform: translateX(0) rotate(0deg); }
-      25%       { transform: translateX(10px) rotate(1deg); }
-      75%       { transform: translateX(-10px) rotate(-1deg); }
-    }
-    .delivery-road {
-      width: 180px; height: 6px;
-      background: rgba(255,255,255,.25);
-      border-radius: 3px;
-      position: relative;
-      overflow: hidden;
-    }
-    .delivery-road::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 60%; height: 100%;
-      background: rgba(255,255,255,.6);
-      border-radius: 3px;
-      animation: roadLine 2s linear infinite;
-    }
-    @keyframes roadLine {
-      to { left: 150%; }
-    }
-    .delivery-location {
-      font-size: 30px;
-      color: #fbbf24;
-      animation: locBounce 1.2s ease-in-out infinite;
-    }
-    @keyframes locBounce {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-8px); }
-    }
-    .carousel-arrow {
-      position: absolute;
-      top: 50%; transform: translateY(-50%);
-      background: rgba(255,255,255,.18);
-      border: 2px solid rgba(255,255,255,.35);
-      color: #fff;
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(6px);
-      transition: background .2s, transform .2s;
-      z-index: 10;
-    }
-    .carousel-arrow:hover { background: rgba(255,255,255,.35); transform: translateY(-50%) scale(1.1); }
-    .prev-arrow { left: 16px; }
-    .next-arrow { right: 16px; }
-    .carousel-dots {
-      position: absolute;
-      bottom: 16px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 8px; z-index: 10;
-    }
-    .cdot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.4);
-      cursor: pointer;
-      transition: background .25s, width .25s;
-      border: none;
-    }
-    .cdot.active { background: #fff; width: 28px; border-radius: 5px; }
-
-    /* ── SECTION HEADERS ── */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 20px 10px;
-    }
-    .section-header h2 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text-primary);
-      border-left: 4px solid var(--btn-bg);
-      padding-left: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-header h2 img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; }
-    .section-header a {
-      color: var(--btn-bg);
-      font-size: 13px;
-      text-decoration: none;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .section-header a:hover { text-decoration: underline; }
-
-    /* ── FLASH BANNER ── */
-    .flash-banner {
-      background: linear-gradient(90deg, var(--btn-bg-dark), var(--btn-bg));
-      color: var(--btn-text);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .flash-banner i { font-size: 18px; color: #ffd700; }
-    .countdown { display: flex; gap: 6px; }
-    .countdown span {
-      background: rgba(255,255,255,.2);
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-size: 13px;
-      font-weight: 700;
-      font-family: monospace;
-    }
-
-    /* ── PRODUCT GRID ── */
-    .products-wrapper {
-      padding: 0 20px 10px;
-      overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--btn-bg) transparent;
-    }
-    .products-row {
-      display: flex;
-      gap: 12px;
-      width: max-content;
-    }
-    .product-card {
-      background: var(--card-bg);
-      border-radius: 6px;
-      width: 180px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      cursor: pointer;
-      transition: transform .2s, box-shadow .2s;
-      flex-shrink: 0;
-      position: relative;
-    }
-    .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.13); }
-    .product-img {
-      width: 100%;
-      height: 150px;
-      background: var(--body-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .product-img a { display: block; width: 100%; height: 100%; }
-    .product-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s;
-    }
-    .product-card:hover .product-img img { transform: scale(1.03); }
-
-    .badge-sale {
-      position: absolute;
-      top: 8px; left: 8px;
-      background: var(--orange);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 3px;
-      z-index: 1;
-    }
-    .badge-new {
-      position: absolute;
-      top: 8px; left: 8px;
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 3px;
-      z-index: 1;
-    }
-    .wishlist-btn {
-      position: absolute;
-      top: 8px; right: 8px;
-      background: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 28px; height: 28px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,.15);
-      color: #bbb;
-      font-size: 13px;
-      transition: color .2s;
-      z-index: 1;
-    }
-    .wishlist-btn:hover { color: #e74c3c; }
-    .wishlist-btn.active { color: #e74c3c; }
-    .product-info { padding: 10px; }
-    .product-name {
-      font-size: 12px;
-      color: var(--sidebar-text);
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .product-name a {
-      color: inherit;
-      text-decoration: none;
-    }
-    .product-price {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-    .product-old-price {
-      font-size: 11px;
-      color: #aaa;
-      text-decoration: line-through;
-      margin-left: 4px;
-    }
-    .product-discount {
-      font-size: 11px;
-      color: var(--orange);
-      font-weight: 700;
-    }
-    .stars { color: #f4c430; font-size: 11px; margin-top: 4px; }
-    .stars span { color: var(--sidebar-text); font-size: 10px; margin-left: 2px; }
-    .add-cart-btn {
-      width: calc(100% - 20px);
-      margin: 0 10px 10px;
-      padding: 7px;
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .2s;
-    }
-    .add-cart-btn:hover { background: var(--btn-bg-dark); }
-
-    /* ── CATEGORIES ── */
-    .categories-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 10px;
-      padding: 0 20px 20px;
-    }
-    .category-card {
-      background: var(--card-bg);
-      border-radius: 8px;
-      padding: 16px 10px;
-      text-align: center;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      transition: transform .2s, box-shadow .2s;
-      border: 2px solid transparent;
-    }
-    .category-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--btn-bg);
-      box-shadow: 0 6px 20px rgba(0,0,0,.1);
-    }
-    .category-card i { font-size: 28px; color: var(--btn-bg); display: block; margin-bottom: 8px; }
-    .category-card span { font-size: 11px; font-weight: 600; color: var(--text-primary); }
-    .category-card.active {
-      border-color: var(--btn-bg);
-      background: var(--btn-bg);
-      color: var(--btn-text);
-    }
-    .category-card.active i { color: var(--btn-text); }
-    .category-card.active span { color: var(--btn-text); }
-
-    /* ── ALL STORES – HORIZONTAL SCROLL ── */
-    .stores-wrapper {
-      padding: 0 20px 20px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: thin;
-      scrollbar-color: var(--btn-bg) transparent;
-      -webkit-overflow-scrolling: touch;
-    }
-    .stores-wrapper::-webkit-scrollbar {
-      height: 6px;
-    }
-    .stores-wrapper::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .stores-wrapper::-webkit-scrollbar-thumb {
-      background: var(--btn-bg);
-      border-radius: 10px;
-    }
-    .stores-row {
-      display: flex;
-      gap: 16px;
-      width: max-content;
-      padding-bottom: 4px;
-    }
-    .store-card {
-      background: var(--card-bg);
-      border-radius: 10px;
-      padding: 16px 14px;
-      text-align: center;
-      box-shadow: var(--shadow);
-      transition: transform 0.2s, box-shadow 0.2s;
-      border: 2px solid transparent;
-      cursor: pointer;
-      flex-shrink: 0;
-      width: 150px;
-    }
-    .store-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--btn-bg);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    }
-    .store-card img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 8px;
-      border: 2px solid var(--btn-bg);
-      padding: 2px;
-    }
-    .store-card .store-name {
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--text-primary);
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .store-card .store-plan {
-      font-size: 10px;
-      color: var(--sidebar-text);
-      opacity: 0.7;
-      margin-bottom: 6px;
-    }
-    .store-card .visit-btn {
-      display: inline-block;
-      padding: 4px 14px;
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
-    .store-card .visit-btn:hover {
-      background: var(--btn-bg-dark);
-    }
-
-    /* ── MODAL (All Stores) ── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      backdrop-filter: blur(4px);
-    }
-    .modal-overlay.active {
-      display: flex;
-    }
-    .modal-container {
-      background: var(--card-bg);
-      border-radius: 16px;
-      max-width: 900px;
-      width: 100%;
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 16px 24px;
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-header h3 {
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--btn-text);
-      font-size: 28px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .modal-close:hover {
-      transform: rotate(90deg);
-    }
-    .modal-body {
-      padding: 24px;
-      overflow-y: auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 16px;
-    }
-    .modal-store-item {
-      background: var(--body-bg);
-      border-radius: 10px;
-      padding: 16px 10px;
-      text-align: center;
-      transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
-    }
-    .modal-store-item:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    }
-    .modal-store-item img {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 6px;
-      border: 2px solid var(--btn-bg);
-      padding: 2px;
-    }
-    .modal-store-item .s-name {
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--text-primary);
-    }
-    .modal-store-item .s-plan {
-      font-size: 10px;
-      color: var(--sidebar-text);
-      opacity: 0.7;
-    }
-
-    /* ── PROMO BANNERS ── */
-    .promo-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding: 0 20px 20px;
-    }
-    .promo-card {
-      border-radius: 8px;
-      padding: 24px 20px;
-      color: #fff;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .promo-card:nth-child(1) { background: linear-gradient(135deg, var(--btn-bg-dark), var(--btn-bg)); }
-    .promo-card:nth-child(2) { background: linear-gradient(135deg, var(--btn-bg-darker), var(--btn-bg-dark)); }
-    .promo-card h3 { font-size: 16px; margin-bottom: 6px; }
-    .promo-card p { font-size: 12px; opacity: .85; margin-bottom: 14px; }
-    .promo-card a {
-      background: #fff;
-      color: var(--btn-bg-dark);
-      padding: 6px 16px;
-      border-radius: 3px;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .promo-card .promo-icon {
-      position: absolute;
-      right: -10px; bottom: -10px;
-      font-size: 80px;
-      opacity: .12;
-    }
-
-    /* ── FOOTER ── */
-    footer {
-      background: var(--btn-bg-dark);
-      color: rgba(255,255,255,.85);
-      padding: 40px 20px 20px;
-      margin-top: 30px;
-    }
-    .footer-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 30px;
-      margin-bottom: 30px;
-    }
-    .footer-col h4 {
-      color: #fff;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 14px;
-      border-bottom: 2px solid var(--btn-bg);
-      padding-bottom: 6px;
-    }
-    .footer-col a {
-      display: block;
-      color: rgba(255,255,255,.75);
-      text-decoration: none;
-      font-size: 13px;
-      margin-bottom: 7px;
-      transition: color .2s;
-    }
-    .footer-col a:hover { color: #fff; }
-    .footer-bottom {
-      border-top: 1px solid rgba(255,255,255,.15);
-      padding-top: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .social-links { display: flex; gap: 12px; }
-    .social-links a {
-      color: rgba(255,255,255,.7);
-      font-size: 18px;
-      transition: color .2s;
-      text-decoration: none;
-    }
-    .social-links a:hover { color: #fff; }
-
-    /* ── CART SIDEBAR ── */
-    .cart-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.45);
-      z-index: 200;
-      display: none;
-    }
-    .cart-overlay.open { display: block; }
-    .cart-sidebar {
-      position: fixed;
-      top: 0; right: -380px;
-      width: 360px;
-      height: 100%;
-      background: var(--card-bg);
-      z-index: 201;
-      transition: right .3s;
-      display: flex;
-      flex-direction: column;
-      box-shadow: -4px 0 20px rgba(0,0,0,.15);
-    }
-    .cart-sidebar.open { right: 0; }
-    .cart-header {
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 700;
-      font-size: 16px;
-    }
-    .cart-header button {
-      background: none; border: none; color: var(--btn-text); font-size: 20px; cursor: pointer;
-    }
-    .cart-items { flex: 1; overflow-y: auto; padding: 16px; }
-    .cart-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--grey-light);
-    }
-    .cart-item-img {
-      width: 60px; height: 60px;
-      background: var(--body-bg);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      overflow: hidden;
-      padding: 0;
-    }
-    .cart-item-info { flex: 1; }
-    .cart-item-info p { font-size: 13px; margin-bottom: 4px; }
-    .cart-item-info strong { color: var(--btn-bg); }
-    .cart-item-remove {
-      background: none; border: none;
-      color: #e74c3c; cursor: pointer; font-size: 16px;
-      align-self: center;
-    }
-    .cart-footer {
-      padding: 16px 20px;
-      border-top: 1px solid var(--grey-light);
-    }
-    .cart-total {
-      display: flex; justify-content: space-between;
-      font-size: 16px; font-weight: 700;
-      margin-bottom: 14px;
-    }
-    .checkout-btn {
-      width: 100%;
-      padding: 13px;
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      border: none;
-      border-radius: 5px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background .2s;
-    }
-    .checkout-btn:hover { background: var(--btn-bg-dark); }
-    .empty-cart {
-      text-align: center;
-      padding: 40px 20px;
-      color: #aaa;
-    }
-    .empty-cart i { font-size: 60px; margin-bottom: 16px; color: var(--btn-bg); }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed;
-      bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      padding: 10px 24px;
-      border-radius: 30px;
-      font-size: 13px;
-      font-weight: 600;
-      z-index: 300;
-      transition: transform .3s;
-      box-shadow: 0 4px 16px rgba(0,0,0,.2);
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ── RESPONSIVE ── */
-    @media(max-width: 768px) {
-      .hero-carousel { height: auto; min-height: 280px; }
-      .hero-slide-inner { flex-direction: column; padding: 24px 20px 50px; text-align: center; justify-content: center; }
-      .hero-text h1 { font-size: 26px; }
-      .hero-text p { font-size: 13px; }
-      .hero-visual { display: none; }
-      .hero-cta-row { justify-content: center; }
-      .hero-badges { justify-content: center; }
-      .promo-grid { grid-template-columns: 1fr; }
-      .header-actions { gap: 12px; }
-      header { flex-wrap: wrap; }
-      .search-bar { order: 3; flex-basis: 100%; max-width: 100%; margin: 0; }
-      .store-card { width: 130px; padding: 12px; }
-      .modal-body { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
-      .modal-container { max-width: 100%; max-height: 90vh; }
+      --btn-bg-dark: <?= htmlspecialchars($btn_bg_dark) ?>;
+      --btn-bg-darker: <?= htmlspecialchars($btn_bg_darker) ?>;
     }
   </style>
 </head>
-<body>
-
-<!-- TOP STRIP -->
-<div class="top-strip">🚚 Free delivery on orders above ₦10,000 &nbsp;|&nbsp; ✅ 100% Genuine Products &nbsp;|&nbsp; 🔄 Easy Returns</div>
-
-<!-- HEADER -->
-<header>
-  <div class="logo"><a href="marketplace"><img class="rdv-brand-logo rdv-brand-logo--market" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a></div>
-  <div class="search-bar">
-    <form method="get" action="" style="display:flex; flex:1; width:100%;">
-      <input type="text" name="q" id="searchInput" placeholder="Search products, brands and categories…" value="<?= htmlspecialchars($search) ?>" />
-      <button type="submit"><i class="fas fa-search"></i></button>
-    </form>
-  </div>
-  <div class="header-actions">
-    <a href="marketplaceaddtocart">
-      <div class="cart-badge">
-        <i class="fas fa-shopping-cart"></i>
-        <span class="badge" id="cartCount">0</span>
-      </div>
-      <span>Cart</span>
-    </a>
-  </div>
-</header>
-
-<!-- NAVIGATION -->
-<nav>
-  <a href="marketplace" class="<?= empty($selectedCategory) ? 'active' : '' ?>"><i class="fas fa-th"></i> All Categories</a>
-  <?php foreach ($allCategories as $cat): ?>
-    <a href="?category=<?= urlencode($cat) ?>" class="<?= $selectedCategory === $cat ? 'active' : '' ?>"><i class="fas fa-tag"></i> <?= htmlspecialchars($cat) ?></a>
-  <?php endforeach; ?>
-</nav>
-
-<!-- HERO CAROUSEL -->
+<body class="mp-page">
 <?php
-$slides = [];
-$slides[] = [
-  'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 45%, var(--btn-bg) 100%)',
-  'tag' => '<i class="fas fa-leaf"></i> Nigeria\'s Greenest Store',
-  'title' => '<span class="brand-word">RD</span><span class="brand-word2">Vendora</span>',
-  'desc' => 'Millions of products. Best prices.<br/>Fast delivery across Nigeria.',
-  'btns' => [
-    ['text' => 'Shop Now', 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary', 'onclick' => "showToast('Exploring deals…')"],
-    ['text' => 'Browse Categories', 'icon' => '', 'class' => 'hero-btn-secondary', 'onclick' => "showToast('Viewing categories…')"]
-  ],
-  'badges' => ['<i class="fas fa-truck"></i> Free Delivery', '<i class="fas fa-shield-alt"></i> 100% Genuine', '<i class="fas fa-undo"></i> Easy Returns'],
-  'visual' => '
-    <div class="brand-logo-big">
-      <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora" style="height:88px;width:auto;max-width:260px;object-fit:contain;background:#fff;border-radius:12px;padding:8px 12px;margin:0 auto;">
-      <div class="brand-logo-sub">Premium Marketplace</div>
-    </div>
-    <div class="floating-circle c1"></div>
-    <div class="floating-circle c2"></div>
-    <div class="floating-circle c3"></div>
-  '
-];
-if (!empty($banners)) {
-  foreach ($banners as $banner) {
-    $slides[] = [
-      'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
-      'tag' => '<i class="fas fa-crown"></i> ' . htmlspecialchars($banner['store_name']),
-      'title' => htmlspecialchars($banner['title'] ?? 'Special Offer'),
-      'desc' => htmlspecialchars($banner['description'] ?? ''),
-      'btns' => [
-        ['text' => 'Shop Now', 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary orange-btn', 'onclick' => "window.location.href='".htmlspecialchars($banner['link'] ?? '#')."'"]
-      ],
-      'badges' => [],
-      'visual' => '<img src="'.htmlspecialchars($banner['image']).'" style="max-height:200px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.3);" />'
-    ];
-  }
-} else {
-  $slides[] = [
-    'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
-    'tag' => '<i class="fas fa-bolt"></i> Limited Time Only',
-    'title' => 'Flash <span class="highlight-orange">Deals</span><br/>Up to <span class="highlight-orange">60% Off</span>',
-    'desc' => 'Grab the best discounts before they\'re gone.<br/>New deals every 4 hours!',
-    'btns' => [
-      ['text' => 'See Deals', 'icon' => 'fa-fire', 'class' => 'hero-btn-primary orange-btn', 'onclick' => "showToast('Viewing flash deals…')"]
-    ],
-    'badges' => [],
-    'visual' => '
-      <div class="deal-tag-float">-60%</div>
-      <div class="deal-icons-grid">
-        <div class="deal-icon-box"><i class="fas fa-mobile-alt"></i></div>
-        <div class="deal-icon-box"><i class="fas fa-laptop"></i></div>
-        <div class="deal-icon-box"><i class="fas fa-tv"></i></div>
-        <div class="deal-icon-box"><i class="fas fa-headphones"></i></div>
-      </div>
-    '
-  ];
-  $slides[] = [
-    'bg' => 'linear-gradient(120deg, #0a2e18 0%, var(--btn-bg-dark) 40%, var(--btn-bg) 100%)',
-    'tag' => '<i class="fas fa-truck"></i> Nationwide Delivery',
-    'title' => 'Free Delivery<br/>on Orders <span class="highlight-mint">Above ₦10k</span>',
-    'desc' => 'We deliver to every state in Nigeria.<br/>Same-day delivery in Lagos available.',
-    'btns' => [
-      ['text' => 'Learn More', 'icon' => 'fa-map-marker-alt', 'class' => 'hero-btn-primary', 'onclick' => "showToast('Viewing delivery info…')"]
-    ],
-    'badges' => ['<i class="fas fa-clock"></i> Same-Day Lagos', '<i class="fas fa-map-marker-alt"></i> 36 States'],
-    'visual' => '
-      <div class="delivery-truck-wrap">
-        <i class="fas fa-truck delivery-truck-icon"></i>
-        <div class="delivery-road"></div>
-        <div class="delivery-location"><i class="fas fa-map-marker-alt"></i></div>
-      </div>
-    '
-  ];
+$mpActive = 'home';
+$mpSearch = $search;
+$mpCategories = $allCategories;
+$mpSelectedCategory = $selectedCategory;
+$mpShowCategories = true;
+require __DIR__ . '/includes/marketplace_header.php';
+
+$heroBtnHref = $hero_btn_link;
+if ($heroBtnHref === '' || $heroBtnHref === '#') {
+    $heroBtnHref = '#mp-products';
+}
+$heroImage = $hero_image;
+if ($heroImage === '' && !empty($banners[0]['image'])) {
+    $heroImage = $banners[0]['image'];
 }
 ?>
-<div class="hero-carousel" id="heroCarousel">
-  <?php foreach ($slides as $index => $slide): ?>
-    <div class="hero-slide <?= $index === 0 ? 'active' : '' ?>" style="background: <?= $slide['bg'] ?>;">
-      <div class="hero-slide-inner">
-        <div class="hero-text">
-          <div class="hero-tag <?= strpos($slide['tag'], 'Flash') !== false ? 'flash-tag' : '' ?>"><?= $slide['tag'] ?></div>
-          <h1><?= $slide['title'] ?></h1>
-          <p><?= $slide['desc'] ?></p>
-          <div class="hero-cta-row">
-            <?php foreach ($slide['btns'] as $btn): ?>
-              <button class="<?= $btn['class'] ?>" onclick="<?= $btn['onclick'] ?>">
-                <?= $btn['text'] ?> <?php if ($btn['icon']): ?><i class="fas <?= $btn['icon'] ?>"></i><?php endif; ?>
-              </button>
-            <?php endforeach; ?>
-          </div>
-          <?php if (!empty($slide['badges'])): ?>
-            <div class="hero-badges">
-              <?php foreach ($slide['badges'] as $badge): ?>
-                <span><?= $badge ?></span>
-              <?php endforeach; ?>
-            </div>
-          <?php endif; ?>
-        </div>
-        <div class="hero-visual <?= strpos($slide['visual'], 'brand-logo-big') !== false ? 'brand-visual' : '' ?> <?= strpos($slide['visual'], 'deal-tag-float') !== false ? 'deals-visual' : '' ?> <?= strpos($slide['visual'], 'delivery-truck-wrap') !== false ? 'delivery-visual' : '' ?>">
-          <?= $slide['visual'] ?>
-        </div>
+
+<section class="mp-hero" aria-label="Marketplace highlights">
+  <div class="mp-hero-inner">
+    <div>
+      <div class="mp-hero-kicker">RD Vendora Marketplace</div>
+      <h1><?= htmlspecialchars($hero_title) ?></h1>
+      <p><?= htmlspecialchars($hero_subtitle) ?></p>
+      <div class="mp-hero-actions">
+        <a class="mp-btn mp-btn-primary" href="<?= htmlspecialchars($heroBtnHref, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($hero_btn_text) ?></a>
+        <a class="mp-btn mp-btn-ghost" href="#mp-categories">Browse categories</a>
       </div>
     </div>
-  <?php endforeach; ?>
-  <?php if (count($slides) > 1): ?>
-    <button class="carousel-arrow prev-arrow" onclick="carouselMove(-1)"><i class="fas fa-chevron-left"></i></button>
-    <button class="carousel-arrow next-arrow" onclick="carouselMove(1)"><i class="fas fa-chevron-right"></i></button>
-    <div class="carousel-dots" id="carouselDots">
-      <?php foreach ($slides as $index => $slide): ?>
-        <span class="cdot <?= $index === 0 ? 'active' : '' ?>" onclick="carouselGoTo(<?= $index ?>)"></span>
-      <?php endforeach; ?>
+    <?php if ($heroImage !== ''): ?>
+    <div class="mp-hero-visual">
+      <img src="<?= htmlspecialchars($heroImage, ENT_QUOTES, 'UTF-8') ?>" alt="" width="640" height="400">
     </div>
-  <?php endif; ?>
+    <?php else: ?>
+    <div class="mp-hero-visual" aria-hidden="true">
+      <img src="<?= htmlspecialchars(function_exists('rdv_asset') ? rdv_asset('assets/brand-logo.png') : 'assets/brand-logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="" style="object-fit:contain;background:#fff;padding:2rem;">
+    </div>
+    <?php endif; ?>
+  </div>
+</section>
+
+<div class="mp-flash" role="status">
+  <i class="fas fa-bolt" aria-hidden="true"></i>
+  <strong>Today’s marketplace picks</strong>
+  <span class="mp-countdown" id="mpCountdown">04:37:00</span>
 </div>
 
-<!-- SHOP BY CATEGORY -->
-<div class="section-header">
-  <h2>Shop by Category</h2>
-  <a href="marketplace">View all <i class="fas fa-chevron-right"></i></a>
-</div>
-<div class="categories-grid">
-  <?php foreach ($allCategories as $cat): ?>
-    <div class="category-card <?= $selectedCategory === $cat ? 'active' : '' ?>" onclick="window.location.href='?category=<?= urlencode($cat) ?>'">
-      <i class="fas fa-tag"></i>
-      <span><?= htmlspecialchars($cat) ?></span>
-    </div>
-  <?php endforeach; ?>
-  <?php if (empty($allCategories)): ?>
-    <div class="category-card"><i class="fas fa-store"></i><span>No categories</span></div>
-  <?php endif; ?>
-</div>
-
-<!-- ── ALL STORES – HORIZONTAL SCROLL ── -->
-<?php if (!empty($stores) && empty($search)): ?>
-<div class="section-header">
-  <h2><i class="fas fa-store-alt" style="color:var(--btn-bg);"></i> All Stores</h2>
-  <a onclick="openStoreModal()">See all <i class="fas fa-chevron-right"></i></a>
-</div>
-<div class="stores-wrapper">
-  <div class="stores-row">
+<?php if (!empty($stores) && $search === ''): ?>
+<div class="mp-section">
+  <div class="mp-section-head">
+    <h2>Featured stores</h2>
+    <a href="#mp-products">Shop products</a>
+  </div>
+  <div class="mp-stores">
     <?php foreach ($stores as $store): ?>
-      <div class="store-card" onclick="window.location.href='<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>'">
+      <a class="mp-store-chip" href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">
         <?php if (!empty($store['logo_path'])): ?>
-          <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>" />
+          <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">
         <?php else: ?>
-          <div style="width:60px;height:60px;border-radius:50%;background:var(--btn-bg);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;">
-            <i class="fas fa-store"></i>
-          </div>
+          <div class="mp-store-fallback"><i class="fas fa-store"></i></div>
         <?php endif; ?>
-        <div class="store-name"><?= htmlspecialchars($store['store_name']) ?></div>
-        <div class="store-plan"><?= htmlspecialchars($store['plan']) ?> Plan</div>
-        <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="visit-btn">Visit Store</a>
-      </div>
+        <strong><?= htmlspecialchars($store['store_name']) ?></strong>
+        <span><?= htmlspecialchars((string)($store['plan'] ?? 'Store')) ?></span>
+      </a>
     <?php endforeach; ?>
   </div>
 </div>
 <?php endif; ?>
 
-<!-- FLASH DEAL COUNTDOWN BANNER -->
-<div class="flash-banner">
-  <i class="fas fa-bolt"></i>
-  <strong>Flash Deals</strong>
-  &mdash; Ends in:
-  <div class="countdown">
-    <span id="hours">04</span>
-    <span>:</span>
-    <span id="minutes">37</span>
-    <span>:</span>
-    <span id="seconds">00</span>
+<div class="mp-toolbar" id="mp-products">
+  <h2>
+    <?php if ($search !== ''): ?>
+      Results for “<?= htmlspecialchars($search) ?>”
+    <?php elseif ($selectedCategory !== ''): ?>
+      <?= htmlspecialchars($selectedCategory) ?>
+    <?php else: ?>
+      Popular products
+    <?php endif; ?>
+  </h2>
+  <div class="mp-toolbar-actions">
+    <button type="button" class="mp-chip-btn" data-open="filter"><i class="fas fa-sliders-h" aria-hidden="true"></i> Filter</button>
+    <button type="button" class="mp-chip-btn" data-open="sort"><i class="fas fa-arrow-down-wide-short" aria-hidden="true"></i> Sort</button>
+    <div class="mp-sort-desktop">
+      <label class="mp-sr-only" for="mpSortDesktop">Sort products</label>
+      <select id="mpSortDesktop">
+        <option value="featured">Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name-asc">Name: A–Z</option>
+      </select>
+    </div>
   </div>
 </div>
 
-<?php if (!empty($search)): ?>
-  <!-- SEARCH RESULTS -->
-  <div class="section-header">
-    <h2><i class="fas fa-search" style="color:var(--btn-bg);"></i> Search Results for "<?= htmlspecialchars($search) ?>"</h2>
-    <a href="marketplace">Clear search</a>
-  </div>
-  <div class="products-wrapper">
-    <div class="products-row">
+<?php if ($search !== ''): ?>
+  <div class="mp-section">
+    <div class="mp-product-grid" id="mpProductGrid" data-sortable>
       <?php if (empty($searchResults)): ?>
-        <div style="padding:20px;text-align:center;color:var(--sidebar-text);">No products found for your search.</div>
+        <div class="mp-empty" style="grid-column:1/-1">
+          <i class="fas fa-search"></i>
+          <p>No products matched your search.</p>
+          <a class="mp-btn mp-btn-outline" href="<?= htmlspecialchars(rdv_marketplace_url(), ENT_QUOTES, 'UTF-8') ?>">Clear search</a>
+        </div>
       <?php else: ?>
         <?php foreach ($searchResults as $p):
-          $discount = (isset($p['old_price']) && $p['old_price'] > 0) ? round((1 - $p['price'] / $p['old_price']) * 100) : 0;
-          $store_pk = $p['store_pk'] ?? 0;
-          $store_name = $p['store_name'] ?? 'Unknown Store';
-        ?>
-          <div class="product-card" data-id="<?= $p['id'] ?>" data-store-id="<?= $store_pk ?>" data-store-name="<?= htmlspecialchars($store_name) ?>" data-price="<?= $p['price'] ?>" data-name="<?= htmlspecialchars($p['name']) ?>" data-image="<?= htmlspecialchars($p['image'] ?? '') ?>">
-            <div class="product-img">
-              <?php if ($discount > 0): ?><span class="badge-sale">-<?= $discount ?>%</span><?php endif; ?>
-              <button class="wishlist-btn" onclick="toggleWish(<?= $p['id'] ?>, event)"><i class="far fa-heart"></i></button>
-              <a href="marketplaceviewproduct?id=<?= $p['id'] ?>">
-                <img src="<?= htmlspecialchars($p['image'] ?? 'https://placehold.co/300x300?text=No+Image') ?>" alt="<?= htmlspecialchars($p['name']) ?>" />
-              </a>
-            </div>
-            <div class="product-info">
-              <div class="product-name"><a href="marketplaceviewproduct?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></a></div>
-              <div>
-                <span class="product-price">₦<?= number_format($p['price'], 0) ?></span>
-                <?php if (isset($p['old_price']) && $p['old_price'] > 0): ?>
-                  <span class="product-old-price">₦<?= number_format($p['old_price'], 0) ?></span>
-                <?php endif; ?>
-              </div>
-              <?php if (isset($p['old_price']) && $p['old_price'] > 0): ?>
-                <div class="product-discount">Save ₦<?= number_format($p['old_price'] - $p['price'], 0) ?></div>
-              <?php endif; ?>
-              <div class="stars">★★★★★ <span>(<?= rand(10, 200) ?>)</span></div>
-            </div>
-            <button class="add-cart-btn" onclick="addToCart(<?= $p['id'] ?>, <?= $store_pk ?>, '<?= htmlspecialchars($store_name) ?>', '<?= htmlspecialchars($p['name']) ?>', <?= $p['price'] ?>, '<?= htmlspecialchars($p['image'] ?? '') ?>', event)">
-              <i class="fas fa-cart-plus"></i> Add to Cart
-            </button>
-          </div>
-        <?php endforeach; ?>
+          $storePk = (int)($p['store_pk'] ?? 0);
+          $storeName = (string)($p['store_name'] ?? 'Store');
+          require __DIR__ . '/includes/marketplace_product_card.php';
+        endforeach; ?>
       <?php endif; ?>
     </div>
   </div>
 <?php else: ?>
-  <!-- ── STORE PRODUCT SECTIONS (filtered by category if selected) ── -->
-  <?php if (!empty($selectedCategory)): ?>
-    <div class="section-header" style="margin-top:20px">
-      <h2><i class="fas fa-filter" style="color:var(--btn-bg);"></i> Products in "<?= htmlspecialchars($selectedCategory) ?>"</h2>
-      <a href="marketplace">Clear filter <i class="fas fa-times"></i></a>
-    </div>
-  <?php endif; ?>
-
   <?php
   $hasProducts = false;
   foreach ($stores as $store):
-    $prods = isset($storeProducts[$store['store_pk']]) ? $storeProducts[$store['store_pk']] : [];
+    $prods = $storeProducts[$store['store_pk']] ?? [];
     if (empty($prods)) continue;
     $hasProducts = true;
   ?>
-    <div class="section-header" style="margin-top:20px">
-      <h2>
-        <?php if (!empty($store['logo_path'])): ?>
-          <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>" />
-        <?php else: ?>
-          <i class="fas fa-store" style="color:var(--btn-bg);"></i>
-        <?php endif; ?>
-        <?= htmlspecialchars($store['store_name']) ?>
-        <?php if (!empty($selectedCategory)): ?>
-          <span style="font-size:12px;font-weight:400;color:var(--sidebar-text);">(<?= htmlspecialchars($selectedCategory) ?>)</span>
-        <?php endif; ?>
-      </h2>
-      <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">See all <i class="fas fa-chevron-right"></i></a>
-    </div>
-    <div class="products-wrapper">
-      <div class="products-row">
+    <div class="mp-section">
+      <div class="mp-section-head">
+        <h2>
+          <?php if (!empty($store['logo_path'])): ?>
+            <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">
+          <?php endif; ?>
+          <?= htmlspecialchars($store['store_name']) ?>
+        </h2>
+        <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">Visit store</a>
+      </div>
+      <div class="mp-product-grid" data-sortable>
         <?php foreach ($prods as $p):
-          $discount = (isset($p['old_price']) && $p['old_price'] > 0) ? round((1 - $p['price'] / $p['old_price']) * 100) : 0;
-        ?>
-          <div class="product-card" data-id="<?= $p['id'] ?>" data-store-id="<?= $store['store_pk'] ?>" data-store-name="<?= htmlspecialchars($store['store_name']) ?>" data-price="<?= $p['price'] ?>" data-name="<?= htmlspecialchars($p['name']) ?>" data-image="<?= htmlspecialchars($p['image'] ?? '') ?>">
-            <div class="product-img">
-              <?php if ($discount > 0): ?><span class="badge-sale">-<?= $discount ?>%</span><?php endif; ?>
-              <button class="wishlist-btn" onclick="toggleWish(<?= $p['id'] ?>, event)"><i class="far fa-heart"></i></button>
-              <a href="marketplaceviewproduct?id=<?= $p['id'] ?>">
-                <img src="<?= htmlspecialchars($p['image'] ?? 'https://placehold.co/300x300?text=No+Image') ?>" alt="<?= htmlspecialchars($p['name']) ?>" />
-              </a>
-            </div>
-            <div class="product-info">
-              <div class="product-name"><a href="marketplaceviewproduct?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></a></div>
-              <div>
-                <span class="product-price">₦<?= number_format($p['price'], 0) ?></span>
-                <?php if (isset($p['old_price']) && $p['old_price'] > 0): ?>
-                  <span class="product-old-price">₦<?= number_format($p['old_price'], 0) ?></span>
-                <?php endif; ?>
-              </div>
-              <?php if (isset($p['old_price']) && $p['old_price'] > 0): ?>
-                <div class="product-discount">Save ₦<?= number_format($p['old_price'] - $p['price'], 0) ?></div>
-              <?php endif; ?>
-              <div class="stars">★★★★★ <span>(<?= rand(10, 200) ?>)</span></div>
-            </div>
-            <button class="add-cart-btn" onclick="addToCart(<?= $p['id'] ?>, <?= $store['store_pk'] ?>, '<?= htmlspecialchars($store['store_name']) ?>', '<?= htmlspecialchars($p['name']) ?>', <?= $p['price'] ?>, '<?= htmlspecialchars($p['image'] ?? '') ?>', event)">
-              <i class="fas fa-cart-plus"></i> Add to Cart
-            </button>
-          </div>
-        <?php endforeach; ?>
+          $storePk = (int)$store['store_pk'];
+          $storeName = (string)$store['store_name'];
+          require __DIR__ . '/includes/marketplace_product_card.php';
+        endforeach; ?>
       </div>
     </div>
   <?php endforeach; ?>
 
-  <?php if (!$hasProducts && !empty($selectedCategory)): ?>
-    <div style="padding:40px;text-align:center;color:var(--sidebar-text);">
-      <i class="fas fa-box-open" style="font-size:48px;color:var(--btn-bg);"></i>
-      <p style="margin-top:12px;">No products found in category "<strong><?= htmlspecialchars($selectedCategory) ?></strong>".</p>
-      <a href="marketplace" style="color:var(--btn-bg);text-decoration:underline;">Clear filter</a>
+  <?php if (!$hasProducts && $selectedCategory !== ''): ?>
+    <div class="mp-empty">
+      <i class="fas fa-box-open"></i>
+      <p>No products in “<?= htmlspecialchars($selectedCategory) ?>”.</p>
+      <a class="mp-btn mp-btn-outline" href="<?= htmlspecialchars(rdv_marketplace_url(), ENT_QUOTES, 'UTF-8') ?>">Clear filter</a>
     </div>
   <?php endif; ?>
 
-  <?php if (empty($stores) && empty($selectedCategory)): ?>
-    <div style="padding:40px;text-align:center;color:var(--sidebar-text);">
-      <i class="fas fa-store-slash" style="font-size:48px;color:var(--btn-bg);"></i>
-      <p style="margin-top:12px;">No active stores available at the moment.</p>
+  <?php if (empty($stores)): ?>
+    <div class="mp-empty">
+      <i class="fas fa-store"></i>
+      <p>No active stores are available right now. Check back soon.</p>
     </div>
   <?php endif; ?>
 <?php endif; ?>
 
-<!-- ── PROMO BANNERS (NOW DYNAMIC & CONDITIONAL) ── -->
 <?php if ($promo1_enabled == '1' || $promo2_enabled == '1'): ?>
-<div class="promo-grid">
-    <?php if ($promo1_enabled == '1'): ?>
-    <div class="promo-card">
-        <h3><?= htmlspecialchars($promo1_title) ?></h3>
-        <p><?= htmlspecialchars($promo1_subtitle) ?></p>
-        <a href="<?= htmlspecialchars($promo1_link) ?>">Shop Now</a>
-        <div class="promo-icon"><i class="fas fa-laptop"></i></div>
-    </div>
-    <?php endif; ?>
-    <?php if ($promo2_enabled == '1'): ?>
-    <div class="promo-card">
-        <h3><?= htmlspecialchars($promo2_title) ?></h3>
-        <p><?= htmlspecialchars($promo2_subtitle) ?></p>
-        <a href="<?= htmlspecialchars($promo2_link) ?>">Explore</a>
-        <div class="promo-icon"><i class="fas fa-tshirt"></i></div>
-    </div>
-    <?php endif; ?>
+<div class="mp-promo-grid">
+  <?php if ($promo1_enabled == '1'): ?>
+  <div class="mp-promo">
+    <h3><?= htmlspecialchars($promo1_title) ?></h3>
+    <p><?= htmlspecialchars($promo1_subtitle) ?></p>
+    <a href="<?= htmlspecialchars($promo1_link) ?>">Shop now</a>
+  </div>
+  <?php endif; ?>
+  <?php if ($promo2_enabled == '1'): ?>
+  <div class="mp-promo" style="background:linear-gradient(135deg,#12305f,#0a3d91)">
+    <h3><?= htmlspecialchars($promo2_title) ?></h3>
+    <p><?= htmlspecialchars($promo2_subtitle) ?></p>
+    <a href="<?= htmlspecialchars($promo2_link) ?>">Explore</a>
+  </div>
+  <?php endif; ?>
 </div>
 <?php endif; ?>
 
-<!-- ── MODAL (All Stores) ── -->
-<div class="modal-overlay" id="storeModal">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3><i class="fas fa-store-alt"></i> All Stores</h3>
-      <button class="modal-close" onclick="closeStoreModal()">&times;</button>
-    </div>
-    <div class="modal-body" id="modalBody">
-      <?php foreach ($stores as $store): ?>
-        <div class="modal-store-item" onclick="window.location.href='<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>'">
-          <?php if (!empty($store['logo_path'])): ?>
-            <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>" />
-          <?php else: ?>
-            <div style="width:56px;height:56px;border-radius:50%;background:var(--btn-bg);margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;">
-              <i class="fas fa-store"></i>
-            </div>
-          <?php endif; ?>
-          <div class="s-name"><?= htmlspecialchars($store['store_name']) ?></div>
-          <div class="s-plan"><?= htmlspecialchars($store['plan']) ?> Plan</div>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </div>
+<div class="mp-sheet-overlay" id="mpSheetOverlay" hidden></div>
+<div class="mp-sheet" id="mpFilterSheet" hidden>
+  <h3>Filter by category</h3>
+  <button type="button" class="mp-sheet-option <?= $selectedCategory === '' ? 'is-active' : '' ?>" onclick="location.href='<?= htmlspecialchars(rdv_marketplace_url(), ENT_QUOTES, 'UTF-8') ?>'">All categories</button>
+  <?php foreach ($allCategories as $cat): ?>
+    <button type="button" class="mp-sheet-option <?= $selectedCategory === $cat ? 'is-active' : '' ?>" onclick="location.href='<?= htmlspecialchars(rdv_marketplace_url('', ['category' => $cat]), ENT_QUOTES, 'UTF-8') ?>'"><?= htmlspecialchars($cat) ?></button>
+  <?php endforeach; ?>
+</div>
+<div class="mp-sheet" id="mpSortSheet" hidden>
+  <h3>Sort products</h3>
+  <button type="button" class="mp-sheet-option" data-sort="featured">Featured</button>
+  <button type="button" class="mp-sheet-option" data-sort="price-asc">Price: Low to High</button>
+  <button type="button" class="mp-sheet-option" data-sort="price-desc">Price: High to Low</button>
+  <button type="button" class="mp-sheet-option" data-sort="name-asc">Name: A–Z</button>
 </div>
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-grid">
-    <div class="footer-col">
-      <h4>RD Vendora</h4>
-      <a href="#">About Us</a>
-      <a href="#">Careers</a>
-      <a href="#">Press</a>
-      <a href="#">Contact Us</a>
-      <a href="#">Affiliates</a>
-    </div>
-    <div class="footer-col">
-      <h4>Help</h4>
-      <a href="#">FAQ</a>
-      <a href="#">Track Order</a>
-      <a href="#">Returns</a>
-      <a href="#">Report a Product</a>
-    </div>
-    <div class="footer-col">
-      <h4>Sell on RD Vendora</h4>
-      <a href="#">Become a Seller</a>
-      <a href="#">Seller Center</a>
-      <a href="#">Flash Sales</a>
-      <a href="#">Advertise</a>
-    </div>
-    <div class="footer-col">
-      <h4>Payment</h4>
-      <a href="#">RD Pay</a>
-      <a href="#">Cards Accepted</a>
-      <a href="#">Bank Transfer</a>
-      <a href="#">Pay on Delivery</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© <?= date('Y') ?> RD Vendora. All rights reserved.</span>
-    <div class="social-links">
-      <a href="#"><i class="fab fa-facebook-f"></i></a>
-      <a href="#"><i class="fab fa-twitter"></i></a>
-      <a href="#"><i class="fab fa-instagram"></i></a>
-      <a href="#"><i class="fab fa-whatsapp"></i></a>
-      <a href="#"><i class="fab fa-youtube"></i></a>
-    </div>
-  </div>
-</footer>
-
-<!-- CART SIDEBAR OVERLAY -->
-<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
-<div class="cart-sidebar" id="cartSidebar">
-  <div class="cart-header">
-    <span><i class="fas fa-shopping-cart"></i> My Cart</span>
-    <button onclick="toggleCart()"><i class="fas fa-times"></i></button>
-  </div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-footer" id="cartFooter" style="display:none">
-    <div class="cart-total">
-      <span>Total</span>
-      <span id="cartTotal">₦0</span>
-    </div>
-    <button class="checkout-btn" onclick="showToast('Proceeding to checkout…'); toggleCart()">
-      <i class="fas fa-lock"></i> Checkout
-    </button>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
+<?php require __DIR__ . '/includes/marketplace_footer.php'; ?>
 <script>
-/* ── CART FUNCTIONS ── */
-const CART_KEY = "greenshop_cart";
+(function () {
+  var end = Date.now() + (4 * 3600 + 37 * 60) * 1000;
+  function tick() {
+    var left = Math.max(0, end - Date.now());
+    var h = Math.floor(left / 3600000);
+    var m = Math.floor((left % 3600000) / 60000);
+    var s = Math.floor((left % 60000) / 1000);
+    var el = document.getElementById('mpCountdown');
+    if (el) el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
 
-function getCart() {
-    const c = localStorage.getItem(CART_KEY);
-    return c ? JSON.parse(c) : [];
-}
-
-function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    updateCartUI();
-}
-
-function updateCartUI() {
-    const cart = getCart();
-    const total = cart.reduce((s, item) => s + (item.price * item.quantity), 0);
-    const count = cart.reduce((s, item) => s + item.quantity, 0);
-    document.getElementById('cartCount').textContent = count;
-
-    // Update sidebar
-    const sidebarItems = document.getElementById('cartItems');
-    const sidebarFooter = document.getElementById('cartFooter');
-    if (sidebarItems) {
-        if (cart.length === 0) {
-            sidebarItems.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-cart"></i><p>Your cart is empty</p></div>`;
-            if (sidebarFooter) sidebarFooter.style.display = 'none';
-        } else {
-            let html = '';
-            cart.forEach(item => {
-                html += `<div class="cart-item"><div class="cart-item-img"><img src="${item.image || 'https://placehold.co/60x60'}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;"></div><div class="cart-item-info"><p>${item.name}</p><strong>₦${item.price.toLocaleString()}</strong> × ${item.quantity}</div><button class="cart-item-remove" onclick="removeFromCart(${item.product_id})"><i class="fas fa-trash"></i></button></div>`;
-            });
-            sidebarItems.innerHTML = html;
-            if (sidebarFooter) {
-                document.getElementById('cartTotal').textContent = '₦' + total.toLocaleString();
-                sidebarFooter.style.display = 'block';
-            }
-        }
-    }
-}
-
-function addToCart(product_id, store_id, store_name, name, price, image, event) {
-    if (event) event.stopPropagation();
-    let cart = getCart();
-    store_id = parseInt(store_id);
-    const existing = cart.find(item => item.product_id === product_id && item.store_id === store_id);
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({
-            product_id: product_id,
-            store_id: store_id,
-            store_name: store_name || 'Unknown Store',
-            name: name,
-            price: parseFloat(price),
-            image: image || 'https://placehold.co/400x400?text=No+Image',
-            quantity: 1
-        });
-    }
-    saveCart(cart);
-    showToast(`✅ ${name} added to cart`);
-}
-
-function removeFromCart(product_id) {
-    let cart = getCart();
-    cart = cart.filter(item => item.product_id !== product_id);
-    saveCart(cart);
-    updateCartUI();
-    showToast('Item removed', 'success');
-}
-
-function toggleWish(id, event) {
-    if (event) event.stopPropagation();
-    const btn = document.querySelector(`.product-card[data-id="${id}"] .wishlist-btn`);
+  var wishlist = new Set();
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-wish]');
     if (!btn) return;
-    const wished = new Set();
-    // We need to maintain wishlist state – using a simple toggle per product
-    // But we also need to persist wishes. For now, we use a Set in memory.
-    // Better to use localStorage, but we'll keep it simple.
-    // Actually we should use the global `wished` set defined below.
-    // We'll move the Set outside.
-}
+    e.preventDefault();
+    var id = btn.getAttribute('data-wish');
+    if (wishlist.has(id)) wishlist.delete(id); else wishlist.add(id);
+    btn.classList.toggle('is-on', wishlist.has(id));
+    var icon = btn.querySelector('i');
+    if (icon) icon.className = wishlist.has(id) ? 'fas fa-heart' : 'far fa-heart';
+  });
 
-// We'll use a global Set for wishlist
-const wished = new Set();
+  function sortGrids(mode) {
+    document.querySelectorAll('[data-sortable]').forEach(function (grid) {
+      var cards = Array.prototype.slice.call(grid.querySelectorAll('.mp-card'));
+      cards.sort(function (a, b) {
+        var pa = parseFloat(a.dataset.price || 0);
+        var pb = parseFloat(b.dataset.price || 0);
+        var na = (a.dataset.name || '').toLowerCase();
+        var nb = (b.dataset.name || '').toLowerCase();
+        if (mode === 'price-asc') return pa - pb;
+        if (mode === 'price-desc') return pb - pa;
+        if (mode === 'name-asc') return na.localeCompare(nb);
+        return 0;
+      });
+      cards.forEach(function (c) { grid.appendChild(c); });
+    });
+  }
 
-// Override toggleWish to use the global Set
-function toggleWish(id, event) {
-    if (event) event.stopPropagation();
-    const btn = document.querySelector(`.product-card[data-id="${id}"] .wishlist-btn`);
-    if (!btn) return;
-    if (wished.has(id)) {
-        wished.delete(id);
-        btn.classList.remove('active');
-        btn.innerHTML = '<i class="far fa-heart"></i>';
-        showToast('Removed from wishlist');
-    } else {
-        wished.add(id);
-        btn.classList.add('active');
-        btn.innerHTML = '<i class="fas fa-heart"></i>';
-        showToast('❤️ Added to wishlist');
-    }
-}
-
-function showToast(msg, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${msg}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2800);
-}
-
-function toggleCart() {
-    document.getElementById('cartSidebar').classList.toggle('open');
-    document.getElementById('cartOverlay').classList.toggle('open');
-}
-
-// ── COUNTDOWN ──
-let totalSeconds = 4 * 3600 + 37 * 60;
-setInterval(() => {
-    if (totalSeconds <= 0) return;
-    totalSeconds--;
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    document.getElementById('hours').textContent   = String(h).padStart(2,'0');
-    document.getElementById('minutes').textContent = String(m).padStart(2,'0');
-    document.getElementById('seconds').textContent = String(s).padStart(2,'0');
-}, 1000);
-
-// ── CAROUSEL ──
-<?php if (count($slides) > 1): ?>
-const slides = document.querySelectorAll('.hero-slide');
-const cdots  = document.querySelectorAll('.cdot');
-let currentSlide = 0;
-let carouselTimer;
-
-function carouselGoTo(index) {
-    slides[currentSlide].classList.remove('active');
-    slides[currentSlide].classList.add('exit');
-    setTimeout(() => slides[currentSlide].classList.remove('exit'), 600);
-    cdots[currentSlide].classList.remove('active');
-    currentSlide = (index + slides.length) % slides.length;
-    slides[currentSlide].classList.add('active');
-    cdots[currentSlide].classList.add('active');
-    setTimeout(() => {
-        document.querySelectorAll('.hero-slide.exit').forEach(s => s.classList.remove('exit'));
-    }, 600);
-}
-
-function carouselMove(dir) {
-    clearInterval(carouselTimer);
-    carouselGoTo(currentSlide + dir);
-    startCarouselAuto();
-}
-
-function startCarouselAuto() {
-    carouselTimer = setInterval(() => carouselGoTo(currentSlide + 1), 4500);
-}
-
-startCarouselAuto();
-<?php endif; ?>
-
-// ── MODAL ──
-function openStoreModal() {
-    document.getElementById('storeModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeStoreModal() {
-    document.getElementById('storeModal').classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-document.getElementById('storeModal').addEventListener('click', function(e) {
-    if (e.target === this) closeStoreModal();
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeStoreModal();
-});
-
-// ── INIT ──
-document.addEventListener('DOMContentLoaded', function() {
-    updateCartUI();
-});
+  var overlay = document.getElementById('mpSheetOverlay');
+  var filterSheet = document.getElementById('mpFilterSheet');
+  var sortSheet = document.getElementById('mpSortSheet');
+  function closeSheets() {
+    if (overlay) overlay.hidden = true;
+    if (filterSheet) filterSheet.hidden = true;
+    if (sortSheet) sortSheet.hidden = true;
+  }
+  document.querySelectorAll('[data-open]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      closeSheets();
+      if (overlay) overlay.hidden = false;
+      if (btn.getAttribute('data-open') === 'filter' && filterSheet) filterSheet.hidden = false;
+      if (btn.getAttribute('data-open') === 'sort' && sortSheet) sortSheet.hidden = false;
+    });
+  });
+  if (overlay) overlay.addEventListener('click', closeSheets);
+  document.querySelectorAll('#mpSortSheet [data-sort]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      sortGrids(btn.getAttribute('data-sort'));
+      closeSheets();
+    });
+  });
+  var desk = document.getElementById('mpSortDesktop');
+  if (desk) desk.addEventListener('change', function () { sortGrids(desk.value); });
+})();
 </script>
-<div id="rdv-cookie-root"></div>
-<script src="assets/js/rdv-public.js" defer></script>
 </body>
 </html>

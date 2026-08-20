@@ -28,6 +28,20 @@ $hero_subtitle = getMarketplaceSetting('hero_subtitle', $mpDefaults['hero_subtit
 $hero_btn_text = getMarketplaceSetting('hero_btn_text', $mpDefaults['hero_btn_text']);
 $hero_btn_link = getMarketplaceSetting('hero_btn_link', $mpDefaults['hero_btn_link']);
 $hero_tag = getMarketplaceSetting('hero_tag', $mpDefaults['hero_tag']);
+$hero2_enabled = mp_bool('hero2_enabled', true);
+$hero2_image = getMarketplaceSetting('hero2_image', $mpDefaults['hero2_image']);
+$hero2_tag = getMarketplaceSetting('hero2_tag', $mpDefaults['hero2_tag']);
+$hero2_title = getMarketplaceSetting('hero2_title', $mpDefaults['hero2_title']);
+$hero2_subtitle = getMarketplaceSetting('hero2_subtitle', $mpDefaults['hero2_subtitle']);
+$hero2_btn_text = getMarketplaceSetting('hero2_btn_text', $mpDefaults['hero2_btn_text']);
+$hero2_btn_link = getMarketplaceSetting('hero2_btn_link', $mpDefaults['hero2_btn_link']);
+$hero3_enabled = mp_bool('hero3_enabled', true);
+$hero3_image = getMarketplaceSetting('hero3_image', $mpDefaults['hero3_image']);
+$hero3_tag = getMarketplaceSetting('hero3_tag', $mpDefaults['hero3_tag']);
+$hero3_title = getMarketplaceSetting('hero3_title', $mpDefaults['hero3_title']);
+$hero3_subtitle = getMarketplaceSetting('hero3_subtitle', $mpDefaults['hero3_subtitle']);
+$hero3_btn_text = getMarketplaceSetting('hero3_btn_text', $mpDefaults['hero3_btn_text']);
+$hero3_btn_link = getMarketplaceSetting('hero3_btn_link', $mpDefaults['hero3_btn_link']);
 
 // ----- Top strip / sections / footer -----
 $top_strip_enabled = mp_bool('top_strip_enabled', true);
@@ -1349,84 +1363,112 @@ $conn->close();
 <?php
 $slides = [];
 if ($hero_enabled) {
-  $heroBtnHref = htmlspecialchars(mp_public_href($hero_btn_link), ENT_QUOTES, 'UTF-8');
-  $heroVisual = '
-    <div class="brand-logo-big">
-      <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora" style="height:88px;width:auto;max-width:260px;object-fit:contain;background:#fff;border-radius:12px;padding:8px 12px;margin:0 auto;">
-      <div class="brand-logo-sub">Premium Marketplace</div>
-    </div>
-    <div class="floating-circle c1"></div>
-    <div class="floating-circle c2"></div>
-    <div class="floating-circle c3"></div>
-  ';
-  if (!empty($hero_image)) {
-    $heroImgSrc = htmlspecialchars(function_exists('rdv_asset') ? rdv_asset($hero_image) : $hero_image, ENT_QUOTES, 'UTF-8');
-    $heroVisual = '<img src="'.$heroImgSrc.'" alt="'.htmlspecialchars($hero_title, ENT_QUOTES, 'UTF-8').'" style="max-height:220px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);object-fit:cover;" />';
-  }
-  $slides[] = [
-    'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 45%, var(--btn-bg) 100%)',
-    'tag' => '<i class="fas fa-leaf"></i> ' . htmlspecialchars($hero_tag),
-    'title' => htmlspecialchars($hero_title),
-    'desc' => nl2br(htmlspecialchars($hero_subtitle)),
-    'btns' => [
-      ['text' => htmlspecialchars($hero_btn_text), 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary', 'onclick' => "window.location.href='{$heroBtnHref}'"],
+  $adminHeroSlides = [
+    [
+      'enabled' => true,
+      'image' => $hero_image,
+      'tag' => $hero_tag,
+      'title' => $hero_title,
+      'subtitle' => $hero_subtitle,
+      'btn_text' => $hero_btn_text,
+      'btn_link' => $hero_btn_link,
+      'icon' => 'fa-leaf',
+      'btn_class' => 'hero-btn-primary',
+      'btn_icon' => 'fa-arrow-right',
+      'badges' => ['<i class="fas fa-truck"></i> Free Delivery', '<i class="fas fa-shield-alt"></i> 100% Genuine', '<i class="fas fa-undo"></i> Easy Returns'],
+      'fallback_visual' => '
+        <div class="brand-logo-big">
+          <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora" style="height:88px;width:auto;max-width:260px;object-fit:contain;background:#fff;border-radius:12px;padding:8px 12px;margin:0 auto;">
+          <div class="brand-logo-sub">Premium Marketplace</div>
+        </div>
+        <div class="floating-circle c1"></div>
+        <div class="floating-circle c2"></div>
+        <div class="floating-circle c3"></div>
+      ',
     ],
-    'badges' => ['<i class="fas fa-truck"></i> Free Delivery', '<i class="fas fa-shield-alt"></i> 100% Genuine', '<i class="fas fa-undo"></i> Easy Returns'],
-    'visual' => $heroVisual,
-  ];
-}
-if (!empty($banners)) {
-  foreach ($banners as $banner) {
-    $slides[] = [
-      'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
-      'tag' => '<i class="fas fa-crown"></i> ' . htmlspecialchars($banner['store_name']),
-      'title' => htmlspecialchars($banner['title'] ?? 'Special Offer'),
-      'desc' => htmlspecialchars($banner['description'] ?? ''),
-      'btns' => [
-        ['text' => 'Shop Now', 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary orange-btn', 'onclick' => "window.location.href='".htmlspecialchars($banner['link'] ?? '#')."'"]
-      ],
+    [
+      'enabled' => $hero2_enabled,
+      'image' => $hero2_image,
+      'tag' => $hero2_tag,
+      'title' => $hero2_title,
+      'subtitle' => $hero2_subtitle,
+      'btn_text' => $hero2_btn_text,
+      'btn_link' => $hero2_btn_link,
+      'icon' => 'fa-bolt',
+      'btn_class' => 'hero-btn-primary orange-btn',
+      'btn_icon' => 'fa-fire',
       'badges' => [],
-      'visual' => '<img src="'.htmlspecialchars($banner['image']).'" style="max-height:200px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.3);" />'
+      'fallback_visual' => '
+        <div class="deal-tag-float">-60%</div>
+        <div class="deal-icons-grid">
+          <div class="deal-icon-box"><i class="fas fa-mobile-alt"></i></div>
+          <div class="deal-icon-box"><i class="fas fa-laptop"></i></div>
+          <div class="deal-icon-box"><i class="fas fa-tv"></i></div>
+          <div class="deal-icon-box"><i class="fas fa-headphones"></i></div>
+        </div>
+      ',
+    ],
+    [
+      'enabled' => $hero3_enabled,
+      'image' => $hero3_image,
+      'tag' => $hero3_tag,
+      'title' => $hero3_title,
+      'subtitle' => $hero3_subtitle,
+      'btn_text' => $hero3_btn_text,
+      'btn_link' => $hero3_btn_link,
+      'icon' => 'fa-truck',
+      'btn_class' => 'hero-btn-primary',
+      'btn_icon' => 'fa-map-marker-alt',
+      'badges' => ['<i class="fas fa-clock"></i> Same-Day Lagos', '<i class="fas fa-map-marker-alt"></i> 36 States'],
+      'fallback_visual' => '
+        <div class="delivery-truck-wrap">
+          <i class="fas fa-truck delivery-truck-icon"></i>
+          <div class="delivery-road"></div>
+          <div class="delivery-location"><i class="fas fa-map-marker-alt"></i></div>
+        </div>
+      ',
+    ],
+  ];
+
+  foreach ($adminHeroSlides as $hs) {
+    if (empty($hs['enabled'])) {
+      continue;
+    }
+    $btnHref = htmlspecialchars(mp_public_href($hs['btn_link']), ENT_QUOTES, 'UTF-8');
+    $visual = $hs['fallback_visual'];
+    if (!empty($hs['image'])) {
+      $imgSrc = htmlspecialchars(function_exists('rdv_asset') ? rdv_asset($hs['image']) : $hs['image'], ENT_QUOTES, 'UTF-8');
+      $visual = '<img src="'.$imgSrc.'" alt="'.htmlspecialchars($hs['title'], ENT_QUOTES, 'UTF-8').'" style="max-height:220px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);object-fit:cover;" />';
+    }
+    $slides[] = [
+      'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 45%, var(--btn-bg) 100%)',
+      'tag' => '<i class="fas '.$hs['icon'].'"></i> ' . htmlspecialchars($hs['tag']),
+      'title' => htmlspecialchars($hs['title']),
+      'desc' => nl2br(htmlspecialchars($hs['subtitle'])),
+      'btns' => [
+        ['text' => htmlspecialchars($hs['btn_text']), 'icon' => $hs['btn_icon'], 'class' => $hs['btn_class'], 'onclick' => "window.location.href='{$btnHref}'"],
+      ],
+      'badges' => $hs['badges'],
+      'visual' => $visual,
     ];
   }
-} elseif ($hero_enabled) {
-  // Keep secondary promo slides when no Empire banners exist
-  $slides[] = [
-    'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
-    'tag' => '<i class="fas fa-bolt"></i> Limited Time Only',
-    'title' => 'Flash <span class="highlight-orange">Deals</span><br/>Up to <span class="highlight-orange">60% Off</span>',
-    'desc' => 'Grab the best discounts before they\'re gone.<br/>New deals every 4 hours!',
-    'btns' => [
-      ['text' => 'See Deals', 'icon' => 'fa-fire', 'class' => 'hero-btn-primary orange-btn', 'onclick' => "showToast('Viewing flash deals…')"]
-    ],
-    'badges' => [],
-    'visual' => '
-      <div class="deal-tag-float">-60%</div>
-      <div class="deal-icons-grid">
-        <div class="deal-icon-box"><i class="fas fa-mobile-alt"></i></div>
-        <div class="deal-icon-box"><i class="fas fa-laptop"></i></div>
-        <div class="deal-icon-box"><i class="fas fa-tv"></i></div>
-        <div class="deal-icon-box"><i class="fas fa-headphones"></i></div>
-      </div>
-    '
-  ];
-  $slides[] = [
-    'bg' => 'linear-gradient(120deg, #0a2e18 0%, var(--btn-bg-dark) 40%, var(--btn-bg) 100%)',
-    'tag' => '<i class="fas fa-truck"></i> Nationwide Delivery',
-    'title' => 'Free Delivery<br/>on Orders <span class="highlight-mint">Above ₦10k</span>',
-    'desc' => 'We deliver to every state in Nigeria.<br/>Same-day delivery in Lagos available.',
-    'btns' => [
-      ['text' => 'Learn More', 'icon' => 'fa-map-marker-alt', 'class' => 'hero-btn-primary', 'onclick' => "showToast('Viewing delivery info…')"]
-    ],
-    'badges' => ['<i class="fas fa-clock"></i> Same-Day Lagos', '<i class="fas fa-map-marker-alt"></i> 36 States'],
-    'visual' => '
-      <div class="delivery-truck-wrap">
-        <i class="fas fa-truck delivery-truck-icon"></i>
-        <div class="delivery-road"></div>
-        <div class="delivery-location"><i class="fas fa-map-marker-alt"></i></div>
-      </div>
-    '
-  ];
+
+  // Empire store promo banners still append after admin slides
+  if (!empty($banners)) {
+    foreach ($banners as $banner) {
+      $slides[] = [
+        'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
+        'tag' => '<i class="fas fa-crown"></i> ' . htmlspecialchars($banner['store_name']),
+        'title' => htmlspecialchars($banner['title'] ?? 'Special Offer'),
+        'desc' => htmlspecialchars($banner['description'] ?? ''),
+        'btns' => [
+          ['text' => 'Shop Now', 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary orange-btn', 'onclick' => "window.location.href='".htmlspecialchars($banner['link'] ?? '#')."'"]
+        ],
+        'badges' => [],
+        'visual' => '<img src="'.htmlspecialchars($banner['image']).'" style="max-height:200px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.3);" />'
+      ];
+    }
+  }
 }
 ?>
 <?php if (!empty($slides)): ?>

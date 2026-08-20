@@ -118,24 +118,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save_hero'])) {
         updateSetting('hero_enabled', isset($_POST['hero_enabled']) ? '1' : '0');
         updateSetting('hero_tag', $_POST['hero_tag'] ?? '');
-        updateSetting('hero_title', $_POST['hero_title']);
-        updateSetting('hero_subtitle', $_POST['hero_subtitle']);
-        updateSetting('hero_btn_text', $_POST['hero_btn_text']);
-        updateSetting('hero_btn_link', $_POST['hero_btn_link']);
-        if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = dirname(__DIR__) . '/uploads/hero/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = strtolower(pathinfo($_FILES['hero_image']['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','gif','webp'];
-            if (in_array($ext, $allowed) && $_FILES['hero_image']['size'] < 2*1024*1024) {
-                $filename = 'hero_banner_' . time() . '.' . $ext;
-                $destination = $uploadDir . $filename;
-                if (move_uploaded_file($_FILES['hero_image']['tmp_name'], $destination)) {
-                    updateSetting('hero_image', 'uploads/hero/' . $filename);
-                }
+        updateSetting('hero_title', $_POST['hero_title'] ?? '');
+        updateSetting('hero_subtitle', $_POST['hero_subtitle'] ?? '');
+        updateSetting('hero_btn_text', $_POST['hero_btn_text'] ?? '');
+        updateSetting('hero_btn_link', $_POST['hero_btn_link'] ?? '');
+
+        updateSetting('hero2_enabled', isset($_POST['hero2_enabled']) ? '1' : '0');
+        updateSetting('hero2_tag', $_POST['hero2_tag'] ?? '');
+        updateSetting('hero2_title', $_POST['hero2_title'] ?? '');
+        updateSetting('hero2_subtitle', $_POST['hero2_subtitle'] ?? '');
+        updateSetting('hero2_btn_text', $_POST['hero2_btn_text'] ?? '');
+        updateSetting('hero2_btn_link', $_POST['hero2_btn_link'] ?? '');
+
+        updateSetting('hero3_enabled', isset($_POST['hero3_enabled']) ? '1' : '0');
+        updateSetting('hero3_tag', $_POST['hero3_tag'] ?? '');
+        updateSetting('hero3_title', $_POST['hero3_title'] ?? '');
+        updateSetting('hero3_subtitle', $_POST['hero3_subtitle'] ?? '');
+        updateSetting('hero3_btn_text', $_POST['hero3_btn_text'] ?? '');
+        updateSetting('hero3_btn_link', $_POST['hero3_btn_link'] ?? '');
+
+        $uploadDir = dirname(__DIR__) . '/uploads/hero/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        foreach (['hero_image' => 'hero_banner_', 'hero2_image' => 'hero2_banner_', 'hero3_image' => 'hero3_banner_'] as $fileKey => $prefix) {
+            if (!isset($_FILES[$fileKey]) || $_FILES[$fileKey]['error'] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            $ext = strtolower(pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowed, true) || $_FILES[$fileKey]['size'] >= 2 * 1024 * 1024) {
+                continue;
+            }
+            $filename = $prefix . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
+            $destination = $uploadDir . $filename;
+            if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $destination)) {
+                updateSetting($fileKey, 'uploads/hero/' . $filename);
             }
         }
-        $message = "Hero banner updated.";
+        $message = "Hero carousel updated.";
         $messageType = "success";
     }
 
@@ -478,55 +497,118 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         <!-- Hero Banner Settings -->
         <div class="settings-group">
             <div class="settings-group-header">
-                <div class="settings-group-title">Hero banner</div>
-                <div class="settings-group-desc">Main hero slide on the marketplace homepage (also used with Empire store promo banners).</div>
+                <div class="settings-group-title">Hero carousel (3 slides)</div>
+                <div class="settings-group-desc">All marketplace hero slides are controlled here. Empire store promo banners (if any) still append after these slides.</div>
             </div>
             <div class="settings-group-body">
                 <form method="POST" enctype="multipart/form-data">
-                    <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
-                        <input type="checkbox" name="hero_enabled" value="1" <?= ($hero_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show hero section
+                    <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.25rem;">
+                        <input type="checkbox" name="hero_enabled" value="1" <?= ($hero_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show hero carousel
                     </label>
-                    <div class="form-group">
-                        <label class="form-label">Banner Image (optional)</label>
-                        <input type="file" name="hero_image" accept="image/*" class="form-input">
-                        <?php if ($hero_image): ?>
-                            <div style="margin-top: 10px;"><img src="<?= htmlspecialchars(rdv_admin_src($hero_image)) ?>" style="max-width: 150px; border-radius: 8px;"></div>
-                        <?php endif; ?>
+
+                    <h4 style="margin:0 0 0.75rem;font-weight:600;">Slide 1 — Main</h4>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Image (optional)</label>
+                            <input type="file" name="hero_image" accept="image/*" class="form-input">
+                            <?php if (!empty($hero_image)): ?>
+                                <div style="margin-top:10px;"><img src="<?= htmlspecialchars(rdv_admin_src($hero_image)) ?>" style="max-width:150px;border-radius:8px;"></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tag / kicker</label>
+                            <input type="text" name="hero_tag" class="form-input" value="<?= htmlspecialchars($hero_tag ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button text</label>
+                            <input type="text" name="hero_btn_text" class="form-input" value="<?= htmlspecialchars($hero_btn_text) ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="hero_title" class="form-input" value="<?= htmlspecialchars($hero_title) ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Subtitle</label>
+                            <input type="text" name="hero_subtitle" class="form-input" value="<?= htmlspecialchars($hero_subtitle) ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Button link</label>
+                            <input type="text" name="hero_btn_link" class="form-input" value="<?= htmlspecialchars($hero_btn_link) ?>">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Tag / kicker</label>
-                        <input type="text" name="hero_tag" class="form-input" value="<?= htmlspecialchars($hero_tag ?? '') ?>">
+
+                    <hr style="margin:0 0 1.25rem;border-color:var(--border-primary);">
+                    <h4 style="margin:0 0 0.75rem;font-weight:600;display:flex;align-items:center;gap:0.75rem;">
+                        <span>Slide 2</span>
+                        <label style="font-weight:400;font-size:0.9rem;"><input type="checkbox" name="hero2_enabled" value="1" <?= ($hero2_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show</label>
+                    </h4>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Image (optional)</label>
+                            <input type="file" name="hero2_image" accept="image/*" class="form-input">
+                            <?php if (!empty($hero2_image)): ?>
+                                <div style="margin-top:10px;"><img src="<?= htmlspecialchars(rdv_admin_src($hero2_image)) ?>" style="max-width:150px;border-radius:8px;"></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tag / kicker</label>
+                            <input type="text" name="hero2_tag" class="form-input" value="<?= htmlspecialchars($hero2_tag ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button text</label>
+                            <input type="text" name="hero2_btn_text" class="form-input" value="<?= htmlspecialchars($hero2_btn_text ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="hero2_title" class="form-input" value="<?= htmlspecialchars($hero2_title ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Subtitle</label>
+                            <input type="text" name="hero2_subtitle" class="form-input" value="<?= htmlspecialchars($hero2_subtitle ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Button link</label>
+                            <input type="text" name="hero2_btn_link" class="form-input" value="<?= htmlspecialchars($hero2_btn_link ?? '') ?>">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Main Title</label>
-                        <input type="text" name="hero_title" class="form-input" value="<?= htmlspecialchars($hero_title) ?>">
+
+                    <hr style="margin:0 0 1.25rem;border-color:var(--border-primary);">
+                    <h4 style="margin:0 0 0.75rem;font-weight:600;display:flex;align-items:center;gap:0.75rem;">
+                        <span>Slide 3</span>
+                        <label style="font-weight:400;font-size:0.9rem;"><input type="checkbox" name="hero3_enabled" value="1" <?= ($hero3_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show</label>
+                    </h4>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Image (optional)</label>
+                            <input type="file" name="hero3_image" accept="image/*" class="form-input">
+                            <?php if (!empty($hero3_image)): ?>
+                                <div style="margin-top:10px;"><img src="<?= htmlspecialchars(rdv_admin_src($hero3_image)) ?>" style="max-width:150px;border-radius:8px;"></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tag / kicker</label>
+                            <input type="text" name="hero3_tag" class="form-input" value="<?= htmlspecialchars($hero3_tag ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button text</label>
+                            <input type="text" name="hero3_btn_text" class="form-input" value="<?= htmlspecialchars($hero3_btn_text ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="hero3_title" class="form-input" value="<?= htmlspecialchars($hero3_title ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Subtitle</label>
+                            <input type="text" name="hero3_subtitle" class="form-input" value="<?= htmlspecialchars($hero3_subtitle ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="grid-column:span 2;">
+                            <label class="form-label">Button link</label>
+                            <input type="text" name="hero3_btn_link" class="form-input" value="<?= htmlspecialchars($hero3_btn_link ?? '') ?>">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Subtitle / Description</label>
-                        <input type="text" name="hero_subtitle" class="form-input" value="<?= htmlspecialchars($hero_subtitle) ?>">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Button Text</label>
-                        <input type="text" name="hero_btn_text" class="form-input" value="<?= htmlspecialchars($hero_btn_text) ?>">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Button Link</label>
-                        <input type="text" name="hero_btn_link" class="form-input" value="<?= htmlspecialchars($hero_btn_link) ?>">
-                    </div>
-                    <button type="submit" name="save_hero" class="btn-primary">Save Hero Banner</button>
+
+                    <button type="submit" name="save_hero" class="btn-primary">Save Hero Carousel</button>
                 </form>
-                <div class="hero-preview">
-                    <div class="hero-preview-text">
-                        <h2><?= htmlspecialchars($hero_title) ?></h2>
-                        <p><?= htmlspecialchars($hero_subtitle) ?></p>
-                        <a href="#" style="background: #2563eb; color: white; padding: 0.5rem 1rem; border-radius: 30px; text-decoration: none; display: inline-block;"><?= htmlspecialchars($hero_btn_text) ?></a>
-                    </div>
-                    <?php if ($hero_image): ?>
-                        <img src="<?= htmlspecialchars(rdv_admin_src($hero_image)) ?>" alt="Banner preview">
-                    <?php else: ?>
-                        <div style="width: 100px; height: 100px; background: #ccc; border-radius: 12px; display: flex; align-items: center; justify-content: center;">Image preview</div>
-                    <?php endif; ?>
-                </div>
             </div>
         </div>
 

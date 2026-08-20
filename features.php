@@ -26,11 +26,11 @@ $features = [
     <div class="mk-kicker">Features</div>
     <h1>The tools a working shop needs</h1>
     <p class="lead">RD Vendora is built around storefronts, products, orders, and supported checkout — not a wall of features we do not ship.</p>
-  </div>
-</section>
+    </div>
+  </section>
 
 <section class="mk-section">
-  <div class="container">
+    <div class="container">
     <div class="feature-grid">
       <?php foreach ($features as $f): ?>
       <article class="feature-card reveal" style="padding:1.75rem;">
@@ -41,12 +41,12 @@ $features = [
           <?php foreach ($f[4] as $item): ?>
             <li><?= $check ?> <?= htmlspecialchars($item) ?></li>
           <?php endforeach; ?>
-        </ul>
+              </ul>
       </article>
       <?php endforeach; ?>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
 <div class="container">
   <div class="mk-cta-band">
@@ -56,7 +56,7 @@ $features = [
       <a href="register.php" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Get started</a>
       <a href="pricing.php" class="btn btn-outline-white btn-lg">View pricing</a>
     </div>
+    </div>
   </div>
-</div>
 
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

@@ -99,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $messageType = "error";
         } else {
             setSetting($conn, 'google_analytics_id', $gaId);
-            $message = "General settings updated.";
-            $messageType = "success";
+        $message = "General settings updated.";
+        $messageType = "success";
         }
     }
     // Admin profile update
@@ -415,7 +415,7 @@ $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<div class="settings-container">
+    <div class="settings-container">
         <!-- General Settings Card -->
         <div class="settings-card">
             <h3>⚙️ General Settings</h3>

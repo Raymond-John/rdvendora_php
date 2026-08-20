@@ -8,11 +8,11 @@ if (!$conn) die('Database connection failed.');
 
 $content = [];
 try {
-    $result = $conn->query("SELECT section_key, content FROM about_content");
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $content[$row['section_key']] = $row['content'];
-        }
+$result = $conn->query("SELECT section_key, content FROM about_content");
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $content[$row['section_key']] = $row['content'];
+    }
     }
 } catch (Throwable $e) {
     error_log('about.php about_content: ' . $e->getMessage());
@@ -20,10 +20,10 @@ try {
 
 $team_members = [];
 try {
-    $teamResult = $conn->query("SELECT * FROM team_members WHERE status = 'active' ORDER BY display_order ASC");
-    if ($teamResult) {
-        $team_members = $teamResult->fetch_all(MYSQLI_ASSOC);
-    }
+$teamResult = $conn->query("SELECT * FROM team_members WHERE status = 'active' ORDER BY display_order ASC");
+if ($teamResult) {
+    $team_members = $teamResult->fetch_all(MYSQLI_ASSOC);
+}
 } catch (Throwable $e) {
     error_log('about.php team_members: ' . $e->getMessage());
 }
@@ -65,7 +65,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 </section>
 
 <section class="mk-section">
-  <div class="container">
+    <div class="container">
     <div class="mk-split">
       <div class="mk-prose reveal">
         <h2><?= htmlspecialchars($story_title) ?></h2>
@@ -86,12 +86,12 @@ require __DIR__ . '/includes/public_layout_start.php';
         <p>We focus on a working storefront, honest listings, and checkout through established payment providers — not inflated metrics.</p>
       </div>
       <?php endif; ?>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
 <section class="mk-section alt">
-  <div class="container">
+    <div class="container">
     <div class="mk-section-head">
       <div class="section-label">How we work</div>
       <h2>Mission, vision, and who we serve</h2>
@@ -107,7 +107,7 @@ require __DIR__ . '/includes/public_layout_start.php';
       <article class="mk-card mk-value-card reveal">
         <div class="mk-value-icon" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </div>
+            </div>
         <h3>Vision</h3>
         <p>A marketplace where independent sellers can be found, paid, and managed without pretending the platform is bigger than it is.</p>
       </article>
@@ -119,41 +119,41 @@ require __DIR__ . '/includes/public_layout_start.php';
         <p>Sellers who need a storefront, buyers who want to purchase from those stores, and the operators who moderate the platform. Start from <a href="register.php">create an account</a> or <a href="contact.php">contact us</a>.</p>
       </article>
     </div>
-  </div>
-</section>
+    </div>
+  </section>
 
 <?php if (!empty($team_members)): ?>
 <section class="mk-section">
-  <div class="container">
+    <div class="container">
     <div class="mk-section-head">
-      <div class="section-label">Team</div>
+        <div class="section-label">Team</div>
       <h2>People behind RD Vendora</h2>
       <p>The people listed here are published from the admin team editor.</p>
-    </div>
+      </div>
     <div class="mk-team-grid">
-      <?php foreach ($team_members as $member):
+        <?php foreach ($team_members as $member):
         $bgColor = 'var(--primary-light)'; $textColor = 'var(--primary)';
         switch ($member['avatar_color'] ?? '') {
             case 'success': $bgColor = 'var(--success-light)'; $textColor = 'var(--success-dark)'; break;
             case 'warning': $bgColor = 'var(--warning-light)'; $textColor = 'var(--warning-dark)'; break;
             case 'error':   $bgColor = 'var(--error-light)';   $textColor = 'var(--error-dark)';   break;
-        }
-        $initials = $member['initials'] ?: strtoupper(substr($member['name'], 0, 2));
-      ?>
+          }
+          $initials = $member['initials'] ?: strtoupper(substr($member['name'], 0, 2));
+        ?>
       <article class="mk-card mk-team-card reveal">
-        <?php if (!empty($member['avatar'])): ?>
+          <?php if (!empty($member['avatar'])): ?>
         <img src="<?= htmlspecialchars($member['avatar']) ?>" alt="<?= htmlspecialchars($member['name']) ?>" width="84" height="84">
-        <?php else: ?>
+          <?php else: ?>
         <div class="mk-avatar" style="background:<?= $bgColor ?>;color:<?= $textColor ?>;"><?= htmlspecialchars($initials) ?></div>
-        <?php endif; ?>
+          <?php endif; ?>
         <h3><?= htmlspecialchars($member['name']) ?></h3>
         <p class="mk-team-role"><?= htmlspecialchars($member['role']) ?></p>
         <p class="mk-team-bio"><?= nl2br(htmlspecialchars($member['bio'])) ?></p>
       </article>
-      <?php endforeach; ?>
+        <?php endforeach; ?>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 <?php endif; ?>
 
 <div class="container">
@@ -161,7 +161,7 @@ require __DIR__ . '/includes/public_layout_start.php';
     <h2>Work with us</h2>
     <p>Questions about the product, partnership, or your store? Send a message.</p>
     <a href="contact.php" class="btn btn-white btn-lg">Contact RD Vendora</a>
+    </div>
   </div>
-</div>
 
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

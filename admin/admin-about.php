@@ -195,7 +195,7 @@ $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
-<?php if ($message): ?>
+    <?php if ($message): ?>
         <div class="message message-success" style="margin: 0 2rem 1rem 2rem;"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
     <?php if ($error): ?>

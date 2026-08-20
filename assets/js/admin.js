@@ -52,9 +52,9 @@
                 else openMobile();
             } else {
                 sidebar.classList.toggle('collapsed');
-            }
-        });
-    }
+      }
+    });
+  }
     if (mobileToggle) mobileToggle.addEventListener('click', openMobile);
     overlay.addEventListener('click', closeMobile);
     window.addEventListener('resize', function () {

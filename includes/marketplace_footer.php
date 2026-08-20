@@ -13,14 +13,14 @@ $url = static function ($path = '') {
   <div class="mp-footer-inner">
     <div class="mp-footer-brand">
       <strong>RD Vendora Marketplace</strong>
-      <p>Shop products from independent businesses across Nigeria. Browse freely — no account required to shop.</p>
+      <p>A premium public shopping floor for independent Nigerian businesses — browse freely, checkout as a guest.</p>
     </div>
     <div class="mp-footer-cols">
       <div>
         <h4>Shop</h4>
         <a href="<?= $h($url()) ?>">Marketplace</a>
         <a href="<?= $h($url('cart')) ?>">Cart</a>
-        <a href="<?= $h($site('explore')) ?>">Explore stores</a>
+        <a href="<?= $h($url('checkout')) ?>">Checkout</a>
       </div>
       <div>
         <h4>Company</h4>
@@ -38,6 +38,7 @@ $url = static function ($path = '') {
   </div>
   <div class="mp-footer-bottom">
     <span>© <?= date('Y') ?> RD Vendora. All rights reserved.</span>
+    <span class="mp-footer-note">Guest shopping enabled</span>
   </div>
 </footer>
 

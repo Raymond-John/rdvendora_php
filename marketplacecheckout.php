@@ -117,12 +117,13 @@ $nigeria_states = [
 $conn->close();
 
 // ============================================================
-// 3. PDO SETUP & PAYMENT KEYS
+// 3. PDO SETUP & PAYMENT KEYS (use .env credentials — never hardcode root)
 // ============================================================
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'rdvendora_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+$dbHost = function_exists('rdv_env') ? rdv_env('DB_HOST', 'localhost') : 'localhost';
+$dbUser = function_exists('rdv_env') ? rdv_env('DB_USER', 'root') : 'root';
+$dbPass = function_exists('rdv_env') ? rdv_env('DB_PASS', '') : '';
+$dbName = function_exists('rdv_env') ? rdv_env('DB_NAME', 'rdvendora_db') : 'rdvendora_db';
+$dbPort = (int) (function_exists('rdv_env') ? rdv_env('DB_PORT', 3306) : 3306);
 
 $payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
 if (!defined('PAYSTACK_SECRET_KEY')) {
@@ -142,10 +143,17 @@ if (!defined('FLUTTERWAVE_ENCRYPTION_KEY')) {
 }
 
 try {
-    $pdo = new PDO("mysql:host=" . DB_HOST, DB_USER, DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "`");
-    $pdo->exec("USE `" . DB_NAME . "`");
+    $dsn = sprintf(
+        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+        $dbHost,
+        $dbPort,
+        $dbName,
+        function_exists('rdv_env') ? rdv_env('DB_CHARSET', 'utf8mb4') : 'utf8mb4'
+    );
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
 
     $stmt = $pdo->query("SHOW TABLES LIKE 'orders'");
     if ($stmt->rowCount() == 0) {
@@ -209,11 +217,12 @@ try {
         }
     }
 } catch (PDOException $e) {
+    error_log('marketplacecheckout PDO: ' . $e->getMessage());
     if ($isAjax) {
-        echo json_encode(['success' => false, 'message' => 'Database setup failed: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Database setup failed. Please try again later.']);
         exit;
     } else {
-        die("Database setup failed: " . $e->getMessage());
+        die('Checkout is temporarily unavailable. Please try again shortly.');
     }
 }
 

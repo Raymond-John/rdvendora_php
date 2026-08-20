@@ -49,6 +49,34 @@ ServerSignature Off
     RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
     RewriteCond %{HTTP_HOST} ^www\.rdvendora\.com$ [NC]
     RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
+
+    # Wildcard store subdomains: https://{slug}.rdvendora.com
+    # Force HTTPS on store hosts (requires wildcard SSL in Hostinger)
+    RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
+    RewriteCond %1 !^www$ [NC]
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Store subdomain home → storefront (keep URL as subdomain)
+    RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
+    RewriteCond %1 !^www$ [NC]
+    RewriteCond %{REQUEST_URI} ^/?$
+    RewriteRule ^$ storefront.php [L,QSA]
+
+    # Clean product URL on store subdomain: /product/123-name
+    RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
+    RewriteCond %1 !^www$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?id=$1 [L,QSA]
+
+    # Clean category URL on store subdomain: /category/phones
+    RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
+    RewriteCond %1 !^www$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^category/(.+)/?$ storefront.php?cat=$1 [L,QSA]
 </IfModule>
 
 ErrorDocument 404 /404.php

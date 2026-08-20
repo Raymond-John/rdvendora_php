@@ -152,6 +152,7 @@ require_once APP_PATH . '/config/app.php';
 require_once APP_PATH . '/helpers/ads.php';
 require_once APP_PATH . '/helpers/analytics.php';
 require_once APP_PATH . '/config/database.php';
+require_once APP_PATH . '/helpers/store_urls.php';
 require_once APP_PATH . '/helpers/google_oauth.php';
 require_once APP_PATH . '/helpers/payment_keys.php';
 

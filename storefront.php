@@ -5,31 +5,31 @@ require_once 'includes/connection.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// ----- Get store by ID (now using stores.id, not user_id) -----
-$storeId = isset($_GET['store']) ? (int)$_GET['store'] : 0;
+$resolved = rdv_resolve_public_store($conn, true);
+$store = $resolved['store'];
+$onSubdomain = !empty($resolved['on_subdomain']);
 
-// If not provided but user logged in, attempt to get their own store
-if ($storeId == 0 && isset($_SESSION['user_id'])) {
-    $stmt = $conn->prepare("SELECT id FROM stores WHERE user_id = ?");
-    $stmt->bind_param("i", $_SESSION['user_id']);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($row = $res->fetch_assoc()) $storeId = $row['id'];
-    $stmt->close();
-}
-
-$store = null;
-if ($storeId > 0) {
-    $stmt = $conn->prepare("SELECT * FROM stores WHERE id = ?");
-    $stmt->bind_param("i", $storeId);
-    $stmt->execute();
-    $store = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+// Owner preview: inactive/pending store via ?store= id on main domain (seller logged in)
+if (!$store && !empty($_GET['store']) && !empty($_SESSION['user_id'])) {
+    $preview = rdv_fetch_store_by_id($conn, (int) $_GET['store'], false);
+    if ($preview && (int) $preview['user_id'] === (int) $_SESSION['user_id']) {
+        $store = $preview;
+        $resolved['via'] = 'owner_preview';
+    }
 }
 
 if (!$store) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Store Not Found</h1><p>The store you are looking for does not exist.</p><a href="marketplace.php">← Back to Marketplace</a></div>');
+    rdv_store_not_found_page();
 }
+
+$storeId = (int) $store['id'];
+
+// Legacy main-domain links → permanent redirect to subdomain (production)
+if (!$onSubdomain && ($resolved['via'] === 'id' || $resolved['via'] === 'slug') && rdv_store_subdomains_enabled()) {
+    rdv_redirect_legacy_storefront($store);
+}
+
+$storeCanonical = rdv_store_url($store);
 
 // ----- Ensure missing colour columns exist (run once) -----
 $schemaChecked = STORAGE_PATH . '/cache/.store_schema_checked';

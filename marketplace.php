@@ -1,37 +1,73 @@
 <?php
 session_start();
 require_once 'includes/connection.php';
+require_once 'includes/marketplace_settings.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
+rdv_ensure_marketplace_settings_table($conn);
+$mpDefaults = rdv_marketplace_defaults();
+
 // ----- Helper to fetch settings -----
 function getMarketplaceSetting($key, $default = '') {
     global $conn;
-    $stmt = $conn->prepare("SELECT setting_value FROM marketplace_settings WHERE setting_key = ?");
-    $stmt->bind_param("s", $key);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stmt->close();
-    return $row ? $row['setting_value'] : $default;
+    return rdv_marketplace_setting($conn, $key, $default);
+}
+
+function mp_bool($key, $default = true) {
+    global $conn;
+    return rdv_marketplace_setting_bool($conn, $key, $default);
 }
 
 // ----- Hero Settings -----
-$hero_image = getMarketplaceSetting('hero_image', '');
-$hero_title = getMarketplaceSetting('hero_title', 'Up to 50% OFF on everything');
-$hero_subtitle = getMarketplaceSetting('hero_subtitle', 'Shop the biggest sale of the year. Limited time offer.');
-$hero_btn_text = getMarketplaceSetting('hero_btn_text', 'Shop Now');
-$hero_btn_link = getMarketplaceSetting('hero_btn_link', '#');
+$hero_enabled = mp_bool('hero_enabled', true);
+$hero_image = getMarketplaceSetting('hero_image', $mpDefaults['hero_image']);
+$hero_title = getMarketplaceSetting('hero_title', $mpDefaults['hero_title']);
+$hero_subtitle = getMarketplaceSetting('hero_subtitle', $mpDefaults['hero_subtitle']);
+$hero_btn_text = getMarketplaceSetting('hero_btn_text', $mpDefaults['hero_btn_text']);
+$hero_btn_link = getMarketplaceSetting('hero_btn_link', $mpDefaults['hero_btn_link']);
+$hero_tag = getMarketplaceSetting('hero_tag', $mpDefaults['hero_tag']);
+
+// ----- Top strip / sections / footer -----
+$top_strip_enabled = mp_bool('top_strip_enabled', true);
+$top_strip_text = getMarketplaceSetting('top_strip_text', $mpDefaults['top_strip_text']);
+$categories_nav_enabled = mp_bool('categories_nav_enabled', true);
+$categories_section_enabled = mp_bool('categories_section_enabled', true);
+$categories_section_title = getMarketplaceSetting('categories_section_title', $mpDefaults['categories_section_title']);
+$stores_section_enabled = mp_bool('stores_section_enabled', true);
+$stores_section_title = getMarketplaceSetting('stores_section_title', $mpDefaults['stores_section_title']);
+$flash_banner_enabled = mp_bool('flash_banner_enabled', true);
+$flash_banner_title = getMarketplaceSetting('flash_banner_title', $mpDefaults['flash_banner_title']);
+$flash_banner_hours = (int) getMarketplaceSetting('flash_banner_hours', $mpDefaults['flash_banner_hours']);
+$flash_banner_minutes = (int) getMarketplaceSetting('flash_banner_minutes', $mpDefaults['flash_banner_minutes']);
+$products_section_enabled = mp_bool('products_section_enabled', true);
+$products_per_store = max(1, min(48, (int) getMarketplaceSetting('products_per_store', $mpDefaults['products_per_store'])));
+$footer_enabled = mp_bool('footer_enabled', true);
+$footer_copyright = getMarketplaceSetting('footer_copyright', $mpDefaults['footer_copyright']);
+$footer_facebook = getMarketplaceSetting('footer_facebook', $mpDefaults['footer_facebook']);
+$footer_twitter = getMarketplaceSetting('footer_twitter', $mpDefaults['footer_twitter']);
+$footer_instagram = getMarketplaceSetting('footer_instagram', $mpDefaults['footer_instagram']);
+$footer_whatsapp = getMarketplaceSetting('footer_whatsapp', $mpDefaults['footer_whatsapp']);
+$footer_youtube = getMarketplaceSetting('footer_youtube', $mpDefaults['footer_youtube']);
+$footer_cols = [];
+for ($i = 1; $i <= 4; $i++) {
+    $footer_cols[] = [
+        'title' => getMarketplaceSetting("footer_col{$i}_title", $mpDefaults["footer_col{$i}_title"]),
+        'links' => rdv_marketplace_parse_footer_links(getMarketplaceSetting("footer_col{$i}_links", $mpDefaults["footer_col{$i}_links"])),
+    ];
+}
 
 // ----- Promotional Banners -----
 $promo1_title = getMarketplaceSetting('promo1_title', 'Up to 50% Off Electronics');
 $promo1_subtitle = getMarketplaceSetting('promo1_subtitle', 'Limited time offer on top brands');
 $promo1_link = getMarketplaceSetting('promo1_link', '#');
+$promo1_btn_text = getMarketplaceSetting('promo1_btn_text', $mpDefaults['promo1_btn_text']);
 $promo1_enabled = getMarketplaceSetting('promo1_enabled', '1');
 $promo2_title = getMarketplaceSetting('promo2_title', 'New Arrivals in Fashion');
 $promo2_subtitle = getMarketplaceSetting('promo2_subtitle', 'Fresh styles every week');
 $promo2_link = getMarketplaceSetting('promo2_link', '#');
+$promo2_btn_text = getMarketplaceSetting('promo2_btn_text', $mpDefaults['promo2_btn_text']);
 $promo2_enabled = getMarketplaceSetting('promo2_enabled', '1');
 
 // ----- Color Settings -----
@@ -54,6 +90,17 @@ function darkenHex($hex, $factor = 0.7) {
 }
 $btn_bg_dark = darkenHex($primary_btn_bg, 0.7);
 $btn_bg_darker = darkenHex($primary_btn_bg, 0.5);
+
+function mp_public_href($url) {
+    $url = trim((string) $url);
+    if ($url === '' || $url === '#') {
+        return '#';
+    }
+    if (preg_match('#^(https?:)?//|^mailto:|^tel:|^/#i', $url)) {
+        return $url;
+    }
+    return function_exists('rdv_url') ? rdv_url($url) : $url;
+}
 
 // ----- Store Visibility -----
 $visibleStores = [];
@@ -214,7 +261,7 @@ if (!empty($search)) {
 // Pre‑fetch products for each store (with category filter if set)
 $storeProducts = [];
 foreach ($stores as $store) {
-    $prods = getStoreProducts($store['store_pk'], 10, $selectedCategory);
+    $prods = getStoreProducts($store['store_pk'], $products_per_store, $selectedCategory);
     if (!empty($prods)) {
         $storeProducts[$store['store_pk']] = $prods;
     }
@@ -1259,8 +1306,14 @@ $conn->close();
 </head>
 <body>
 
+<?php if ($top_strip_enabled && $top_strip_text !== ''): ?>
 <!-- TOP STRIP -->
-<div class="top-strip">🚚 Free delivery on orders above ₦10,000 &nbsp;|&nbsp; ✅ 100% Genuine Products &nbsp;|&nbsp; 🔄 Easy Returns</div>
+<div class="top-strip"><?php
+  $stripParts = array_map('trim', explode('|', $top_strip_text));
+  $stripParts = array_values(array_filter($stripParts, static fn($p) => $p !== ''));
+  echo htmlspecialchars(implode('  |  ', $stripParts));
+?></div>
+<?php endif; ?>
 
 <!-- HEADER -->
 <header>
@@ -1282,6 +1335,7 @@ $conn->close();
   </div>
 </header>
 
+<?php if ($categories_nav_enabled): ?>
 <!-- NAVIGATION -->
 <nav>
   <a href="marketplace" class="<?= empty($selectedCategory) ? 'active' : '' ?>"><i class="fas fa-th"></i> All Categories</a>
@@ -1289,21 +1343,14 @@ $conn->close();
     <a href="?category=<?= urlencode($cat) ?>" class="<?= $selectedCategory === $cat ? 'active' : '' ?>"><i class="fas fa-tag"></i> <?= htmlspecialchars($cat) ?></a>
   <?php endforeach; ?>
 </nav>
+<?php endif; ?>
 
 <!-- HERO CAROUSEL -->
 <?php
 $slides = [];
-$slides[] = [
-  'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 45%, var(--btn-bg) 100%)',
-  'tag' => '<i class="fas fa-leaf"></i> Nigeria\'s Greenest Store',
-  'title' => '<span class="brand-word">RD</span><span class="brand-word2">Vendora</span>',
-  'desc' => 'Millions of products. Best prices.<br/>Fast delivery across Nigeria.',
-  'btns' => [
-    ['text' => 'Shop Now', 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary', 'onclick' => "showToast('Exploring deals…')"],
-    ['text' => 'Browse Categories', 'icon' => '', 'class' => 'hero-btn-secondary', 'onclick' => "showToast('Viewing categories…')"]
-  ],
-  'badges' => ['<i class="fas fa-truck"></i> Free Delivery', '<i class="fas fa-shield-alt"></i> 100% Genuine', '<i class="fas fa-undo"></i> Easy Returns'],
-  'visual' => '
+if ($hero_enabled) {
+  $heroBtnHref = htmlspecialchars(mp_public_href($hero_btn_link), ENT_QUOTES, 'UTF-8');
+  $heroVisual = '
     <div class="brand-logo-big">
       <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="RD Vendora" style="height:88px;width:auto;max-width:260px;object-fit:contain;background:#fff;border-radius:12px;padding:8px 12px;margin:0 auto;">
       <div class="brand-logo-sub">Premium Marketplace</div>
@@ -1311,8 +1358,23 @@ $slides[] = [
     <div class="floating-circle c1"></div>
     <div class="floating-circle c2"></div>
     <div class="floating-circle c3"></div>
-  '
-];
+  ';
+  if (!empty($hero_image)) {
+    $heroImgSrc = htmlspecialchars(function_exists('rdv_asset') ? rdv_asset($hero_image) : $hero_image, ENT_QUOTES, 'UTF-8');
+    $heroVisual = '<img src="'.$heroImgSrc.'" alt="'.htmlspecialchars($hero_title, ENT_QUOTES, 'UTF-8').'" style="max-height:220px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);object-fit:cover;" />';
+  }
+  $slides[] = [
+    'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 45%, var(--btn-bg) 100%)',
+    'tag' => '<i class="fas fa-leaf"></i> ' . htmlspecialchars($hero_tag),
+    'title' => htmlspecialchars($hero_title),
+    'desc' => nl2br(htmlspecialchars($hero_subtitle)),
+    'btns' => [
+      ['text' => htmlspecialchars($hero_btn_text), 'icon' => 'fa-arrow-right', 'class' => 'hero-btn-primary', 'onclick' => "window.location.href='{$heroBtnHref}'"],
+    ],
+    'badges' => ['<i class="fas fa-truck"></i> Free Delivery', '<i class="fas fa-shield-alt"></i> 100% Genuine', '<i class="fas fa-undo"></i> Easy Returns'],
+    'visual' => $heroVisual,
+  ];
+}
 if (!empty($banners)) {
   foreach ($banners as $banner) {
     $slides[] = [
@@ -1327,7 +1389,8 @@ if (!empty($banners)) {
       'visual' => '<img src="'.htmlspecialchars($banner['image']).'" style="max-height:200px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.3);" />'
     ];
   }
-} else {
+} elseif ($hero_enabled) {
+  // Keep secondary promo slides when no Empire banners exist
   $slides[] = [
     'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
     'tag' => '<i class="fas fa-bolt"></i> Limited Time Only',
@@ -1366,6 +1429,7 @@ if (!empty($banners)) {
   ];
 }
 ?>
+<?php if (!empty($slides)): ?>
 <div class="hero-carousel" id="heroCarousel">
   <?php foreach ($slides as $index => $slide): ?>
     <div class="hero-slide <?= $index === 0 ? 'active' : '' ?>" style="background: <?= $slide['bg'] ?>;">
@@ -1405,10 +1469,12 @@ if (!empty($banners)) {
     </div>
   <?php endif; ?>
 </div>
+<?php endif; ?>
 
+<?php if ($categories_section_enabled): ?>
 <!-- SHOP BY CATEGORY -->
 <div class="section-header">
-  <h2>Shop by Category</h2>
+  <h2><?= htmlspecialchars($categories_section_title) ?></h2>
   <a href="marketplace">View all <i class="fas fa-chevron-right"></i></a>
 </div>
 <div class="categories-grid">
@@ -1422,11 +1488,12 @@ if (!empty($banners)) {
     <div class="category-card"><i class="fas fa-store"></i><span>No categories</span></div>
   <?php endif; ?>
 </div>
+<?php endif; ?>
 
 <!-- ── ALL STORES – HORIZONTAL SCROLL ── -->
-<?php if (!empty($stores) && empty($search)): ?>
+<?php if ($stores_section_enabled && !empty($stores) && empty($search)): ?>
 <div class="section-header">
-  <h2><i class="fas fa-store-alt" style="color:var(--btn-bg);"></i> All Stores</h2>
+  <h2><i class="fas fa-store-alt" style="color:var(--btn-bg);"></i> <?= htmlspecialchars($stores_section_title) ?></h2>
   <a onclick="openStoreModal()">See all <i class="fas fa-chevron-right"></i></a>
 </div>
 <div class="stores-wrapper">
@@ -1449,19 +1516,22 @@ if (!empty($banners)) {
 </div>
 <?php endif; ?>
 
+<?php if ($flash_banner_enabled): ?>
 <!-- FLASH DEAL COUNTDOWN BANNER -->
 <div class="flash-banner">
   <i class="fas fa-bolt"></i>
-  <strong>Flash Deals</strong>
+  <strong><?= htmlspecialchars($flash_banner_title) ?></strong>
   &mdash; Ends in:
   <div class="countdown">
-    <span id="hours">04</span>
+    <span id="hours"><?= str_pad((string) $flash_banner_hours, 2, '0', STR_PAD_LEFT) ?></span>
     <span>:</span>
-    <span id="minutes">37</span>
+    <span id="minutes"><?= str_pad((string) $flash_banner_minutes, 2, '0', STR_PAD_LEFT) ?></span>
     <span>:</span>
     <span id="seconds">00</span>
   </div>
 </div>
+<?php endif; ?>
+
 
 <?php if (!empty($search)): ?>
   <!-- SEARCH RESULTS -->
@@ -1508,7 +1578,7 @@ if (!empty($banners)) {
       <?php endif; ?>
     </div>
   </div>
-<?php else: ?>
+<?php elseif ($products_section_enabled): ?>
   <!-- ── STORE PRODUCT SECTIONS (filtered by category if selected) ── -->
   <?php if (!empty($selectedCategory)): ?>
     <div class="section-header" style="margin-top:20px">
@@ -1596,7 +1666,7 @@ if (!empty($banners)) {
     <div class="promo-card">
         <h3><?= htmlspecialchars($promo1_title) ?></h3>
         <p><?= htmlspecialchars($promo1_subtitle) ?></p>
-        <a href="<?= htmlspecialchars($promo1_link) ?>">Shop Now</a>
+        <a href="<?= htmlspecialchars($promo1_link) ?>"><?= htmlspecialchars($promo1_btn_text) ?></a>
         <div class="promo-icon"><i class="fas fa-laptop"></i></div>
     </div>
     <?php endif; ?>
@@ -1604,7 +1674,7 @@ if (!empty($banners)) {
     <div class="promo-card">
         <h3><?= htmlspecialchars($promo2_title) ?></h3>
         <p><?= htmlspecialchars($promo2_subtitle) ?></p>
-        <a href="<?= htmlspecialchars($promo2_link) ?>">Explore</a>
+        <a href="<?= htmlspecialchars($promo2_link) ?>"><?= htmlspecialchars($promo2_btn_text) ?></a>
         <div class="promo-icon"><i class="fas fa-tshirt"></i></div>
     </div>
     <?php endif; ?>
@@ -1615,7 +1685,7 @@ if (!empty($banners)) {
 <div class="modal-overlay" id="storeModal">
   <div class="modal-container">
     <div class="modal-header">
-      <h3><i class="fas fa-store-alt"></i> All Stores</h3>
+      <h3><i class="fas fa-store-alt"></i> <?= htmlspecialchars($stores_section_title) ?></h3>
       <button class="modal-close" onclick="closeStoreModal()">&times;</button>
     </div>
     <div class="modal-body" id="modalBody">
@@ -1637,49 +1707,30 @@ if (!empty($banners)) {
 </div>
 
 <!-- FOOTER -->
+<?php if ($footer_enabled): ?>
 <footer>
   <div class="footer-grid">
+    <?php foreach ($footer_cols as $col): ?>
     <div class="footer-col">
-      <h4>RD Vendora</h4>
-      <a href="#">About Us</a>
-      <a href="#">Careers</a>
-      <a href="#">Press</a>
-      <a href="#">Contact Us</a>
-      <a href="#">Affiliates</a>
+      <h4><?= htmlspecialchars($col['title']) ?></h4>
+      <?php foreach ($col['links'] as $link): ?>
+      <a href="<?= htmlspecialchars(mp_public_href($link['url'])) ?>"><?= htmlspecialchars($link['label']) ?></a>
+      <?php endforeach; ?>
     </div>
-    <div class="footer-col">
-      <h4>Help</h4>
-      <a href="#">FAQ</a>
-      <a href="#">Track Order</a>
-      <a href="#">Returns</a>
-      <a href="#">Report a Product</a>
-    </div>
-    <div class="footer-col">
-      <h4>Sell on RD Vendora</h4>
-      <a href="#">Become a Seller</a>
-      <a href="#">Seller Center</a>
-      <a href="#">Flash Sales</a>
-      <a href="#">Advertise</a>
-    </div>
-    <div class="footer-col">
-      <h4>Payment</h4>
-      <a href="#">RD Pay</a>
-      <a href="#">Cards Accepted</a>
-      <a href="#">Bank Transfer</a>
-      <a href="#">Pay on Delivery</a>
-    </div>
+    <?php endforeach; ?>
   </div>
   <div class="footer-bottom">
-    <span>© <?= date('Y') ?> RD Vendora. All rights reserved.</span>
+    <span><?= htmlspecialchars(str_replace('{year}', date('Y'), $footer_copyright)) ?></span>
     <div class="social-links">
-      <a href="#"><i class="fab fa-facebook-f"></i></a>
-      <a href="#"><i class="fab fa-twitter"></i></a>
-      <a href="#"><i class="fab fa-instagram"></i></a>
-      <a href="#"><i class="fab fa-whatsapp"></i></a>
-      <a href="#"><i class="fab fa-youtube"></i></a>
+      <a href="<?= htmlspecialchars(mp_public_href($footer_facebook)) ?>"><i class="fab fa-facebook-f"></i></a>
+      <a href="<?= htmlspecialchars(mp_public_href($footer_twitter)) ?>"><i class="fab fa-twitter"></i></a>
+      <a href="<?= htmlspecialchars(mp_public_href($footer_instagram)) ?>"><i class="fab fa-instagram"></i></a>
+      <a href="<?= htmlspecialchars(mp_public_href($footer_whatsapp)) ?>"><i class="fab fa-whatsapp"></i></a>
+      <a href="<?= htmlspecialchars(mp_public_href($footer_youtube)) ?>"><i class="fab fa-youtube"></i></a>
     </div>
   </div>
 </footer>
+<?php endif; ?>
 
 <!-- CART SIDEBAR OVERLAY -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
@@ -1822,17 +1873,23 @@ function toggleCart() {
 }
 
 // ── COUNTDOWN ──
-let totalSeconds = 4 * 3600 + 37 * 60;
+<?php if ($flash_banner_enabled): ?>
+let totalSeconds = <?= (int) $flash_banner_hours ?> * 3600 + <?= (int) $flash_banner_minutes ?> * 60;
 setInterval(() => {
     if (totalSeconds <= 0) return;
     totalSeconds--;
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
     const s = totalSeconds % 60;
-    document.getElementById('hours').textContent   = String(h).padStart(2,'0');
-    document.getElementById('minutes').textContent = String(m).padStart(2,'0');
-    document.getElementById('seconds').textContent = String(s).padStart(2,'0');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    if (!hoursEl || !minutesEl || !secondsEl) return;
+    hoursEl.textContent   = String(h).padStart(2,'0');
+    minutesEl.textContent = String(m).padStart(2,'0');
+    secondsEl.textContent = String(s).padStart(2,'0');
 }, 1000);
+<?php endif; ?>
 
 // ── CAROUSEL ──
 <?php if (count($slides) > 1): ?>

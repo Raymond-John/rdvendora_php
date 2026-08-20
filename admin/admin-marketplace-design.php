@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../includes/connection.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../includes/marketplace_settings.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -20,63 +21,79 @@ if (!adminHasPermission('marketplace_design', $conn)) {
     die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to manage marketplace design.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
-$conn->query("CREATE TABLE IF NOT EXISTS `marketplace_settings` (
-    `id` INT(11) NOT NULL AUTO_INCREMENT,
-    `setting_key` VARCHAR(100) NOT NULL,
-    `setting_value` TEXT,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `setting_key` (`setting_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+rdv_ensure_marketplace_settings_table($conn);
+$mpDefaults = rdv_marketplace_defaults();
 
 function getSetting($key, $default = '') {
     global $conn;
-    $stmt = $conn->prepare("SELECT setting_value FROM marketplace_settings WHERE setting_key = ?");
-    $stmt->bind_param("s", $key);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stmt->close();
-    return $row ? $row['setting_value'] : $default;
+    return rdv_marketplace_setting($conn, $key, $default);
 }
 
 function updateSetting($key, $value) {
     global $conn;
-    $stmt = $conn->prepare("INSERT INTO marketplace_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-    $stmt->bind_param("ss", $key, $value);
-    $result = $stmt->execute();
-    $stmt->close();
-    return $result;
+    return rdv_marketplace_setting_set($conn, $key, $value);
 }
 
-// Fetch current settings
-$hero_image = getSetting('hero_image', '');
-$hero_title = getSetting('hero_title', 'Up to 50% OFF on everything');
-$hero_subtitle = getSetting('hero_subtitle', 'Shop the biggest sale of the year. Limited time offer.');
-$hero_btn_text = getSetting('hero_btn_text', 'Shop Now');
-$hero_btn_link = getSetting('hero_btn_link', '#');
-$body_bg_color = getSetting('body_bg_color', '#f5f5f5');
-$text_primary_color = getSetting('text_primary_color', '#1f2937');
-$primary_btn_bg = getSetting('primary_btn_bg', '#2563eb');
-$primary_btn_text = getSetting('primary_btn_text', '#ffffff');
-$card_bg_color = getSetting('card_bg_color', '#ffffff');
-$sidebar_bg_color = getSetting('sidebar_bg_color', '#ffffff');
-$sidebar_text_color = getSetting('sidebar_text_color', '#4a5568');
+function mp_load_all_settings() {
+    global $mpDefaults;
+    $out = [];
+    foreach ($mpDefaults as $key => $default) {
+        $out[$key] = getSetting($key, $default);
+    }
+    // Existing keys not only in defaults map
+    $extra = [
+        'body_bg_color' => '#f5f5f5',
+        'text_primary_color' => '#1f2937',
+        'primary_btn_bg' => '#2563eb',
+        'primary_btn_text' => '#ffffff',
+        'card_bg_color' => '#ffffff',
+        'sidebar_bg_color' => '#ffffff',
+        'sidebar_text_color' => '#4a5568',
+        'promo1_title' => 'Up to 50% Off Electronics',
+        'promo1_subtitle' => 'Limited time offer on top brands',
+        'promo1_link' => '#',
+        'promo1_enabled' => '1',
+        'promo2_title' => 'New Arrivals in Fashion',
+        'promo2_subtitle' => 'Fresh styles every week',
+        'promo2_link' => '#',
+        'promo2_enabled' => '1',
+        'tax_rate' => '0',
+        'shipping_default' => '0',
+        'shipping_states' => '',
+    ];
+    foreach ($extra as $key => $default) {
+        $out[$key] = getSetting($key, $default);
+    }
+    return $out;
+}
 
-// Promotional Banners
-$promo1_title = getSetting('promo1_title', 'Up to 50% Off Electronics');
-$promo1_subtitle = getSetting('promo1_subtitle', 'Limited time offer on top brands');
-$promo1_link = getSetting('promo1_link', '#');
-$promo1_enabled = getSetting('promo1_enabled', '1');
-$promo2_title = getSetting('promo2_title', 'New Arrivals in Fashion');
-$promo2_subtitle = getSetting('promo2_subtitle', 'Fresh styles every week');
-$promo2_link = getSetting('promo2_link', '#');
-$promo2_enabled = getSetting('promo2_enabled', '1');
-
-// ----- NEW: Shipping & Tax Settings -----
-$tax_rate = getSetting('tax_rate', '0');
-$shipping_default = getSetting('shipping_default', '0');
-$shipping_states_raw = getSetting('shipping_states', '');
+$S = mp_load_all_settings();
+extract($S, EXTR_OVERWRITE);
+$hero_image = $S['hero_image'];
+$hero_title = $S['hero_title'];
+$hero_subtitle = $S['hero_subtitle'];
+$hero_btn_text = $S['hero_btn_text'];
+$hero_btn_link = $S['hero_btn_link'];
+$body_bg_color = $S['body_bg_color'];
+$text_primary_color = $S['text_primary_color'];
+$primary_btn_bg = $S['primary_btn_bg'];
+$primary_btn_text = $S['primary_btn_text'];
+$card_bg_color = $S['card_bg_color'];
+$sidebar_bg_color = $S['sidebar_bg_color'];
+$sidebar_text_color = $S['sidebar_text_color'];
+$promo1_title = $S['promo1_title'];
+$promo1_subtitle = $S['promo1_subtitle'];
+$promo1_link = $S['promo1_link'];
+$promo1_enabled = $S['promo1_enabled'];
+$promo2_title = $S['promo2_title'];
+$promo2_subtitle = $S['promo2_subtitle'];
+$promo2_link = $S['promo2_link'];
+$promo2_enabled = $S['promo2_enabled'];
+$tax_rate = $S['tax_rate'];
+$shipping_default = $S['shipping_default'];
+$shipping_states_raw = $S['shipping_states'];
 $shipping_states = !empty($shipping_states_raw) ? json_decode($shipping_states_raw, true) : [];
+if (!is_array($shipping_states)) $shipping_states = [];
 
 // List of Nigerian states for the admin UI
 $nigeria_states = [
@@ -99,6 +116,8 @@ $messageType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save_hero'])) {
+        updateSetting('hero_enabled', isset($_POST['hero_enabled']) ? '1' : '0');
+        updateSetting('hero_tag', $_POST['hero_tag'] ?? '');
         updateSetting('hero_title', $_POST['hero_title']);
         updateSetting('hero_subtitle', $_POST['hero_subtitle']);
         updateSetting('hero_btn_text', $_POST['hero_btn_text']);
@@ -117,6 +136,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         $message = "Hero banner updated.";
+        $messageType = "success";
+    }
+
+    if (isset($_POST['save_top_strip'])) {
+        updateSetting('top_strip_enabled', isset($_POST['top_strip_enabled']) ? '1' : '0');
+        updateSetting('top_strip_text', $_POST['top_strip_text'] ?? '');
+        $message = "Top strip updated.";
+        $messageType = "success";
+    }
+
+    if (isset($_POST['save_sections'])) {
+        $keys = [
+            'categories_nav_enabled', 'categories_section_enabled', 'stores_section_enabled',
+            'flash_banner_enabled', 'products_section_enabled', 'footer_enabled',
+        ];
+        foreach ($keys as $k) {
+            updateSetting($k, isset($_POST[$k]) ? '1' : '0');
+        }
+        updateSetting('categories_section_title', $_POST['categories_section_title'] ?? '');
+        updateSetting('stores_section_title', $_POST['stores_section_title'] ?? '');
+        updateSetting('flash_banner_title', $_POST['flash_banner_title'] ?? '');
+        updateSetting('flash_banner_hours', preg_replace('/\D/', '', $_POST['flash_banner_hours'] ?? '4') ?: '0');
+        updateSetting('flash_banner_minutes', preg_replace('/\D/', '', $_POST['flash_banner_minutes'] ?? '37') ?: '0');
+        $pps = max(1, min(48, (int) ($_POST['products_per_store'] ?? 10)));
+        updateSetting('products_per_store', (string) $pps);
+        $message = "Marketplace sections updated.";
+        $messageType = "success";
+    }
+
+    if (isset($_POST['save_footer'])) {
+        updateSetting('footer_enabled', isset($_POST['footer_enabled']) ? '1' : '0');
+        foreach (['footer_col1_title','footer_col1_links','footer_col2_title','footer_col2_links','footer_col3_title','footer_col3_links','footer_col4_title','footer_col4_links','footer_copyright','footer_facebook','footer_twitter','footer_instagram','footer_whatsapp','footer_youtube'] as $k) {
+            updateSetting($k, $_POST[$k] ?? '');
+        }
+        $message = "Footer updated.";
         $messageType = "success";
     }
     
@@ -145,20 +199,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         updateSetting('promo1_title', $_POST['promo1_title']);
         updateSetting('promo1_subtitle', $_POST['promo1_subtitle']);
         updateSetting('promo1_link', $_POST['promo1_link']);
+        updateSetting('promo1_btn_text', $_POST['promo1_btn_text'] ?? 'Shop Now');
         updateSetting('promo1_enabled', isset($_POST['promo1_enabled']) ? '1' : '0');
         updateSetting('promo2_title', $_POST['promo2_title']);
         updateSetting('promo2_subtitle', $_POST['promo2_subtitle']);
         updateSetting('promo2_link', $_POST['promo2_link']);
+        updateSetting('promo2_btn_text', $_POST['promo2_btn_text'] ?? 'Explore');
         updateSetting('promo2_enabled', isset($_POST['promo2_enabled']) ? '1' : '0');
         $message = "Promotional banners updated.";
         $messageType = "success";
     }
     
-    // NEW: Save Shipping & Tax Settings
     if (isset($_POST['save_shipping'])) {
         updateSetting('tax_rate', $_POST['tax_rate']);
         updateSetting('shipping_default', $_POST['shipping_default']);
-        // Build states array from POST
         $states_data = [];
         foreach ($nigeria_states as $state) {
             $key = 'shipping_' . str_replace(' ', '_', $state);
@@ -172,30 +226,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // Refresh all settings after update
-    $hero_image = getSetting('hero_image', '');
-    $hero_title = getSetting('hero_title', 'Up to 50% OFF on everything');
-    $hero_subtitle = getSetting('hero_subtitle', 'Shop the biggest sale of the year. Limited time offer.');
-    $hero_btn_text = getSetting('hero_btn_text', 'Shop Now');
-    $hero_btn_link = getSetting('hero_btn_link', '#');
-    $body_bg_color = getSetting('body_bg_color', '#f5f5f5');
-    $text_primary_color = getSetting('text_primary_color', '#1f2937');
-    $primary_btn_bg = getSetting('primary_btn_bg', '#2563eb');
-    $primary_btn_text = getSetting('primary_btn_text', '#ffffff');
-    $card_bg_color = getSetting('card_bg_color', '#ffffff');
-    $sidebar_bg_color = getSetting('sidebar_bg_color', '#ffffff');
-    $sidebar_text_color = getSetting('sidebar_text_color', '#4a5568');
-    $promo1_title = getSetting('promo1_title', 'Up to 50% Off Electronics');
-    $promo1_subtitle = getSetting('promo1_subtitle', 'Limited time offer on top brands');
-    $promo1_link = getSetting('promo1_link', '#');
-    $promo1_enabled = getSetting('promo1_enabled', '1');
-    $promo2_title = getSetting('promo2_title', 'New Arrivals in Fashion');
-    $promo2_subtitle = getSetting('promo2_subtitle', 'Fresh styles every week');
-    $promo2_link = getSetting('promo2_link', '#');
-    $promo2_enabled = getSetting('promo2_enabled', '1');
-    $tax_rate = getSetting('tax_rate', '0');
-    $shipping_default = getSetting('shipping_default', '0');
-    $shipping_states_raw = getSetting('shipping_states', '');
+    $S = mp_load_all_settings();
+    extract($S, EXTR_OVERWRITE);
+    $hero_image = $S['hero_image'];
+    $hero_title = $S['hero_title'];
+    $hero_subtitle = $S['hero_subtitle'];
+    $hero_btn_text = $S['hero_btn_text'];
+    $hero_btn_link = $S['hero_btn_link'];
+    $body_bg_color = $S['body_bg_color'];
+    $text_primary_color = $S['text_primary_color'];
+    $primary_btn_bg = $S['primary_btn_bg'];
+    $primary_btn_text = $S['primary_btn_text'];
+    $card_bg_color = $S['card_bg_color'];
+    $sidebar_bg_color = $S['sidebar_bg_color'];
+    $sidebar_text_color = $S['sidebar_text_color'];
+    $promo1_title = $S['promo1_title'];
+    $promo1_subtitle = $S['promo1_subtitle'];
+    $promo1_link = $S['promo1_link'];
+    $promo1_enabled = $S['promo1_enabled'];
+    $promo2_title = $S['promo2_title'];
+    $promo2_subtitle = $S['promo2_subtitle'];
+    $promo2_link = $S['promo2_link'];
+    $promo2_enabled = $S['promo2_enabled'];
+    $tax_rate = $S['tax_rate'];
+    $shipping_default = $S['shipping_default'];
+    $shipping_states_raw = $S['shipping_states'];
     $shipping_states = !empty($shipping_states_raw) ? json_decode($shipping_states_raw, true) : [];
+    if (!is_array($shipping_states)) $shipping_states = [];
     $stores = [];
     $storeQuery = $conn->query("SELECT id, store_name, user_id FROM stores WHERE status = 'active' ORDER BY store_name ASC");
     while ($row = $storeQuery->fetch_assoc()) {
@@ -206,7 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $adminPageTitle = 'Marketplace Design - Admin';
 $adminPageHeading = 'Marketplace Design';
-$adminPageSubtitle = 'Control marketplace appearance';
+$adminPageSubtitle = 'Control every marketplace section: strip, hero, categories, stores, flash deals, products, promos, colors, shipping, and footer';
 $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
 $adminPageStyles = <<<'CSS'
@@ -398,20 +455,47 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             <div class="alert alert-<?= $messageType ?>"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>
 
+        <!-- Top trust strip -->
+        <div class="settings-group">
+            <div class="settings-group-header">
+                <div class="settings-group-title">Top announcement strip</div>
+                <div class="settings-group-desc">The thin bar above the marketplace header (delivery / trust message).</div>
+            </div>
+            <div class="settings-group-body">
+                <form method="POST">
+                    <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+                        <input type="checkbox" name="top_strip_enabled" value="1" <?= ($top_strip_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show top strip
+                    </label>
+                    <div class="form-group">
+                        <label class="form-label">Strip text (use | to separate phrases)</label>
+                        <input type="text" name="top_strip_text" class="form-input" value="<?= htmlspecialchars($top_strip_text ?? '') ?>">
+                    </div>
+                    <button type="submit" name="save_top_strip" class="btn-primary">Save Top Strip</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Hero Banner Settings -->
         <div class="settings-group">
             <div class="settings-group-header">
-                <div class="settings-group-title">🎯 Black Friday Hero Banner</div>
-                <div class="settings-group-desc">Edit the promotional banner shown at the top of the marketplace.</div>
+                <div class="settings-group-title">Hero banner</div>
+                <div class="settings-group-desc">Main hero slide on the marketplace homepage (also used with Empire store promo banners).</div>
             </div>
             <div class="settings-group-body">
                 <form method="POST" enctype="multipart/form-data">
+                    <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+                        <input type="checkbox" name="hero_enabled" value="1" <?= ($hero_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show hero section
+                    </label>
                     <div class="form-group">
                         <label class="form-label">Banner Image (optional)</label>
                         <input type="file" name="hero_image" accept="image/*" class="form-input">
                         <?php if ($hero_image): ?>
                             <div style="margin-top: 10px;"><img src="<?= htmlspecialchars(rdv_admin_src($hero_image)) ?>" style="max-width: 150px; border-radius: 8px;"></div>
                         <?php endif; ?>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tag / kicker</label>
+                        <input type="text" name="hero_tag" class="form-input" value="<?= htmlspecialchars($hero_tag ?? '') ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Main Title</label>
@@ -443,6 +527,64 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                         <div style="width: 100px; height: 100px; background: #ccc; border-radius: 12px; display: flex; align-items: center; justify-content: center;">Image preview</div>
                     <?php endif; ?>
                 </div>
+            </div>
+        </div>
+
+        <!-- Sections layout -->
+        <div class="settings-group">
+            <div class="settings-group-header">
+                <div class="settings-group-title">Marketplace sections</div>
+                <div class="settings-group-desc">Show/hide major marketplace areas and edit their titles.</div>
+            </div>
+            <div class="settings-group-body">
+                <form method="POST">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.75rem;margin-bottom:1.25rem;">
+                        <?php
+                        $toggles = [
+                            'categories_nav_enabled' => 'Category navigation bar',
+                            'categories_section_enabled' => 'Shop by Category grid',
+                            'stores_section_enabled' => 'All Stores row',
+                            'flash_banner_enabled' => 'Flash deals banner',
+                            'products_section_enabled' => 'Product listings',
+                            'footer_enabled' => 'Footer',
+                        ];
+                        foreach ($toggles as $key => $label):
+                            $val = $$key ?? '1';
+                        ?>
+                        <label style="display:flex;align-items:center;gap:0.5rem;background:var(--bg-primary);padding:0.75rem;border-radius:8px;border:1px solid var(--border-primary);">
+                            <input type="checkbox" name="<?= $key ?>" value="1" <?= $val == '1' ? 'checked' : '' ?>>
+                            <?= htmlspecialchars($label) ?>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Categories section title</label>
+                            <input type="text" name="categories_section_title" class="form-input" value="<?= htmlspecialchars($categories_section_title ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stores section title</label>
+                            <input type="text" name="stores_section_title" class="form-input" value="<?= htmlspecialchars($stores_section_title ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Flash banner title</label>
+                            <input type="text" name="flash_banner_title" class="form-input" value="<?= htmlspecialchars($flash_banner_title ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Products per store</label>
+                            <input type="number" name="products_per_store" class="form-input" min="1" max="48" value="<?= htmlspecialchars($products_per_store ?? '10') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Flash countdown hours</label>
+                            <input type="number" name="flash_banner_hours" class="form-input" min="0" max="72" value="<?= htmlspecialchars($flash_banner_hours ?? '4') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Flash countdown minutes</label>
+                            <input type="number" name="flash_banner_minutes" class="form-input" min="0" max="59" value="<?= htmlspecialchars($flash_banner_minutes ?? '37') ?>">
+                        </div>
+                    </div>
+                    <button type="submit" name="save_sections" class="btn-primary" style="margin-top:1rem;">Save Sections</button>
+                </form>
             </div>
         </div>
 
@@ -546,6 +688,10 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                             <label class="form-label">Link (URL)</label>
                             <input type="text" name="promo1_link" class="form-input" value="<?= htmlspecialchars($promo1_link) ?>">
                         </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Button text</label>
+                            <input type="text" name="promo1_btn_text" class="form-input" value="<?= htmlspecialchars($promo1_btn_text ?? 'Shop Now') ?>">
+                        </div>
                     </div>
                     <hr style="margin: 1.5rem 0; border-color: var(--border-primary);">
                     <h4 style="margin-bottom:0.5rem; font-weight:600; display:flex; align-items:center; gap:0.5rem;">
@@ -566,6 +712,10 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                         <div class="form-group" style="grid-column: span 2;">
                             <label class="form-label">Link (URL)</label>
                             <input type="text" name="promo2_link" class="form-input" value="<?= htmlspecialchars($promo2_link) ?>">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Button text</label>
+                            <input type="text" name="promo2_btn_text" class="form-input" value="<?= htmlspecialchars($promo2_btn_text ?? 'Explore') ?>">
                         </div>
                     </div>
                     <button type="submit" name="save_promos" class="btn-primary" style="margin-top: 1rem;">Save Promotional Banners</button>
@@ -605,6 +755,47 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                         <?php endforeach; ?>
                     </div>
                     <button type="submit" name="save_shipping" class="btn-primary" style="margin-top: 1.5rem;">Save Shipping & Tax Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="settings-group">
+            <div class="settings-group-header">
+                <div class="settings-group-title">Footer</div>
+                <div class="settings-group-desc">Edit marketplace footer columns. Enter one link per line as Label|url (example: About Us|about).</div>
+            </div>
+            <div class="settings-group-body">
+                <form method="POST">
+                    <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+                        <input type="checkbox" name="footer_enabled" value="1" <?= ($footer_enabled ?? '1') == '1' ? 'checked' : '' ?>> Show footer
+                    </label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                        <?php for ($i = 1; $i <= 4; $i++):
+                            $tKey = "footer_col{$i}_title";
+                            $lKey = "footer_col{$i}_links";
+                        ?>
+                        <div class="form-group">
+                            <label class="form-label">Column <?= $i ?> title</label>
+                            <input type="text" name="<?= $tKey ?>" class="form-input" value="<?= htmlspecialchars($$tKey ?? '') ?>">
+                            <label class="form-label" style="margin-top:0.75rem;">Column <?= $i ?> links</label>
+                            <textarea name="<?= $lKey ?>" class="form-input" rows="5"><?= htmlspecialchars($$lKey ?? '') ?></textarea>
+                        </div>
+                        <?php endfor; ?>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label class="form-label">Copyright line (use {year} for current year)</label>
+                        <input type="text" name="footer_copyright" class="form-input" value="<?= htmlspecialchars($footer_copyright ?? '') ?>">
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+                        <?php foreach (['footer_facebook'=>'Facebook','footer_twitter'=>'Twitter / X','footer_instagram'=>'Instagram','footer_whatsapp'=>'WhatsApp','footer_youtube'=>'YouTube'] as $k=>$lab): ?>
+                        <div class="form-group">
+                            <label class="form-label"><?= $lab ?> URL</label>
+                            <input type="text" name="<?= $k ?>" class="form-input" value="<?= htmlspecialchars($$k ?? '#') ?>">
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="submit" name="save_footer" class="btn-primary" style="margin-top:1rem;">Save Footer</button>
                 </form>
             </div>
         </div>

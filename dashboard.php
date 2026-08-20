@@ -164,22 +164,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
             $stmt = $conn->prepare("INSERT INTO team_invites (store_id, email, role, token, invited_by, expires_at) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("isssis", $_SESSION['store_id'], $email, $role, $token, $_SESSION['user_id'], $expires);
             if ($stmt->execute()) {
-                $inviteLink = (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . "/accept-invite.php?token=" . $token;
+                $inviteBase = function_exists('rdv_url')
+                    ? rdv_url('accept-invite')
+                    : ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/') . '/accept-invite');
+                $inviteLink = $inviteBase . (str_contains($inviteBase, '?') ? '&' : '?') . 'token=' . urlencode($token);
 
                 $emailSent = false;
 
                 if ($phpmailer_available) {
                     try {
                         require_once APP_PATH . '/helpers/email_functions.php';
-                        $mail = getMailer();
-                        $mail->clearAddresses();
-                        $mail->addAddress($email);
-                        $mail->isHTML(false);
-                        $mail->Subject = "Invitation to join " . $_SESSION['store_name'] . " on RD Vendora";
-                        $mail->Body    = "Hello,\n\nYou have been invited to join the store \"" . $_SESSION['store_name'] . "\" as a $role.\n\nClick the link below to accept the invitation:\n$inviteLink\n\nThis invite expires in 7 days.\n\nBest regards,\nRD Vendora Team";
-
-                        $mail->send();
-                        $emailSent = true;
+                        $inviterName = (string) ($_SESSION['fullname'] ?? '');
+                        $emailSent = sendTeamInviteEmail($email, (string) ($_SESSION['store_name'] ?? 'Store'), $role, $inviteLink, $inviterName);
                     } catch (Exception $e) {
                         error_log("PHPMailer Error: " . $e->getMessage());
                     }

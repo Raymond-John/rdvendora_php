@@ -595,4 +595,132 @@ function sendSubscriptionEmail($email, $fullname, $planName, $billingCycle, $amo
 
     return sendEmail($email, "Subscription Confirmation – RD Vendora", $htmlBody, $plainText);
 }
+
+/**
+ * Styled HTML email for store team invitations.
+ *
+ * @param string $email       Invitee email
+ * @param string $storeName   Store display name
+ * @param string $role        admin|editor|viewer
+ * @param string $inviteLink  Absolute accept-invite URL
+ * @param string $inviterName Name of the person sending the invite
+ */
+function sendTeamInviteEmail($email, $storeName, $role, $inviteLink, $inviterName = '') {
+    $year = date('Y');
+    $storeRaw = trim((string) $storeName);
+    $inviterRaw = trim((string) $inviterName);
+    $inviteRaw = (string) $inviteLink;
+    $storeEsc = htmlspecialchars($storeRaw, ENT_QUOTES, 'UTF-8');
+    $inviterEsc = htmlspecialchars($inviterRaw, ENT_QUOTES, 'UTF-8');
+    $inviteEsc = htmlspecialchars($inviteRaw, ENT_QUOTES, 'UTF-8');
+    $roleKey = strtolower(trim((string) $role));
+    $roleLabels = [
+        'admin' => 'Admin',
+        'editor' => 'Editor',
+        'viewer' => 'Viewer',
+    ];
+    $roleLabel = $roleLabels[$roleKey] ?? ucfirst($roleKey);
+    $roleDescriptions = [
+        'admin' => 'Full access to manage the store, products, orders, and team.',
+        'editor' => 'Can manage products and orders for this store.',
+        'viewer' => 'Read-only access to store information.',
+    ];
+    $roleDesc = $roleDescriptions[$roleKey] ?? 'Access to this store on RD Vendora.';
+    $fromLine = $inviterEsc !== ''
+        ? '<strong style="color:#1E293B;">' . $inviterEsc . '</strong> invited you'
+        : 'You have been invited';
+
+    $htmlBody = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team invitation</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F5F7FB; font-family:-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#F5F7FB; padding:40px 20px;">
+    <tr>
+        <td align="center" style="padding:0;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
+                <tr>
+                    <td style="padding:0;">
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+                            <tr>
+                                <td style="padding:22px 30px; text-align:center;">
+                                    <span style="font-size:24px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">RD Vendora</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding:32px 30px 24px 30px; text-align:center;">
+                                    <span style="font-size:48px;">✉️</span>
+                                    <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 8px 0;">You\'re invited to join a store</h1>
+                                    <p style="font-size:16px; color:#64748B; margin:0 0 22px 0; line-height:1.6;">
+                                        ' . $fromLine . ' to collaborate on<br>
+                                        <strong style="color:#1A56DB; font-size:18px;">' . $storeEsc . '</strong>
+                                    </p>
+
+                                    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:420px; margin:0 auto 24px auto; background-color:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px;">
+                                        <tr>
+                                            <td style="padding:18px 20px; text-align:left;">
+                                                <p style="margin:0 0 6px 0; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8;">Your role</p>
+                                                <p style="margin:0 0 6px 0; font-size:18px; font-weight:700; color:#0A3D91;">' . htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') . '</p>
+                                                <p style="margin:0; font-size:14px; color:#64748B; line-height:1.5;">' . htmlspecialchars($roleDesc, ENT_QUOTES, 'UTF-8') . '</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin:8px 0 20px 0;">
+                                        <tr>
+                                            <td style="background-color:#D4AF37; border-radius:50px; padding:14px 40px; box-shadow:0 4px 12px rgba(212,175,55,0.25);">
+                                                <a href="' . $inviteEsc . '" style="color:#0A3D91; text-decoration:none; font-weight:700; font-size:16px; display:inline-block;">Accept invitation</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="font-size:13px; color:#94A3B8; margin:0 0 8px 0; line-height:1.5;">
+                                        This invitation expires in <strong style="color:#64748B;">7 days</strong>.<br>
+                                        If the button does not work, copy and paste this link:
+                                    </p>
+                                    <p style="font-size:12px; color:#1A56DB; word-break:break-all; margin:0 0 18px 0; line-height:1.5;">
+                                        <a href="' . $inviteEsc . '" style="color:#1A56DB; text-decoration:underline;">' . $inviteEsc . '</a>
+                                    </p>
+                                    <p style="font-size:14px; color:#64748B; margin:0 0 6px 0; line-height:1.5;">
+                                        If you did not expect this email, you can ignore it.
+                                    </p>
+                                    <p style="font-size:15px; color:#1A56DB; font-weight:500; margin:12px 0 0 0;">– The RD Vendora Team</p>
+
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:32px; border-top:1px solid #E5E7EB; padding-top:20px;">
+                                        <tr>
+                                            <td style="text-align:center; font-size:13px; color:#94A3B8; line-height:1.6;">
+                                                <span style="color:#1E293B; font-weight:600;">RD Vendora</span><br>
+                                                <a href="mailto:support@rdvendora.com" style="color:#1A56DB; text-decoration:none;">support@rdvendora.com</a> &nbsp;|&nbsp; <a href="https://rdvendora.com" style="color:#1A56DB; text-decoration:none;">rdvendora.com</a><br>
+                                                &copy; ' . $year . ' RD Vendora — All Rights Reserved.<br>
+                                                <span style="font-size:12px; color:#94A3B8;">This is an automated message. Please do not reply.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>';
+
+    $plainIntro = $inviterRaw !== ''
+        ? "$inviterRaw invited you to join \"$storeRaw\" on RD Vendora as $roleLabel."
+        : "You have been invited to join \"$storeRaw\" on RD Vendora as $roleLabel.";
+    $plainText = "Hello,\n\n$plainIntro\n\n$roleDesc\n\nAccept your invitation:\n$inviteRaw\n\nThis invite expires in 7 days.\n\n– The RD Vendora Team";
+
+    return sendEmail($email, "You're invited to join $storeRaw on RD Vendora", $htmlBody, $plainText);
+}
 ?>

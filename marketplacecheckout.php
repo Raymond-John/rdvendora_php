@@ -450,26 +450,26 @@ if ($isAjax) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Checkout â€” RD Vendora Marketplace</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="<?= htmlspecialchars(function_exists('rdv_asset') ? rdv_asset('assets/css/marketplace.css') : 'assets/css/marketplace.css', ENT_QUOTES, 'UTF-8') ?>">
-    <script src="https://js.paystack.co/v1/inline.js"></script>
-    <script src="https://checkout.flutterwave.com/v3.js"></script>
-    <style>
-        :root {
-            --body-bg: <?= htmlspecialchars($body_bg_color) ?>;
-            --text-primary: <?= htmlspecialchars($text_primary_color) ?>;
-            --btn-bg: <?= htmlspecialchars($primary_btn_bg) ?>;
-            --btn-text: <?= htmlspecialchars($primary_btn_text) ?>;
-            --card-bg: <?= htmlspecialchars($card_bg_color) ?>;
-            --sidebar-bg: <?= htmlspecialchars($sidebar_bg_color) ?>;
-            --sidebar-text: <?= htmlspecialchars($sidebar_text_color) ?>;
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script src="https://checkout.flutterwave.com/v3.js"></script>
+  <style>
+    :root {
+      --body-bg: <?= htmlspecialchars($body_bg_color) ?>;
+      --text-primary: <?= htmlspecialchars($text_primary_color) ?>;
+      --btn-bg: <?= htmlspecialchars($primary_btn_bg) ?>;
+      --btn-text: <?= htmlspecialchars($primary_btn_text) ?>;
+      --card-bg: <?= htmlspecialchars($card_bg_color) ?>;
+      --sidebar-bg: <?= htmlspecialchars($sidebar_bg_color) ?>;
+      --sidebar-text: <?= htmlspecialchars($sidebar_text_color) ?>;
       --btn-bg-dark: <?= htmlspecialchars($btn_bg_dark) ?>;
       --btn-bg-darker: <?= htmlspecialchars($btn_bg_darker) ?>;
-        }
-    </style>
+    }
+  </style>
 </head>
 <body class="mp-page">
 <?php
@@ -483,13 +483,13 @@ require __DIR__ . '/includes/marketplace_header.php';
 
 <div class="mp-page-title">
   <h1>Checkout</h1>
-    </div>
+</div>
 
 <div class="mp-checkout-layout">
   <section class="mp-panel">
     <div class="mp-guest-note">
       Guest checkout is available. Enter your delivery details below â€” you do not need an RD Vendora account to complete this order.
-        </div>
+    </div>
     <form id="checkoutForm" novalidate>
       <h2 class="section-title" style="margin:0 0 1rem;font-size:1.05rem;">Delivery details</h2>
       <div class="mp-form-grid two">
@@ -504,38 +504,38 @@ require __DIR__ . '/includes/marketplace_header.php';
         <div class="mp-field">
           <label for="user_phone">Phone <span class="req">*</span></label>
           <input type="tel" id="user_phone" name="user_phone" autocomplete="tel" inputmode="tel" required>
-    </div>
+        </div>
         <div class="mp-field">
           <label for="user_state">State <span class="req">*</span></label>
           <select id="user_state" name="user_state" required>
             <option value="">Select state</option>
-                        <?php foreach ($nigeria_states as $state): ?>
-                            <option value="<?= htmlspecialchars($state) ?>"><?= htmlspecialchars($state) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+            <?php foreach ($nigeria_states as $state): ?>
+              <option value="<?= htmlspecialchars($state) ?>"><?= htmlspecialchars($state) ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
       </div>
       <div class="mp-field" style="margin-top:0.85rem">
         <label for="user_address">Delivery address <span class="req">*</span></label>
         <textarea id="user_address" name="user_address" autocomplete="street-address" required placeholder="Street, city, landmark"></textarea>
-                </div>
+      </div>
 
       <h2 style="margin:1.4rem 0 0.75rem;font-size:1.05rem;">Payment method</h2>
-                <div class="payment-methods">
+      <div class="payment-methods">
         <label class="mp-pay-option selected">
           <input type="radio" name="payment_method" value="paystack" checked>
           <span><strong>Paystack</strong><br><small style="color:var(--mp-muted)">Cards, bank &amp; USSD</small></span>
-                        </label>
+        </label>
         <label class="mp-pay-option">
           <input type="radio" name="payment_method" value="flutterwave">
           <span><strong>Flutterwave</strong><br><small style="color:var(--mp-muted)">Cards &amp; transfers</small></span>
-                        </label>
-                </div>
+        </label>
+      </div>
 
       <button type="submit" class="mp-btn mp-btn-primary mp-btn-block" id="placeOrderBtn">
         Continue to Payment
-                </button>
-            </form>
+      </button>
+    </form>
   </section>
 
   <aside class="mp-panel">
@@ -546,14 +546,14 @@ require __DIR__ . '/includes/marketplace_header.php';
     <div class="mp-order-panel-body" id="mpOrderPanelBody" hidden>
       <div id="cartSummary"></div>
       <div class="summary-details" id="totalSummary"></div>
-            </div>
+    </div>
     <div class="mp-order-panel-body mp-order-desktop" id="mpOrderDesktop">
       <h2 style="margin:0 0 0.75rem;font-size:1.05rem;">Order summary</h2>
       <div id="cartSummaryDesktop"></div>
       <div class="summary-details" id="totalSummaryDesktop"></div>
-            </div>
+    </div>
   </aside>
-            </div>
+</div>
 
 <style>
 @media (max-width: 899px) {
@@ -578,7 +578,7 @@ function getCart() {
   try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch (e) { return []; }
 }
 function escapeHtml(str) {
-    if (!str) return '';
+  if (!str) return '';
   return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
 }
 function showToast(msg, type) {
@@ -586,18 +586,18 @@ function showToast(msg, type) {
   alert(msg);
 }
 function getShippingFee(state) {
-    if (!state) return shippingDefault;
-    return shippingStates[state] ?? shippingDefault;
+  if (!state) return shippingDefault;
+  return shippingStates[state] ?? shippingDefault;
 }
 function calculateTotals(cart, state) {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = parseFloat(getShippingFee(state));
-    const tax = subtotal * (taxRate / 100);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const shipping = parseFloat(getShippingFee(state));
+  const tax = subtotal * (taxRate / 100);
   return { subtotal, shipping, tax, total: subtotal + shipping + tax };
 }
 function renderOrderSummary() {
-    const cart = getCart();
-    const state = document.getElementById('user_state')?.value || '';
+  const cart = getCart();
+  const state = document.getElementById('user_state')?.value || '';
   const totals = calculateTotals(cart, state);
   const toggleTotal = document.getElementById('summaryToggleTotal');
   if (toggleTotal) toggleTotal.textContent = 'â‚¦' + totals.total.toFixed(2);
@@ -613,9 +613,9 @@ function renderOrderSummary() {
     if (!summaryDiv || !totalDiv) return;
     if (!cart.length) {
       summaryDiv.innerHTML = `<div class="mp-empty-cart"><p>Your cart is empty.</p><a class="mp-btn mp-btn-outline" href="${(window.MP_URLS&&window.MP_URLS.home)||'marketplace'}">Start Shopping</a></div>`;
-        totalDiv.innerHTML = '';
-        document.getElementById('placeOrderBtn').disabled = true;
-        return;
+      totalDiv.innerHTML = '';
+      document.getElementById('placeOrderBtn').disabled = true;
+      return;
     }
     document.getElementById('placeOrderBtn').disabled = false;
     let html = '';
@@ -626,9 +626,9 @@ function renderOrderSummary() {
           <h3>${escapeHtml(item.name)}</h3>
           <div class="mp-cart-meta">${escapeHtml(item.store_name||'')} Â· Qty ${item.quantity}</div>
           <strong>â‚¦${(parseFloat(item.price)*item.quantity).toFixed(2)}</strong>
-                    </div>
+        </div>
       </div>`;
-        });
+    });
     summaryDiv.innerHTML = html;
     totalDiv.innerHTML = `
       <div class="mp-summary-row"><span>Subtotal</span><span>â‚¦${totals.subtotal.toFixed(2)}</span></div>
@@ -656,128 +656,128 @@ document.querySelectorAll('.mp-pay-option').forEach(m => {
 });
 
 document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const cart = getCart();
+  e.preventDefault();
+  const cart = getCart();
   if (!cart.length) { showToast('Your cart is empty', 'error'); return; }
-    
-    const userName = document.getElementById('user_name').value.trim();
-    const userEmail = document.getElementById('user_email').value.trim();
-    const userPhone = document.getElementById('user_phone').value.trim();
-    const userAddress = document.getElementById('user_address').value.trim();
-    const userState = document.getElementById('user_state').value.trim();
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    
-    if (!userName || !userEmail || !userPhone || !userAddress || !userState) {
+
+  const userName = document.getElementById('user_name').value.trim();
+  const userEmail = document.getElementById('user_email').value.trim();
+  const userPhone = document.getElementById('user_phone').value.trim();
+  const userAddress = document.getElementById('user_address').value.trim();
+  const userState = document.getElementById('user_state').value.trim();
+  const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+
+  if (!userName || !userEmail || !userPhone || !userAddress || !userState) {
     showToast('Please fill all required fields', 'error'); return;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(userEmail)) {
+  }
+  if (!/^\S+@\S+\.\S+$/.test(userEmail)) {
     showToast('Please enter a valid email address', 'error'); return;
-    }
-    
-    const btn = document.getElementById('placeOrderBtn');
-    btn.disabled = true;
+  }
+
+  const btn = document.getElementById('placeOrderBtn');
+  btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating orderâ€¦';
-    
-    try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'create_order');
-        formData.append('cart', JSON.stringify(cart));
-        formData.append('user_name', userName);
-        formData.append('user_email', userEmail);
-        formData.append('user_phone', userPhone);
-        formData.append('user_address', userAddress);
-        formData.append('user_state', userState);
-        formData.append('payment_method', paymentMethod);
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append('action', 'create_order');
+    formData.append('cart', JSON.stringify(cart));
+    formData.append('user_name', userName);
+    formData.append('user_email', userEmail);
+    formData.append('user_phone', userPhone);
+    formData.append('user_address', userAddress);
+    formData.append('user_state', userState);
+    formData.append('payment_method', paymentMethod);
     formData.append('ajax', '1');
-        
-        const res = await fetch(window.location.href, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message);
-        
-        const { orders, transaction_ref, amount, user_email } = data;
-        const orderIds = orders.map(o => o.order_id);
-        
-        if (paymentMethod === 'paystack') {
-            const handler = PaystackPop.setup({
-                key: '<?= PAYSTACK_PUBLIC_KEY ?>',
-                email: user_email,
-                amount: Math.round(amount * 100),
-                ref: transaction_ref,
-                currency: 'NGN',
-                callback: () => verifyPayment(transaction_ref, 'paystack', orderIds),
-                onClose: () => {
-                    showToast('Transaction cancelled', 'error');
-                    btn.disabled = false;
+
+    const res = await fetch(window.location.href, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString()
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    const { orders, transaction_ref, amount, user_email } = data;
+    const orderIds = orders.map(o => o.order_id);
+
+    if (paymentMethod === 'paystack') {
+      const handler = PaystackPop.setup({
+        key: '<?= PAYSTACK_PUBLIC_KEY ?>',
+        email: user_email,
+        amount: Math.round(amount * 100),
+        ref: transaction_ref,
+        currency: 'NGN',
+        callback: () => verifyPayment(transaction_ref, 'paystack', orderIds),
+        onClose: () => {
+          showToast('Transaction cancelled', 'error');
+          btn.disabled = false;
           btn.innerHTML = 'Continue to Payment';
-                }
-            });
-            handler.openIframe();
+        }
+      });
+      handler.openIframe();
     } else {
-            FlutterwaveCheckout({
-                public_key: '<?= FLUTTERWAVE_PUBLIC_KEY ?>',
-                tx_ref: transaction_ref,
-                amount: amount,
-                currency: 'NGN',
-                payment_options: 'card,ussd,banktransfer,mobilemoney',
-                customer: { email: user_email, phone_number: userPhone, name: userName },
+      FlutterwaveCheckout({
+        public_key: '<?= FLUTTERWAVE_PUBLIC_KEY ?>',
+        tx_ref: transaction_ref,
+        amount: amount,
+        currency: 'NGN',
+        payment_options: 'card,ussd,banktransfer,mobilemoney',
+        customer: { email: user_email, phone_number: userPhone, name: userName },
         customizations: { title: 'RD Vendora', description: `Marketplace order #${transaction_ref}` },
-                callback: (resp) => {
+        callback: (resp) => {
           if (resp.status === 'successful') verifyPayment(transaction_ref, 'flutterwave', orderIds);
           else {
-                        showToast('Payment failed or cancelled', 'error');
-                        btn.disabled = false;
+            showToast('Payment failed or cancelled', 'error');
+            btn.disabled = false;
             btn.innerHTML = 'Continue to Payment';
-                    }
-                },
-                onclose: () => {
-                    showToast('Payment modal closed', 'error');
-                    btn.disabled = false;
+          }
+        },
+        onclose: () => {
+          showToast('Payment modal closed', 'error');
+          btn.disabled = false;
           btn.innerHTML = 'Continue to Payment';
-                }
-            });
         }
-    } catch (err) {
-        showToast(err.message, 'error');
-        btn.disabled = false;
-    btn.innerHTML = 'Continue to Payment';
+      });
     }
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = 'Continue to Payment';
+  }
 });
 
 async function verifyPayment(transactionRef, paymentMethod, orderIds) {
-    const btn = document.getElementById('placeOrderBtn');
+  const btn = document.getElementById('placeOrderBtn');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying paymentâ€¦';
-    btn.disabled = true;
-    try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'verify_payment');
-        formData.append('transaction_ref', transactionRef);
-        formData.append('payment_method', paymentMethod);
-        formData.append('order_ids', JSON.stringify(orderIds));
-        formData.append('ajax', '1');
-        const res = await fetch(window.location.href, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        });
-        const data = await res.json();
-        if (data.success) {
+  btn.disabled = true;
+  try {
+    const formData = new URLSearchParams();
+    formData.append('action', 'verify_payment');
+    formData.append('transaction_ref', transactionRef);
+    formData.append('payment_method', paymentMethod);
+    formData.append('order_ids', JSON.stringify(orderIds));
+    formData.append('ajax', '1');
+    const res = await fetch(window.location.href, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString()
+    });
+    const data = await res.json();
+    if (data.success) {
       showToast('Payment successful! Redirectingâ€¦', 'success');
-            localStorage.removeItem(CART_KEY);
-            window.location.href = data.redirect;
+      localStorage.removeItem(CART_KEY);
+      window.location.href = data.redirect;
     } else throw new Error(data.message);
-    } catch (err) {
-        showToast('Verification failed: ' + err.message, 'error');
-        btn.disabled = false;
+  } catch (err) {
+    showToast('Verification failed: ' + err.message, 'error');
+    btn.disabled = false;
     btn.innerHTML = 'Continue to Payment';
   }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    renderOrderSummary();
+  renderOrderSummary();
   if (window.MPCart) window.MPCart.updateCartCount();
 });
 </script>

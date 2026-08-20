@@ -266,149 +266,86 @@ $heroImage = $hero_image;
 if ($heroImage === '' && !empty($banners[0]['image'])) {
     $heroImage = $banners[0]['image'];
 }
-
-$productCount = 0;
-foreach ($storeProducts as $prods) {
-    $productCount += count($prods);
-}
-$storeCount = count($stores);
-$catCount = count($allCategories);
 ?>
 
-<main class="mp-main">
-  <!-- 1. HERO: brand-first composition -->
-  <section class="mp-hero mp-hero--wow" aria-label="RD Vendora Marketplace">
-    <div class="mp-hero-atmosphere" aria-hidden="true"></div>
-    <div class="mp-hero-inner">
-      <div class="mp-hero-copy mp-reveal">
-        <p class="mp-brand-mark">RD Vendora</p>
-        <h1><?= htmlspecialchars($hero_title) ?></h1>
-        <p class="mp-hero-lead"><?= htmlspecialchars($hero_subtitle) ?></p>
-        <div class="mp-hero-actions">
-          <a class="mp-btn mp-btn-primary mp-btn-lg" href="<?= htmlspecialchars($heroBtnHref, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($hero_btn_text) ?></a>
-          <a class="mp-btn mp-btn-ghost mp-btn-lg" href="#mp-categories">Browse categories</a>
-        </div>
+<section class="mp-hero" aria-label="Marketplace highlights">
+  <div class="mp-hero-inner">
+    <div>
+      <div class="mp-hero-kicker">RD Vendora Marketplace</div>
+      <h1><?= htmlspecialchars($hero_title) ?></h1>
+      <p><?= htmlspecialchars($hero_subtitle) ?></p>
+      <div class="mp-hero-actions">
+        <a class="mp-btn mp-btn-primary" href="<?= htmlspecialchars($heroBtnHref, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($hero_btn_text) ?></a>
+        <a class="mp-btn mp-btn-ghost" href="#mp-categories">Browse categories</a>
       </div>
-      <div class="mp-hero-stage mp-reveal" aria-hidden="<?= $heroImage === '' ? 'true' : 'false' ?>">
-        <?php if ($heroImage !== ''): ?>
-          <div class="mp-hero-frame">
-            <img src="<?= htmlspecialchars($heroImage, ENT_QUOTES, 'UTF-8') ?>" alt="" width="720" height="480">
-          </div>
+    </div>
+    <?php if ($heroImage !== ''): ?>
+    <div class="mp-hero-visual">
+      <img src="<?= htmlspecialchars($heroImage, ENT_QUOTES, 'UTF-8') ?>" alt="" width="640" height="400">
+    </div>
+    <?php else: ?>
+    <div class="mp-hero-visual" aria-hidden="true">
+      <img src="<?= htmlspecialchars(function_exists('rdv_asset') ? rdv_asset('assets/brand-logo.png') : 'assets/brand-logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="" style="object-fit:contain;background:#fff;padding:2rem;">
+    </div>
+    <?php endif; ?>
+  </div>
+</section>
+
+<div class="mp-flash" role="status">
+  <i class="fas fa-bolt" aria-hidden="true"></i>
+  <strong>Today’s marketplace picks</strong>
+  <span class="mp-countdown" id="mpCountdown">04:37:00</span>
+</div>
+
+<?php if (!empty($stores) && $search === ''): ?>
+<div class="mp-section">
+  <div class="mp-section-head">
+    <h2>Featured stores</h2>
+    <a href="#mp-products">Shop products</a>
+  </div>
+  <div class="mp-stores">
+    <?php foreach ($stores as $store): ?>
+      <a class="mp-store-chip" href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">
+        <?php if (!empty($store['logo_path'])): ?>
+          <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">
         <?php else: ?>
-          <div class="mp-hero-frame mp-hero-frame--brand">
-            <img src="<?= htmlspecialchars(function_exists('rdv_asset') ? rdv_asset('assets/brand-logo.png') : 'assets/brand-logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="RD Vendora">
-            <span>Marketplace</span>
-          </div>
+          <div class="mp-store-fallback"><i class="fas fa-store"></i></div>
         <?php endif; ?>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2. TRUST -->
-  <section class="mp-trust" aria-label="Why shop here">
-    <div class="mp-trust-track">
-      <div class="mp-trust-item"><i class="fas fa-shield-halved" aria-hidden="true"></i><div><strong>Secure payments</strong><span>Paystack &amp; Flutterwave</span></div></div>
-      <div class="mp-trust-item"><i class="fas fa-store" aria-hidden="true"></i><div><strong>Verified sellers</strong><span>Independent businesses</span></div></div>
-      <div class="mp-trust-item"><i class="fas fa-truck-fast" aria-hidden="true"></i><div><strong>Nationwide delivery</strong><span>Ships across Nigeria</span></div></div>
-      <div class="mp-trust-item"><i class="fas fa-user-check" aria-hidden="true"></i><div><strong>Guest checkout</strong><span>No account required</span></div></div>
-    </div>
-  </section>
-
-  <!-- 3. CATEGORIES -->
-  <?php if (!empty($allCategories)): ?>
-  <section class="mp-block" id="mp-categories-block">
-    <div class="mp-block-head mp-reveal">
-      <div>
-        <p class="mp-eyebrow">Explore</p>
-        <h2>Shop by category</h2>
-        <p class="mp-block-sub">Focus the marketplace on what you need — <?= (int)$catCount ?> categories live now.</p>
-      </div>
-    </div>
-    <div class="mp-cat-showcase" id="mp-categories">
-      <a class="mp-cat-tile <?= $selectedCategory === '' ? 'is-active' : '' ?>" href="<?= htmlspecialchars(rdv_marketplace_url(), ENT_QUOTES, 'UTF-8') ?>">
-        <i class="fas fa-border-all" aria-hidden="true"></i>
-        <span>All</span>
+        <strong><?= htmlspecialchars($store['store_name']) ?></strong>
+        <span><?= htmlspecialchars((string)($store['plan'] ?? 'Store')) ?></span>
       </a>
-      <?php foreach ($allCategories as $cat): ?>
-      <a class="mp-cat-tile <?= $selectedCategory === $cat ? 'is-active' : '' ?>" href="<?= htmlspecialchars(rdv_marketplace_url('', ['category' => $cat]), ENT_QUOTES, 'UTF-8') ?>">
-        <i class="fas fa-tag" aria-hidden="true"></i>
-        <span><?= htmlspecialchars($cat) ?></span>
-      </a>
-      <?php endforeach; ?>
-    </div>
-  </section>
-  <?php endif; ?>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
 
-  <!-- 4. STORES -->
-  <?php if (!empty($stores) && $search === '' && $selectedCategory === ''): ?>
-  <section class="mp-block mp-block--soft">
-    <div class="mp-block-head mp-reveal">
-      <div>
-        <p class="mp-eyebrow">Sellers</p>
-        <h2>Featured stores</h2>
-        <p class="mp-block-sub"><?= (int)$storeCount ?> active store<?= $storeCount === 1 ? '' : 's' ?> ready to shop.</p>
-      </div>
-      <a class="mp-text-link" href="#mp-products">See products <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+<div class="mp-toolbar" id="mp-products">
+  <h2>
+    <?php if ($search !== ''): ?>
+      Results for “<?= htmlspecialchars($search) ?>”
+    <?php elseif ($selectedCategory !== ''): ?>
+      <?= htmlspecialchars($selectedCategory) ?>
+    <?php else: ?>
+      Popular products
+    <?php endif; ?>
+  </h2>
+  <div class="mp-toolbar-actions">
+    <button type="button" class="mp-chip-btn" data-open="filter"><i class="fas fa-sliders-h" aria-hidden="true"></i> Filter</button>
+    <button type="button" class="mp-chip-btn" data-open="sort"><i class="fas fa-arrow-down-wide-short" aria-hidden="true"></i> Sort</button>
+    <div class="mp-sort-desktop">
+      <label class="mp-sr-only" for="mpSortDesktop">Sort products</label>
+      <select id="mpSortDesktop">
+        <option value="featured">Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name-asc">Name: A–Z</option>
+      </select>
     </div>
-    <div class="mp-stores mp-stores--wow">
-      <?php foreach ($stores as $i => $store): ?>
-        <a class="mp-store-card mp-reveal" style="--d: <?= min($i, 8) * 40 ?>ms" href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">
-          <?php if (!empty($store['logo_path'])): ?>
-            <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">
-          <?php else: ?>
-            <div class="mp-store-fallback"><i class="fas fa-store"></i></div>
-          <?php endif; ?>
-          <div class="mp-store-card-copy">
-            <strong><?= htmlspecialchars($store['store_name']) ?></strong>
-            <span><?= htmlspecialchars((string)($store['plan'] ?? 'Store')) ?> seller</span>
-          </div>
-          <span class="mp-store-go">Visit</span>
-        </a>
-      <?php endforeach; ?>
-    </div>
-  </section>
-  <?php endif; ?>
-
-  <!-- 5. PRODUCTS -->
-  <section class="mp-block" id="mp-products">
-    <div class="mp-block-head mp-reveal">
-      <div>
-        <p class="mp-eyebrow">Catalogue</p>
-        <h2>
-          <?php if ($search !== ''): ?>
-            Results for “<?= htmlspecialchars($search) ?>”
-          <?php elseif ($selectedCategory !== ''): ?>
-            <?= htmlspecialchars($selectedCategory) ?>
-          <?php else: ?>
-            Curated for you
-          <?php endif; ?>
-        </h2>
-        <p class="mp-block-sub">
-          <?php if ($search !== ''): ?>
-            Matching products across the marketplace.
-          <?php elseif ($selectedCategory !== ''): ?>
-            Filtered to this category. Clear anytime.
-          <?php else: ?>
-            Fresh listings from stores on RD Vendora.
-          <?php endif; ?>
-        </p>
-      </div>
-      <div class="mp-toolbar-actions">
-        <button type="button" class="mp-chip-btn" data-open="filter"><i class="fas fa-sliders-h" aria-hidden="true"></i> Filter</button>
-        <button type="button" class="mp-chip-btn" data-open="sort"><i class="fas fa-arrow-down-wide-short" aria-hidden="true"></i> Sort</button>
-        <div class="mp-sort-desktop">
-          <label class="mp-sr-only" for="mpSortDesktop">Sort products</label>
-          <select id="mpSortDesktop">
-            <option value="featured">Featured</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="name-asc">Name: A–Z</option>
-          </select>
-        </div>
-      </div>
-    </div>
+  </div>
+</div>
 
 <?php if ($search !== ''): ?>
+  <div class="mp-section">
     <div class="mp-product-grid" id="mpProductGrid" data-sortable>
       <?php if (empty($searchResults)): ?>
         <div class="mp-empty" style="grid-column:1/-1">
@@ -424,30 +361,24 @@ $catCount = count($allCategories);
         endforeach; ?>
       <?php endif; ?>
     </div>
+  </div>
 <?php else: ?>
   <?php
   $hasProducts = false;
-  $collectionIndex = 0;
   foreach ($stores as $store):
     $prods = $storeProducts[$store['store_pk']] ?? [];
     if (empty($prods)) continue;
     $hasProducts = true;
-    $collectionIndex++;
   ?>
-    <div class="mp-collection <?= $collectionIndex % 2 === 0 ? 'mp-collection--alt' : '' ?>">
-      <div class="mp-collection-head">
-        <div class="mp-collection-identity">
+    <div class="mp-section">
+      <div class="mp-section-head">
+        <h2>
           <?php if (!empty($store['logo_path'])): ?>
             <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">
-          <?php else: ?>
-            <span class="mp-collection-fallback"><i class="fas fa-store"></i></span>
           <?php endif; ?>
-          <div>
-            <h3><?= htmlspecialchars($store['store_name']) ?></h3>
-            <p><?= count($prods) ?> product<?= count($prods) === 1 ? '' : 's' ?> · <?= htmlspecialchars((string)($store['plan'] ?? 'Store')) ?></p>
-          </div>
-        </div>
-        <a class="mp-text-link" href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">Visit store <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          <?= htmlspecialchars($store['store_name']) ?>
+        </h2>
+        <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">Visit store</a>
       </div>
       <div class="mp-product-grid" data-sortable>
         <?php foreach ($prods as $p):
@@ -474,51 +405,25 @@ $catCount = count($allCategories);
     </div>
   <?php endif; ?>
 <?php endif; ?>
-  </section>
 
-  <!-- 6. PROMOS -->
-  <?php if ($promo1_enabled == '1' || $promo2_enabled == '1'): ?>
-  <section class="mp-block">
-    <div class="mp-block-head mp-reveal">
-      <div>
-        <p class="mp-eyebrow">Highlights</p>
-        <h2>Marketplace offers</h2>
-      </div>
-    </div>
-    <div class="mp-promo-grid">
-      <?php if ($promo1_enabled == '1'): ?>
-      <article class="mp-promo mp-promo--primary">
-        <h3><?= htmlspecialchars($promo1_title) ?></h3>
-        <p><?= htmlspecialchars($promo1_subtitle) ?></p>
-        <a href="<?= htmlspecialchars($promo1_link) ?>">Shop now</a>
-      </article>
-      <?php endif; ?>
-      <?php if ($promo2_enabled == '1'): ?>
-      <article class="mp-promo mp-promo--gold">
-        <h3><?= htmlspecialchars($promo2_title) ?></h3>
-        <p><?= htmlspecialchars($promo2_subtitle) ?></p>
-        <a href="<?= htmlspecialchars($promo2_link) ?>">Explore</a>
-      </article>
-      <?php endif; ?>
-    </div>
-  </section>
+<?php if ($promo1_enabled == '1' || $promo2_enabled == '1'): ?>
+<div class="mp-promo-grid">
+  <?php if ($promo1_enabled == '1'): ?>
+  <div class="mp-promo">
+    <h3><?= htmlspecialchars($promo1_title) ?></h3>
+    <p><?= htmlspecialchars($promo1_subtitle) ?></p>
+    <a href="<?= htmlspecialchars($promo1_link) ?>">Shop now</a>
+  </div>
   <?php endif; ?>
-
-  <!-- 7. GUEST ASSURANCE -->
-  <section class="mp-assurance" aria-label="How shopping works">
-    <div class="mp-assurance-inner mp-reveal">
-      <p class="mp-eyebrow mp-eyebrow--light">Simple shopping</p>
-      <h2>Open → Browse → Cart → Checkout</h2>
-      <p>No account wall. Find what you need, add it to your cart, and pay securely as a guest.</p>
-      <ol class="mp-steps">
-        <li><span>1</span>Browse products &amp; stores</li>
-        <li><span>2</span>Add items to cart</li>
-        <li><span>3</span>Checkout &amp; pay</li>
-      </ol>
-      <a class="mp-btn mp-btn-primary" href="#mp-products">Continue shopping</a>
-    </div>
-  </section>
-</main>
+  <?php if ($promo2_enabled == '1'): ?>
+  <div class="mp-promo" style="background:linear-gradient(135deg,#12305f,#0a3d91)">
+    <h3><?= htmlspecialchars($promo2_title) ?></h3>
+    <p><?= htmlspecialchars($promo2_subtitle) ?></p>
+    <a href="<?= htmlspecialchars($promo2_link) ?>">Explore</a>
+  </div>
+  <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div class="mp-sheet-overlay" id="mpSheetOverlay" hidden></div>
 <div class="mp-sheet" id="mpFilterSheet" hidden>
@@ -539,6 +444,18 @@ $catCount = count($allCategories);
 <?php require __DIR__ . '/includes/marketplace_footer.php'; ?>
 <script>
 (function () {
+  var end = Date.now() + (4 * 3600 + 37 * 60) * 1000;
+  function tick() {
+    var left = Math.max(0, end - Date.now());
+    var h = Math.floor(left / 3600000);
+    var m = Math.floor((left % 3600000) / 60000);
+    var s = Math.floor((left % 60000) / 1000);
+    var el = document.getElementById('mpCountdown');
+    if (el) el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+
   var wishlist = new Set();
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-wish]');
@@ -593,20 +510,6 @@ $catCount = count($allCategories);
   });
   var desk = document.getElementById('mpSortDesktop');
   if (desk) desk.addEventListener('change', function () { sortGrids(desk.value); });
-
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) {
-          en.target.classList.add('is-in');
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.mp-reveal, .mp-store-card, .mp-card').forEach(function (el) { io.observe(el); });
-  } else {
-    document.querySelectorAll('.mp-reveal, .mp-store-card, .mp-card').forEach(function (el) { el.classList.add('is-in'); });
-  }
 })();
 </script>
 </body>

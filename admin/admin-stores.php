@@ -33,7 +33,7 @@ error_log("Admin stores: updated $updatedCount expired subscriptions");
 function sendExpiredSubscriptionEmailImproved($user_id, $plan, $end_date, $conn, $storeInfo = null) {
     // If storeInfo not provided, fetch it
     if (!$storeInfo) {
-        $stmt = $conn->prepare("SELECT u.email, u.fullname, s.store_name FROM users u JOIN stores s ON u.id = s.user_id WHERE u.id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT u.email, u.full_name AS name, s.store_name FROM users u JOIN stores s ON u.id = s.user_id WHERE u.id = ? LIMIT 1");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();

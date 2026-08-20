@@ -1301,11 +1301,20 @@ $conn->close();
 
     /* ── RESPONSIVE ── */
     @media(max-width: 768px) {
-      .hero-carousel { height: auto; min-height: 280px; }
-      .hero-slide-inner { flex-direction: column; padding: 24px 20px 50px; text-align: center; justify-content: center; }
+      .hero-carousel { height: auto; min-height: 320px; }
+      .hero-slide-inner { flex-direction: column; padding: 28px 20px 56px; text-align: center; justify-content: center; position: relative; z-index: 1; }
       .hero-text h1 { font-size: 26px; }
       .hero-text p { font-size: 13px; }
       .hero-visual { display: none; }
+      .hero-slide.has-mobile-bg {
+        background-color: var(--btn-bg-dark) !important;
+        background-image:
+          linear-gradient(160deg, color-mix(in srgb, var(--btn-bg-darker) 82%, transparent) 0%, color-mix(in srgb, var(--btn-bg-dark) 72%, transparent) 45%, color-mix(in srgb, var(--btn-bg) 68%, transparent) 100%),
+          var(--hero-mobile-img) !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-repeat: no-repeat !important;
+      }
       .hero-cta-row { justify-content: center; }
       .hero-badges { justify-content: center; }
       .promo-grid { grid-template-columns: 1fr; }
@@ -1315,6 +1324,17 @@ $conn->close();
       .store-card { width: 130px; padding: 12px; }
       .modal-body { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
       .modal-container { max-width: 100%; max-height: 90vh; }
+    }
+
+    /* Fallback for browsers without color-mix */
+    @supports not (background: color-mix(in srgb, #000 50%, transparent)) {
+      @media(max-width: 768px) {
+        .hero-slide.has-mobile-bg {
+          background-image:
+            linear-gradient(160deg, rgba(10, 46, 24, 0.82) 0%, rgba(22, 101, 52, 0.74) 50%, rgba(39, 168, 90, 0.68) 100%),
+            var(--hero-mobile-img) !important;
+        }
+      }
     }
   </style>
 </head>
@@ -1442,6 +1462,7 @@ if ($hero_enabled) {
     }
     $slides[] = [
       'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 45%, var(--btn-bg) 100%)',
+      'bg_image' => !empty($hs['image']) ? (function_exists('rdv_asset') ? rdv_asset($hs['image']) : $hs['image']) : '',
       'tag' => '<i class="fas '.$hs['icon'].'"></i> ' . htmlspecialchars($hs['tag']),
       'title' => htmlspecialchars($hs['title']),
       'desc' => nl2br(htmlspecialchars($hs['subtitle'])),
@@ -1458,6 +1479,7 @@ if ($hero_enabled) {
     foreach ($banners as $banner) {
       $slides[] = [
         'bg' => 'linear-gradient(120deg, var(--btn-bg-darker) 0%, var(--btn-bg-dark) 50%, var(--btn-bg) 100%)',
+        'bg_image' => !empty($banner['image']) ? $banner['image'] : '',
         'tag' => '<i class="fas fa-crown"></i> ' . htmlspecialchars($banner['store_name']),
         'title' => htmlspecialchars($banner['title'] ?? 'Special Offer'),
         'desc' => htmlspecialchars($banner['description'] ?? ''),
@@ -1473,8 +1495,14 @@ if ($hero_enabled) {
 ?>
 <?php if (!empty($slides)): ?>
 <div class="hero-carousel" id="heroCarousel">
-  <?php foreach ($slides as $index => $slide): ?>
-    <div class="hero-slide <?= $index === 0 ? 'active' : '' ?>" style="background: <?= $slide['bg'] ?>;">
+  <?php foreach ($slides as $index => $slide):
+    $slideStyle = 'background: ' . $slide['bg'] . ';';
+    $hasMobileBg = !empty($slide['bg_image']);
+    if ($hasMobileBg) {
+      $slideStyle .= '--hero-mobile-img: url(' . htmlspecialchars(json_encode($slide['bg_image'], JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8') . ');';
+    }
+  ?>
+    <div class="hero-slide <?= $index === 0 ? 'active' : '' ?><?= $hasMobileBg ? ' has-mobile-bg' : '' ?>" style="<?= $slideStyle ?>">
       <div class="hero-slide-inner">
         <div class="hero-text">
           <div class="hero-tag <?= strpos($slide['tag'], 'Flash') !== false ? 'flash-tag' : '' ?>"><?= $slide['tag'] ?></div>

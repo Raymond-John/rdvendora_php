@@ -400,7 +400,7 @@ if ($isSuperAdmin) {
 // Fetch all admin accounts (only for super admin)
 $admins = [];
 if ($isSuperAdmin) {
-    $adminsQuery = $conn->query("SELECT u.id, u.fullname, u.email, u.role_id, r.name AS role_name, u.created_at 
+    $adminsQuery = $conn->query("SELECT u.id, u.full_name AS name, u.email, u.role_id, r.name AS role_name, u.created_at 
                                  FROM users u 
                                  LEFT JOIN roles r ON u.role_id = r.id 
                                  WHERE u.is_admin = 1 

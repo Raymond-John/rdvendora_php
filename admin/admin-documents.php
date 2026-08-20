@@ -133,7 +133,7 @@ $users = [];
 $query = "
     SELECT 
         u.id as user_id, 
-        u.fullname, 
+        u.full_name AS name, 
         u.email,
         s.id as store_id,
         s.store_name,
@@ -145,7 +145,7 @@ $query = "
         WHERE cd.user_id = u.id 
         AND cd.status IN ('pending', 'rejected')
     )
-    ORDER BY u.fullname
+    ORDER BY u.full_name
 ";
 $result = $conn->query($query);
 if ($result) {

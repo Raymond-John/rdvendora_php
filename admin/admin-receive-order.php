@@ -70,7 +70,7 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $limit = 20;
 $offset = ($page - 1) * $limit;
 
-// Base SQL – only u.fullname from users; email and phone come from orders table
+// Base SQL – only u.full_name from users; email and phone come from orders table
 $sql = "SELECT o.*, s.store_name, u.fullname as user_fullname 
         FROM orders o
         LEFT JOIN stores s ON o.store_id = s.id

@@ -17,7 +17,7 @@ if (!adminHasPermission('orders', $conn)) {
 }
 
 $id = (int)$_GET['id'];
-$stmt = $conn->prepare("SELECT o.*, s.store_name, u.fullname as customer_name 
+$stmt = $conn->prepare("SELECT o.*, s.store_name, u.full_name as customer_name 
                         FROM orders o 
                         LEFT JOIN stores s ON o.store_id = s.id 
                         LEFT JOIN users u ON o.user_id = u.id 

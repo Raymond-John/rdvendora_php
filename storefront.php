@@ -188,13 +188,26 @@ function filterUrl($cat, $storeId, $search) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <?php require __DIR__ . '/includes/adsense_head.php'; ?>
-    <title><?= htmlspecialchars($store['store_name']) ?> – Official Store</title>
+    <title><?= htmlspecialchars($store['store_name']) ?> | RD Vendora</title>
+    <meta name="description" content="<?= htmlspecialchars(mb_substr(trim(strip_tags((string) ($store['description'] ?? ''))), 0, 155) ?: ($store['store_name'] . ' on RD Vendora'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="canonical" href="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:url" content="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>">
-    <meta property="og:title" content="<?= htmlspecialchars($store['store_name'] . ' – Official Store', ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($store['store_name'] . ' | RD Vendora', ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:description" content="<?= htmlspecialchars(mb_substr(trim(strip_tags((string) ($store['description'] ?? ''))), 0, 155) ?: ($store['store_name'] . ' storefront'), ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:type" content="website">
+    <?php if (!empty($store['logo_path'])): ?>
+    <meta property="og:image" content="<?= htmlspecialchars((preg_match('#^https?://#i', $store['logo_path']) ? $store['logo_path'] : (rtrim(APP_URL, '/') . '/' . ltrim($store['logo_path'], '/'))), ENT_QUOTES, 'UTF-8') ?>">
+    <?php endif; ?>
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="<?= htmlspecialchars($store['store_name'] . ' – Official Store', ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="twitter:title" content="<?= htmlspecialchars($store['store_name'] . ' | RD Vendora', ENT_QUOTES, 'UTF-8') ?>">
+    <script type="application/ld+json"><?= json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'Store',
+        'name' => $store['store_name'],
+        'url' => $storeCanonical,
+        'description' => trim(strip_tags((string) ($store['description'] ?? ''))),
+        'image' => !empty($store['logo_path']) ? (preg_match('#^https?://#i', $store['logo_path']) ? $store['logo_path'] : (rtrim(APP_URL, '/') . '/' . ltrim($store['logo_path'], '/'))) : null,
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* ========== DYNAMIC STYLES ========== */

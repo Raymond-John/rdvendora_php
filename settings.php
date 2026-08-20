@@ -1207,7 +1207,7 @@ $conn->close();
                                     <label class="form-label" for="storeSlugInput">Store URL slug</label>
                                     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.35rem;">
                                         <span style="color:var(--text-muted);font-size:0.875rem;"><?= htmlspecialchars(rtrim((string)(defined('APP_URL')?APP_URL:'https://rdvendora.com'), '/') . '/', ENT_QUOTES, 'UTF-8') ?></span>
-                                        <input type="text" name="store_slug" id="storeSlugInput" class="form-input" value="<?= htmlspecialchars($settingsSlug, ENT_QUOTES, 'UTF-8') ?>" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" autocomplete="off" style="max-width:280px;" <?= (!$hasSubscription) ? 'disabled' : '' ?>>
+                                        <input type="text" id="storeSlugInput" class="form-input" value="<?= htmlspecialchars($settingsSlug, ENT_QUOTES, 'UTF-8') ?>" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" autocomplete="off" style="max-width:280px;" <?= $hasSubscription ? 'name="store_slug"' : 'disabled' ?>>
                                     </div>
                                     <p id="storeSlugStatus" style="font-size:0.8125rem;margin-top:0.5rem;color:var(--text-muted);">Only letters, numbers and hyphens are allowed.</p>
                                 </div>

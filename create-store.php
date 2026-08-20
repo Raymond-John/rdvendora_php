@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="store-preview">
                         <h4>Your Store URL Preview</h4>
                         <div class="subdomain-display">
-                            <span class="name" id="subdomainName">yourstore</span><span class="domain">.<?= htmlspecialchars(parse_url(rdv_app_base_url(), PHP_URL_HOST) ?: 'rdvendora.com', ENT_QUOTES, 'UTF-8') ?> → path preview below</span>
+                            <span class="domain"><?= htmlspecialchars(rtrim(rdv_app_base_url(), '/') . '/', ENT_QUOTES, 'UTF-8') ?></span><span class="name" id="subdomainName">yourstore</span>
                         </div>
                     </div>
                 </div>
@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h4>Store Summary</h4>
                         <div style="display:flex;flex-direction:column;gap:0.75rem">
                             <div><span style="color:var(--text-muted)">Store Name</span> <strong id="summaryName">-</strong></div>
-                            <div><span style="color:var(--text-muted)">URL</span> <strong id="summaryUrl">yourstore.<?= htmlspecialchars(rdv_store_base_domain(), ENT_QUOTES, 'UTF-8') ?></strong></div>
+                            <div><span style="color:var(--text-muted)">URL</span> <strong id="summaryUrl"><?= htmlspecialchars(rtrim(rdv_app_base_url(), '/') . '/yourstore', ENT_QUOTES, 'UTF-8') ?></strong></div>
                             <div><span style="color:var(--text-muted)">Category</span> <strong id="summaryCategory">-</strong></div>
                         </div>
                     </div>
@@ -272,11 +272,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function updatePreview() {
             const name = document.getElementById('storeNameInput').value;
-            let sub = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            let sub = name.toLowerCase().replace(/[''`]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
             if (!sub) sub = 'yourstore';
             document.getElementById('subdomainName').innerText = sub;
             document.getElementById('summaryName').innerText = name || '-';
-            document.getElementById('summaryUrl').innerText = sub + '.<?= htmlspecialchars(rdv_store_base_domain(), ENT_QUOTES, 'UTF-8') ?>';
+            document.getElementById('summaryUrl').innerText = <?= json_encode(rtrim(rdv_app_base_url(), '/') . '/', JSON_UNESCAPED_SLASHES) ?> + sub;
         }
 
         function selectCategory(el) {

@@ -1,50 +1,37 @@
-# Store subdomains (Hostinger)
+# Public store URLs (path mode)
 
-## DNS
+Stores use clean URLs on the main domain:
 
-In Hostinger DNS for `rdvendora.com`, add a wildcard A record:
+`https://rdvendora.com/{store-slug}`
 
-| Type | Name | Points to |
-|------|------|-----------|
-| A | `*` | Same IP as `rdvendora.com` (your Hostinger web IP) |
+Example: `https://rdvendora.com/john-fashion`
 
-Keep existing records for `@` (apex) and `www`.
+## Hostinger
 
-## SSL
-
-In Hostinger SSL / Cloudflare / Let's Encrypt, enable a **wildcard** certificate for:
-
-- `rdvendora.com`
-- `*.rdvendora.com`
-
-PHP cannot issue SSL. Without the wildcard cert, browsers will warn on `https://slug.rdvendora.com`.
-
-## Application
-
-Set in `.env` on production:
+1. Deploy / pull the latest code to `public_html` (including `.htaccess`).
+2. Set in `.env`:
 
 ```
 APP_ENV=production
 APP_URL=https://rdvendora.com
-STORE_SUBDOMAINS=true
-STORE_BASE_DOMAIN=rdvendora.com
+STORE_URL_MODE=path
 ```
 
-Local XAMPP (no wildcards needed):
+3. No wildcard DNS or wildcard SSL is required for path URLs.
+4. Ensure Apache `mod_rewrite` is enabled (default on Hostinger).
 
-```
-APP_ENV=local
-STORE_SUBDOMAINS=false
-```
+## Optional modes
 
-With `STORE_SUBDOMAINS=false`, store links stay as `storefront.php?store={id}`.
+| `STORE_URL_MODE` | Example |
+|------------------|---------|
+| `path` (default) | `https://rdvendora.com/my-shop` |
+| `subdomain` | `https://my-shop.rdvendora.com` (needs DNS `*` + wildcard SSL) |
+| `query` | `https://rdvendora.com/storefront.php?store=3` |
 
-## Behaviour
+## Legacy links
 
-| URL | Result |
-|-----|--------|
-| `https://pamtech.rdvendora.com` | Storefront for slug `pamtech` |
-| `https://does-not-exist.rdvendora.com` | Store Not Found page |
-| `https://rdvendora.com` | Main site |
-| `https://rdvendora.com/storefront.php?store=3` | 301 → `https://{slug}.rdvendora.com` (when subdomains enabled) |
-| `https://admin.rdvendora.com` | Not treated as a store (reserved) |
+`storefront.php?store={id}` redirects (301) to `/{store-slug}` when the store is active.
+
+## Database
+
+Uses existing `stores.store_slug` (UNIQUE). No required migration.

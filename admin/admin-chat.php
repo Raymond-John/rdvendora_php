@@ -356,10 +356,20 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         </div>
 </div>
 
-<video id="localVideo" class="local-video" autoplay muted></video>
-<video id="remoteVideo" class="remote-video" autoplay></video>
+<video id="localVideo" class="local-video" autoplay muted playsinline></video>
+<video id="remoteVideo" class="remote-video" autoplay playsinline></video>
 <div id="callControls">
     <button type="button" id="endCallBtn">End Call</button>
+</div>
+<div class="modal" id="incomingCallModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-secondary,#fff); padding:1.5rem; border-radius:16px; text-align:center; max-width:360px; width:90%;">
+        <h3 style="margin:0 0 .5rem;">Incoming call</h3>
+        <p id="adminCallTypeText" style="margin:0 0 1rem; color:var(--text-secondary,#64748b);">Vendor is calling...</p>
+        <div style="display:flex; gap:.75rem; justify-content:center;">
+            <button type="button" id="adminAcceptCallBtn" style="background:#10b981;color:#fff;border:0;border-radius:999px;padding:.65rem 1.25rem;font-weight:600;cursor:pointer;">Accept</button>
+            <button type="button" id="adminDeclineCallBtn" style="background:#ef4444;color:#fff;border:0;border-radius:999px;padding:.65rem 1.25rem;font-weight:600;cursor:pointer;">Decline</button>
+        </div>
+    </div>
 </div>
 <script>
     const searchInput = document.getElementById('adminSearchInput');
@@ -381,7 +391,14 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     let typingInterval = null;
     let isTyping = false;
     let vendorPeerId = null;
-    let peer, localStream, currentCall;
+    let peer, localStream, currentCall, pendingCall = null;
+    const PEER_ICE = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+    };
     
     // Activity ping (online status)
     setInterval(() => {
@@ -389,18 +406,31 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     }, 30000);
     
     async function fetchVendorPeerIdFromDB(vendorId) {
-        const res = await fetch(`../chat_get_peer_id.php?vendor_id=${vendorId}`);
-        const data = await res.json();
-        if (data.peer_id) {
-            vendorPeerId = data.peer_id;
-            return true;
+        try {
+            const res = await fetch(`../chat_get_peer_id?vendor_id=${vendorId}`);
+            const data = await res.json();
+            if (data.peer_id) {
+                vendorPeerId = data.peer_id;
+                return true;
+            }
+        } catch (e) {
+            console.error('Peer lookup failed', e);
         }
         return false;
+    }
+
+    function showMedia(el, stream, visible) {
+        if (!el) return;
+        el.srcObject = stream || null;
+        el.style.display = visible ? 'block' : 'none';
+        if (visible && stream) {
+            el.play?.().catch(() => {});
+        }
     }
     
     function loadMessages() {
         if (!currentVendorId) return;
-        fetch(`../chat_get_messages.php?action=get_messages&vendor_id=${currentVendorId}`)
+        fetch(`../chat_get_messages?action=get_messages&vendor_id=${currentVendorId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -416,8 +446,8 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                                 fetch('../chat_save_peer_id', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: `vendor_id=${currentVendorId}&peer_id=${peerId}`
-                                });
+                                    body: `vendor_id=${currentVendorId}&peer_id=${encodeURIComponent(peerId)}`
+                                }).catch(() => {});
                             }
                             return;
                         }
@@ -463,9 +493,11 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                document.getElementById('messageInput').value = '';
+                if (!String(msg).startsWith('__')) {
+                    document.getElementById('messageInput').value = '';
+                }
                 loadMessages();
-            } else {
+            } else if (!String(msg).startsWith('__')) {
                 alert('Failed to send message');
             }
         });
@@ -474,6 +506,8 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     async function selectVendor(vendorId, vendorName) {
         currentVendorId = vendorId;
         currentVendorName = vendorName;
+        vendorPeerId = null;
+        window.peerIdSentToVendor = false;
         const headerHtml = `<span>Chat with ${escapeHtml(vendorName)}</span>
                             <div class="call-controls">
                                 <button class="call-btn audio-call" id="audioCallBtn" title="Voice Call">
@@ -501,23 +535,20 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         });
         
         // Get peer ID from DB first
-        if (!vendorPeerId) {
-            const found = await fetchVendorPeerIdFromDB(vendorId);
-            if (!found) {
-                // Request vendor to send its peer ID
-                sendMessage('__REQUEST_PEER_ID__');
-                setTimeout(() => {
-                    if (!vendorPeerId) {
-                        alert('Could not get vendor peer ID. Please ensure vendor is online.');
-                    }
-                }, 3000);
-            }
+        const found = await fetchVendorPeerIdFromDB(vendorId);
+        if (!found) {
+            sendMessage('__REQUEST_PEER_ID__');
         }
         
-        // Send admin's peer ID if not sent
-        if (window.myPeerId && !window.peerIdSentToVendor) {
+        // Send admin's peer ID
+        if (window.myPeerId) {
             sendMessage(`__PEER_ID__${window.myPeerId}`);
             window.peerIdSentToVendor = true;
+            fetch('../chat_save_peer_id', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `peer_id=${encodeURIComponent(window.myPeerId)}`
+            }).catch(() => {});
         }
         // Start typing detection
         setupTyping();
@@ -635,67 +666,122 @@ require __DIR__ . '/../includes/admin_layout_start.php';
 
     // ---------------------- Voice/Video Calls (PeerJS) ----------------------
     function initPeer() {
-        peer = new Peer();
+        if (typeof Peer === 'undefined') {
+            console.error('PeerJS failed to load');
+            return;
+        }
+        peer = new Peer({ config: PEER_ICE, debug: 1 });
         peer.on('open', id => {
             window.myPeerId = id;
-            console.log('Admin Peer ID:', id);
-            // Send to current vendor if already selected
+            fetch('../chat_save_peer_id', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `peer_id=${encodeURIComponent(id)}`
+            }).catch(() => {});
             if (currentVendorId && !window.peerIdSentToVendor) {
                 sendMessage(`__PEER_ID__${id}`);
                 window.peerIdSentToVendor = true;
             }
         });
-        peer.on('call', async call => {
-            if (confirm(`Incoming ${call.metadata?.type === 'video' ? 'video' : 'audio'} call from vendor. Accept?`)) {
-                try {
-                    const type = call.metadata?.type || 'audio';
-                    localStream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
-                    document.getElementById('localVideo').srcObject = localStream;
-                    document.getElementById('localVideo').style.display = 'block';
-                    call.answer(localStream);
-                    call.on('stream', remoteStream => {
-                        document.getElementById('remoteVideo').srcObject = remoteStream;
-                        document.getElementById('remoteVideo').style.display = 'block';
-                    });
-                    currentCall = call;
-                    document.getElementById('callControls').style.display = 'block';
-                } catch (err) { console.error(err); }
-            } else {
-                call.close();
-            }
+        peer.on('disconnected', () => {
+            try { peer.reconnect(); } catch (e) {}
+        });
+        peer.on('error', err => console.error('Peer error:', err));
+        peer.on('call', call => {
+            pendingCall = call;
+            const type = call.metadata?.type || 'audio';
+            const modal = document.getElementById('incomingCallModal');
+            const label = document.getElementById('adminCallTypeText');
+            if (label) label.textContent = `Vendor is calling (${type === 'video' ? 'Video' : 'Voice'})...`;
+            if (modal) modal.style.display = 'flex';
         });
     }
 
-    function startCall(type) {
-        if (!vendorPeerId) {
-            alert('Vendor peer ID not yet available. Wait a moment or send a message first.');
+    async function answerPendingCall() {
+        if (!pendingCall) return;
+        const call = pendingCall;
+        const type = call.metadata?.type || 'audio';
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+            showMedia(document.getElementById('localVideo'), localStream, type === 'video');
+            call.answer(localStream);
+            call.on('stream', remoteStream => {
+                showMedia(document.getElementById('remoteVideo'), remoteStream, true);
+            });
+            call.on('close', () => endCall());
+            currentCall = call;
+            document.getElementById('callControls').style.display = 'block';
+            document.getElementById('incomingCallModal').style.display = 'none';
+            pendingCall = null;
+        } catch (err) {
+            alert('Could not access camera/mic: ' + err.message);
+            declinePendingCall();
+        }
+    }
+
+    function declinePendingCall() {
+        if (pendingCall) {
+            try { pendingCall.close(); } catch (e) {}
+        }
+        pendingCall = null;
+        const modal = document.getElementById('incomingCallModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function startCall(type) {
+        if (!peer || peer.destroyed) {
+            alert('Calling system is still connecting. Try again in a second.');
+            initPeer();
             return;
         }
-        navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true })
-            .then(stream => {
-                localStream = stream;
-                document.getElementById('localVideo').srcObject = stream;
-                document.getElementById('localVideo').style.display = 'block';
-                const call = peer.call(vendorPeerId, stream, { metadata: { type: type } });
-                call.on('stream', remoteStream => {
-                    document.getElementById('remoteVideo').srcObject = remoteStream;
-                    document.getElementById('remoteVideo').style.display = 'block';
-                });
-                currentCall = call;
-                document.getElementById('callControls').style.display = 'block';
-            })
-            .catch(err => alert('Could not access camera/mic: ' + err.message));
+        if (!vendorPeerId && currentVendorId) {
+            await fetchVendorPeerIdFromDB(currentVendorId);
+        }
+        if (!vendorPeerId) {
+            sendMessage('__REQUEST_PEER_ID__');
+            alert('Vendor is not ready for calls yet. Ask them to keep Vendor Chat open, then try again.');
+            return;
+        }
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+            showMedia(document.getElementById('localVideo'), localStream, type === 'video');
+            const call = peer.call(vendorPeerId, localStream, { metadata: { type: type } });
+            if (!call) {
+                alert('Could not start the call. Refresh both chat pages and try again.');
+                endCall();
+                return;
+            }
+            call.on('stream', remoteStream => {
+                showMedia(document.getElementById('remoteVideo'), remoteStream, true);
+            });
+            call.on('close', () => endCall());
+            call.on('error', err => {
+                console.error(err);
+                alert('Call failed: ' + (err.message || err.type || 'connection error'));
+                endCall();
+            });
+            currentCall = call;
+            document.getElementById('callControls').style.display = 'block';
+        } catch (err) {
+            alert('Could not access camera/mic: ' + err.message + '\nAllow microphone' + (type === 'video' ? '/camera' : '') + ' permissions and use HTTPS.');
+        }
     }
 
     function endCall() {
-        if (currentCall) currentCall.close();
+        if (currentCall) {
+            try { currentCall.close(); } catch (e) {}
+        }
         if (localStream) localStream.getTracks().forEach(track => track.stop());
-        document.getElementById('localVideo').style.display = 'none';
-        document.getElementById('remoteVideo').style.display = 'none';
+        showMedia(document.getElementById('localVideo'), null, false);
+        showMedia(document.getElementById('remoteVideo'), null, false);
         document.getElementById('callControls').style.display = 'none';
+        currentCall = null;
+        localStream = null;
     }
 
     document.getElementById('endCallBtn')?.addEventListener('click', endCall);
+    document.getElementById('adminAcceptCallBtn')?.addEventListener('click', answerPendingCall);
+    document.getElementById('adminDeclineCallBtn')?.addEventListener('click', declinePendingCall);
     
     // Initialize peer
     initPeer();

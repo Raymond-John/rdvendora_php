@@ -80,6 +80,7 @@ if (!function_exists('rdv_reserved_store_subdomains')) {
             'vendor-messages', 'transport_orders', 'update_order_status', 'get_notification_count',
             'chatbot-ajax', 'chat_get_messages', 'chat_mark_read', 'chat_typing',
             'chat_typing_ping', 'chat_update_activity', 'chat_upload_audio', 'chat_get_typing',
+            'chat_save_peer_id', 'chat_get_peer_id', 'chat_check_new_admin_messages',
             'et_order_details', '403', '404', '500', 'phpmyadmin', 'wp-admin', 'wordpress',
         ];
     }

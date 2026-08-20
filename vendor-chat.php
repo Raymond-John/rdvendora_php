@@ -795,6 +795,14 @@ $conn->close();
             <div class="chat-container">
                 <div class="chat-header">
                     <span>Admin Chat <?php if ($adminOnline): ?><span class="online-status">● Online</span><?php endif; ?></span>
+                    <div class="call-controls" style="display:flex;gap:0.5rem;">
+                        <button type="button" class="call-btn audio-call" id="audioCallBtn" title="Voice Call" style="width:38px;height:38px;border-radius:50%;border:0;background:var(--bg-tertiary,#e2e8f0);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        </button>
+                        <button type="button" class="call-btn video-call" id="videoCallBtn" title="Video Call" style="width:38px;height:38px;border-radius:50%;border:0;background:var(--bg-tertiary,#e2e8f0);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="14" height="14" rx="2"/><polygon points="22 7 16 12 22 17"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="chat-messages" id="chatMessages"></div>
                 <div class="typing-indicator" id="typingIndicator" style="display: none;">Admin is typing...</div>
@@ -820,8 +828,8 @@ $conn->close();
     </div>
 
     <!-- Video call containers -->
-    <video id="localVideo" class="local-video" autoplay muted></video>
-    <video id="remoteVideo" class="remote-video" autoplay></video>
+    <video id="localVideo" class="local-video" autoplay muted playsinline></video>
+    <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
     <div id="callControls">
         <button id="endCallBtn">End Call</button>
     </div>
@@ -937,6 +945,7 @@ $conn->close();
 
         function sendMessage(msg) {
             if (!msg.trim()) return;
+            const isSignal = String(msg).startsWith('__');
             fetch(window.location.href, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -945,10 +954,11 @@ $conn->close();
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('messageInput').value = '';
+                    if (!isSignal) {
+                        document.getElementById('messageInput').value = '';
+                    }
                     loadMessages();
-                    // Notify admin – already done server-side
-                } else {
+                } else if (!isSignal) {
                     showToast('error', 'Failed', 'Could not send message');
                 }
             });
@@ -1056,23 +1066,99 @@ $conn->close();
         });
 
         function initPeer() {
-            peer = new Peer();
+            if (typeof Peer === 'undefined') {
+                console.error('PeerJS failed to load');
+                return;
+            }
+            const PEER_ICE = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            };
+            peer = new Peer({ config: PEER_ICE, debug: 1 });
             peer.on('open', id => {
                 window.myPeerId = id;
                 sendMessage(`__PEER_ID__${id}`);
                 fetch('chat_save_peer_id', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `vendor_id=<?= $_SESSION['user_id'] ?>&peer_id=${id}`
-                });
+                    body: `vendor_id=<?= (int) $_SESSION['user_id'] ?>&peer_id=${encodeURIComponent(id)}`
+                }).catch(() => {});
+            });
+            peer.on('disconnected', () => {
+                try { peer.reconnect(); } catch (e) {}
             });
             peer.on('call', call => {
                 const type = call.metadata?.type || 'audio';
                 pendingCall = call;
-                document.getElementById('callTypeText').innerHTML = `Admin is calling (${type === 'video' ? 'Video' : 'Audio'})...`;
+                document.getElementById('callTypeText').innerHTML = `Admin is calling (${type === 'video' ? 'Video' : 'Voice'})...`;
                 document.getElementById('incomingCallModal').classList.add('active');
             });
-            peer.on('error', err => console.error('Peer error:', err));
+            peer.on('error', err => {
+                console.error('Peer error:', err);
+                showToast('error', 'Call error', err.message || err.type || 'Peer connection error');
+            });
+        }
+
+        function showMedia(el, stream, visible) {
+            if (!el) return;
+            el.srcObject = stream || null;
+            el.style.display = visible ? 'block' : 'none';
+            if (visible && stream) el.play?.().catch(() => {});
+        }
+
+        async function fetchAdminPeerId() {
+            try {
+                const res = await fetch('chat_get_peer_id?role=admin');
+                const data = await res.json();
+                if (data.peer_id) {
+                    adminPeerId = data.peer_id;
+                    return true;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return false;
+        }
+
+        async function startCall(type) {
+            if (!peer || peer.destroyed) {
+                showToast('error', 'Not ready', 'Calling system is connecting. Try again shortly.');
+                initPeer();
+                return;
+            }
+            if (!adminPeerId) {
+                await fetchAdminPeerId();
+            }
+            if (!adminPeerId) {
+                sendMessage('__REQUEST_PEER_ID__');
+                showToast('info', 'Waiting', 'Open Admin Chat on the other side, then try again.');
+                return;
+            }
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+                showMedia(document.getElementById('localVideo'), localStream, type === 'video');
+                const call = peer.call(adminPeerId, localStream, { metadata: { type: type } });
+                if (!call) {
+                    showToast('error', 'Call failed', 'Could not start the call.');
+                    endCall();
+                    return;
+                }
+                call.on('stream', remoteStream => {
+                    showMedia(document.getElementById('remoteVideo'), remoteStream, true);
+                });
+                call.on('close', () => endCall());
+                call.on('error', err => {
+                    showToast('error', 'Call failed', err.message || err.type || 'connection error');
+                    endCall();
+                });
+                currentCall = call;
+                document.getElementById('callControls').style.display = 'flex';
+            } catch (err) {
+                showToast('error', 'Permission Error', err.message || 'Allow mic/camera and use HTTPS.');
+            }
         }
 
         async function acceptCall() {
@@ -1081,12 +1167,10 @@ $conn->close();
             const type = call.metadata?.type || 'audio';
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('localVideo').style.display = 'block';
+                showMedia(document.getElementById('localVideo'), localStream, type === 'video');
                 call.answer(localStream);
                 call.on('stream', remoteStream => {
-                    document.getElementById('remoteVideo').srcObject = remoteStream;
-                    document.getElementById('remoteVideo').style.display = 'block';
+                    showMedia(document.getElementById('remoteVideo'), remoteStream, true);
                 });
                 call.on('close', () => endCall());
                 currentCall = call;
@@ -1099,15 +1183,19 @@ $conn->close();
             }
         }
         function declineCall() {
-            if (pendingCall) pendingCall.close();
+            if (pendingCall) {
+                try { pendingCall.close(); } catch (e) {}
+            }
             document.getElementById('incomingCallModal').classList.remove('active');
             pendingCall = null;
         }
         function endCall() {
-            if (currentCall) currentCall.close();
+            if (currentCall) {
+                try { currentCall.close(); } catch (e) {}
+            }
             if (localStream) localStream.getTracks().forEach(track => track.stop());
-            document.getElementById('localVideo').style.display = 'none';
-            document.getElementById('remoteVideo').style.display = 'none';
+            showMedia(document.getElementById('localVideo'), null, false);
+            showMedia(document.getElementById('remoteVideo'), null, false);
             document.getElementById('callControls').style.display = 'none';
             currentCall = null;
             localStream = null;
@@ -1116,6 +1204,8 @@ $conn->close();
         document.getElementById('acceptCallBtn').addEventListener('click', acceptCall);
         document.getElementById('declineCallBtn').addEventListener('click', declineCall);
         document.getElementById('endCallBtn').addEventListener('click', endCall);
+        document.getElementById('audioCallBtn')?.addEventListener('click', () => startCall('audio'));
+        document.getElementById('videoCallBtn')?.addEventListener('click', () => startCall('video'));
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -1123,6 +1213,8 @@ $conn->close();
         }
 
         initPeer();
+        fetchAdminPeerId();
+        setInterval(fetchAdminPeerId, 15000);
 
         // Search messages
         const searchInput = document.getElementById('searchMessages');

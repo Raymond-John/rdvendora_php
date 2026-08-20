@@ -10,6 +10,7 @@ if (!$conn) die('Database connection failed.');
 $resolved = rdv_resolve_public_store($conn, true);
 $store = $resolved['store'];
 $onSubdomain = !empty($resolved['on_subdomain']);
+$onPath = !empty($resolved['on_path']);
 
 // Owner preview: inactive/pending store via ?store= id on main domain (seller logged in)
 if (!$store && !empty($_GET['store']) && !empty($_SESSION['user_id'])) {
@@ -21,13 +22,13 @@ if (!$store && !empty($_GET['store']) && !empty($_SESSION['user_id'])) {
 }
 
 if (!$store) {
-    rdv_store_not_found_page();
+    rdv_store_not_found_page('Sorry, we couldn\'t find a store with this address.');
 }
 
 $storeId = (int) $store['id'];
 
-// Legacy / dashboard links on main domain → store subdomain when enabled
-if (!$onSubdomain && rdv_store_subdomains_enabled() && in_array($resolved['via'], ['id', 'slug', 'session', 'owner_preview'], true)) {
+// Legacy storefront.php?store= / ?slug= / session → clean public URL
+if (!$onPath && !$onSubdomain && in_array($resolved['via'], ['id', 'slug', 'session', 'owner_preview'], true)) {
     $status = strtolower((string) ($store['status'] ?? ''));
     $active = (int) ($store['active'] ?? 0);
     if ($status === 'active' && $active === 1 && rdv_is_valid_store_slug($store['store_slug'] ?? '')) {

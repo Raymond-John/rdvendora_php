@@ -50,28 +50,39 @@ ServerSignature Off
     RewriteCond %{HTTP_HOST} ^www\.rdvendora\.com$ [NC]
     RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
 
-    # Wildcard store subdomains: https://{slug}.rdvendora.com
-    # Force HTTPS on store hosts (requires wildcard SSL in Hostinger)
+    # ----- Path storefronts: https://rdvendora.com/{store-slug} -----
+    # Skip real files and directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # /{slug}/product/{id}-{name}
+    RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?slug=$1&id=$2 [L,QSA]
+
+    # /{slug}/category/{category}
+    RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/category/(.+)/?$ storefront.php?slug=$1&cat=$2 [L,QSA]
+
+    # /{slug} → storefront (PHP rejects reserved/unknown slugs)
+    RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/?$ storefront.php?slug=$1 [L,QSA]
+
+    # Legacy optional subdomain support (redirect handled in PHP to path URLs)
     RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
     RewriteCond %1 !^www$ [NC]
     RewriteCond %{HTTP:X-Forwarded-Proto} !=https
     RewriteCond %{HTTPS} !=on
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Store subdomain home → storefront (keep URL as subdomain)
     RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
     RewriteCond %1 !^www$ [NC]
     RewriteCond %{REQUEST_URI} ^/?$
     RewriteRule ^$ storefront.php [L,QSA]
 
-    # Clean product URL on store subdomain: /product/123-name
     RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
     RewriteCond %1 !^www$ [NC]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?id=$1 [L,QSA]
 
-    # Clean category URL on store subdomain: /category/phones
     RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
     RewriteCond %1 !^www$ [NC]
     RewriteCond %{REQUEST_FILENAME} !-f

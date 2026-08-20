@@ -1,7 +1,6 @@
 <?php
 session_start();
 require_once 'includes/connection.php';
-require_once __DIR__ . '/app/helpers/marketplace_urls.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -604,26 +603,37 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
 
 <!-- HEADER -->
 <header>
-    <a href="<?= htmlspecialchars(function_exists('rdv_marketplace_url') ? rdv_marketplace_url() : 'marketplace', ENT_QUOTES, 'UTF-8') ?>" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
+    <a href="marketplace" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
     <div class="search-bar">
-        <form method="get" action="<?= htmlspecialchars(function_exists('rdv_marketplace_url') ? rdv_marketplace_url() : 'marketplace', ENT_QUOTES, 'UTF-8') ?>" style="display:flex; flex:1; width:100%;">
+        <form method="get" action="marketplace" style="display:flex; flex:1; width:100%;">
             <input type="text" name="q" placeholder="Search products, brands and categories…" />
             <button type="submit"><i class="fas fa-search"></i></button>
         </form>
     </div>
     <div class="header-actions">
-        <a href="<?= htmlspecialchars(function_exists('rdv_marketplace_url') ? rdv_marketplace_url('cart') : 'marketplace/cart', ENT_QUOTES, 'UTF-8') ?>">
+        <a href="marketplaceaddtocart">
             <div class="cart-badge">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="badge" id="cartCount">0</span>
             </div>
             <span>Cart</span>
         </a>
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <a href="dashboard">
+                <i class="fas fa-user-circle"></i>
+                <span>Account</span>
+            </a>
+        <?php else: ?>
+            <a href="login">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login</span>
+            </a>
+        <?php endif; ?>
     </div>
 </header>
 
 <div class="back-link">
-    <a href="<?= htmlspecialchars(function_exists('rdv_marketplace_url') ? rdv_marketplace_url() : 'marketplace', ENT_QUOTES, 'UTF-8') ?>"><i class="fas fa-arrow-left"></i> Back to Marketplace</a>
+    <a href="marketplace"><i class="fas fa-arrow-left"></i> Back to Marketplace</a>
 </div>
 
 <div class="product-detail-container">
@@ -687,7 +697,7 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
         <div class="related-grid">
             <?php foreach ($related as $rel): ?>
                 <div class="related-card">
-                    <a href="<?= htmlspecialchars(function_exists('rdv_marketplace_url') ? rdv_marketplace_url('product/' . (int)$rel['id']) : ('marketplaceviewproduct?id=' . (int)$rel['id']), ENT_QUOTES, 'UTF-8') ?>">
+                    <a href="marketplaceviewproduct?id=<?= $rel['id'] ?>">
                         <img src="<?= htmlspecialchars($rel['image'] ?? 'https://placehold.co/400x400?text=No+Image') ?>" alt="<?= htmlspecialchars($rel['name']) ?>">
                         <div class="related-info">
                             <div class="related-name"><?= htmlspecialchars($rel['name']) ?></div>

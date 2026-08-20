@@ -401,8 +401,8 @@ function filterUrl($cat, $storeId, $search) {
             <h4><?= htmlspecialchars($store['store_name']) ?></h4>
         </a>
         <div class="search-container">
-            <form class="search-form" method="get" action="<?= htmlspecialchars($onSubdomain ? '/' : 'storefront.php', ENT_QUOTES, 'UTF-8') ?>">
-                <?php if (!$onSubdomain): ?>
+            <form class="search-form" method="get" action="<?= htmlspecialchars($onPath || $onSubdomain ? rdv_store_url($store) : 'storefront.php', ENT_QUOTES, 'UTF-8') ?>">
+                <?php if (!$onPath && !$onSubdomain): ?>
                 <input type="hidden" name="store" value="<?= (int) $store['id'] ?>">
                 <?php endif; ?>
                 <?php if ($currentCategory !== 'all'): ?>

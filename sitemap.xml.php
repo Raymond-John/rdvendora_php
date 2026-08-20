@@ -26,12 +26,27 @@ if ($conn instanceof mysqli) {
         $mod = date('Y-m-d', strtotime($post['updated_at'] ?: $post['published_at']));
         $pages[] = [rdv_blog_url($post['slug']), '0.6', 'monthly', $mod];
     }
+    $storeStmt = $conn->query("SELECT id, store_slug, updated_at, created_at FROM stores WHERE status = 'active' AND active = 1 AND store_slug <> '' ORDER BY id ASC LIMIT 500");
+    if ($storeStmt) {
+        while ($s = $storeStmt->fetch_assoc()) {
+            if (!function_exists('rdv_is_valid_store_slug') || !rdv_is_valid_store_slug($s['store_slug'])) {
+                continue;
+            }
+            $mod = date('Y-m-d', strtotime($s['updated_at'] ?: $s['created_at'] ?: 'now'));
+            $pages[] = [rdv_store_url($s), '0.7', 'weekly', $mod];
+        }
+    }
 }
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 foreach ($pages as $page) {
-    $loc = htmlspecialchars(rdv_canonical_url($page[0]), ENT_QUOTES, 'UTF-8');
+    $locRaw = $page[0];
+    if (is_string($locRaw) && (str_starts_with($locRaw, 'http://') || str_starts_with($locRaw, 'https://'))) {
+        $loc = htmlspecialchars($locRaw, ENT_QUOTES, 'UTF-8');
+    } else {
+        $loc = htmlspecialchars(rdv_canonical_url($locRaw), ENT_QUOTES, 'UTF-8');
+    }
     $lastmod = htmlspecialchars($page[3], ENT_QUOTES, 'UTF-8');
     echo "  <url>\n";
     echo "    <loc>{$loc}</loc>\n";

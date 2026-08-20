@@ -12,7 +12,7 @@ if (!$order_id) die('Invalid order');
 
 // Fetch order details
 $stmt = $conn->prepare("
-    SELECT o.*, s.user_id as vendor_user_id, s.id as store_id, u.email, u.full_name 
+    SELECT o.*, s.user_id as vendor_user_id, s.id as store_id, s.store_slug, u.email, u.full_name 
     FROM orders o 
     LEFT JOIN stores s ON o.store_id = s.id 
     LEFT JOIN users u ON o.user_id = u.id 
@@ -122,7 +122,7 @@ if (!empty($customerEmail) && filter_var($customerEmail, FILTER_VALIDATE_EMAIL))
         <div><strong>Confirmation sent to:</strong> <?= htmlspecialchars($customerEmail) ?></div>
     </div>
     <!-- FIXED: Uses store_id (primary key) instead of vendor_user_id -->
-    <a href="storefront.php?store=<?= (int)$order['store_id'] ?>" class="btn">Continue Shopping</a>
+    <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$order['store_id'], 'store_slug' => (string)($order['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="btn">Continue Shopping</a>
     <div class="email-status <?= $emailSent ? 'success' : 'error' ?>">
         <?= $emailSent ? '✉️ A confirmation email has been sent to your email address.' : '⚠️ Could not send confirmation email. Please contact support.' ?>
     </div>

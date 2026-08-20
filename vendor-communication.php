@@ -222,7 +222,9 @@ if ($isEmpire && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_ema
     } else {
         // ===== BUILD STUNNING EMAIL TEMPLATE (Royal Blue & Gold) =====
         $senderName = "RD Vendora" . " - " .( htmlspecialchars($storeName));
-        $storeLink = (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . "/storefront.php";
+        $storeLink = function_exists('rdv_store_url') && !empty($_SESSION['store_slug'])
+            ? rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']])
+            : (rtrim((string) (defined('APP_URL') ? APP_URL : ''), '/') . '/storefront.php');
         $year = date('Y');
         $messageHtml = nl2br(htmlspecialchars($messageText));
 

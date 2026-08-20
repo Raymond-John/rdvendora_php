@@ -600,7 +600,7 @@ $conn->close();
 <body>
 <nav class="navbar">
     <div class="nav-container">
-        <a href="storefront.php?store=<?= $store['id'] ?>" class="logo">
+        <a href="<?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?>" class="logo">
             <?php if (!empty($store['logo_path'])): ?>
                 <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>">
             <?php else: ?>

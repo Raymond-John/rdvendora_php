@@ -564,7 +564,7 @@ $conn->close();
 <body>
 <nav class="navbar">
     <div class="nav-container">
-        <a href="storefront.php?store=<?= $store['id'] ?>" class="logo">
+        <a href="<?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?>" class="logo">
             <?php if (!empty($store['logo_path'])): ?>
                 <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>">
             <?php else: ?>
@@ -573,7 +573,7 @@ $conn->close();
             <h4><?= htmlspecialchars($store['store_name']) ?></h4>
         </a>
         <div class="store-actions">
-            <a href="storefront.php?store=<?= $store['id'] ?>" class="btn btn-outline">
+            <a href="<?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline">
                 ← Continue Shopping
             </a>
         </div>
@@ -598,7 +598,8 @@ $conn->close();
     const TAX_RATE = <?= json_encode($tax_rate) ?>;   // e.g., 5
 
     // ========== CART MANAGEMENT ==========
-    const STORE_ID = <?= $store['id'] ?>;
+    const STORE_ID = <?= (int) $store['id'] ?>;
+    const STORE_URL = <?= json_encode(rdv_store_url($store), JSON_UNESCAPED_SLASHES) ?>;
     const CART_KEY = `cart_${STORE_ID}`;
 
     function getCart() {
@@ -679,7 +680,7 @@ $conn->close();
                 <div class="empty-cart" style="grid-column:1/-1;">
                     <h3>🛒 Your cart is empty</h3>
                     <p>Looks like you haven't added any items to your cart yet.</p>
-                    <a href="storefront.php?store=${STORE_ID}" class="continue-shopping">Continue Shopping</a>
+                    <a href="${STORE_URL}" class="continue-shopping">Continue Shopping</a>
                 </div>
             `;
             return;

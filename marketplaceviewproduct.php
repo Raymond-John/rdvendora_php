@@ -658,7 +658,7 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
                     <i class="fas fa-store" style="font-size:1.2rem; color:var(--btn-bg);"></i>
                 <?php endif; ?>
                 <!-- FIXED: Now uses store_id (primary key) instead of user_id -->
-                <a href="storefront.php?store=<?= $product['store_id'] ?>"><?= htmlspecialchars($product['store_name']) ?></a>
+                <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$product['store_id'], 'store_slug' => (string)($product['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($product['store_name']) ?></a>
             </div>
             <h1 class="product-title"><?= htmlspecialchars($product['name']) ?></h1>
             <div class="rating">

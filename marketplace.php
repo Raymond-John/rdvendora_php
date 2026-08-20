@@ -73,6 +73,7 @@ if (!empty($visibleStores)) {
         SELECT 
             s.id AS store_pk,
             s.store_name,
+            s.store_slug,
             s.brand_color,
             s.logo_path,
             (SELECT plan 
@@ -131,7 +132,7 @@ if (!empty($visibleStores)) {
 // ----- Helper to fetch products for a specific store (with optional category filter) -----
 function getStoreProducts($storeId, $limit = 10, $category = null) {
     global $conn;
-    $sql = "SELECT p.*, s.store_name, s.logo_path, s.brand_color, s.id AS store_pk
+    $sql = "SELECT p.*, s.store_name, s.store_slug, s.logo_path, s.brand_color, s.id AS store_pk
             FROM products p
             INNER JOIN stores s ON p.user_id = s.user_id
             WHERE p.status = 'active' AND s.status = 'active'
@@ -1431,7 +1432,7 @@ if (!empty($banners)) {
 <div class="stores-wrapper">
   <div class="stores-row">
     <?php foreach ($stores as $store): ?>
-      <div class="store-card" onclick="window.location.href='storefront.php?store=<?= $store['store_pk'] ?>'">
+      <div class="store-card" onclick="window.location.href='<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>'">
         <?php if (!empty($store['logo_path'])): ?>
           <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>" />
         <?php else: ?>
@@ -1441,7 +1442,7 @@ if (!empty($banners)) {
         <?php endif; ?>
         <div class="store-name"><?= htmlspecialchars($store['store_name']) ?></div>
         <div class="store-plan"><?= htmlspecialchars($store['plan']) ?> Plan</div>
-        <a href="storefront.php?store=<?= $store['store_pk'] ?>" class="visit-btn">Visit Store</a>
+        <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="visit-btn">Visit Store</a>
       </div>
     <?php endforeach; ?>
   </div>
@@ -1535,7 +1536,7 @@ if (!empty($banners)) {
           <span style="font-size:12px;font-weight:400;color:var(--sidebar-text);">(<?= htmlspecialchars($selectedCategory) ?>)</span>
         <?php endif; ?>
       </h2>
-      <a href="storefront.php?store=<?= $store['store_pk'] ?>">See all <i class="fas fa-chevron-right"></i></a>
+      <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>">See all <i class="fas fa-chevron-right"></i></a>
     </div>
     <div class="products-wrapper">
       <div class="products-row">
@@ -1619,7 +1620,7 @@ if (!empty($banners)) {
     </div>
     <div class="modal-body" id="modalBody">
       <?php foreach ($stores as $store): ?>
-        <div class="modal-store-item" onclick="window.location.href='storefront.php?store=<?= $store['store_pk'] ?>'">
+        <div class="modal-store-item" onclick="window.location.href='<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>'">
           <?php if (!empty($store['logo_path'])): ?>
             <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?>" />
           <?php else: ?>

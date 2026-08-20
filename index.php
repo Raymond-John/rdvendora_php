@@ -6,6 +6,16 @@ require_once 'includes/public_site.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
+// Store subdomain root should never show the marketing homepage
+$hostInfo = rdv_parse_store_host();
+if ($hostInfo['type'] === 'reserved') {
+    rdv_redirect_reserved_subdomain();
+}
+if ($hostInfo['type'] === 'store') {
+    require __DIR__ . '/storefront.php';
+    exit;
+}
+
 $maintenanceMode = rdv_site_setting($conn, 'maintenance_mode');
 if ($maintenanceMode === '') {
     $maintenanceMode = '0';

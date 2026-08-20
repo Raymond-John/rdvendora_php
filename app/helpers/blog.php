@@ -324,7 +324,11 @@ if (!function_exists('rdv_blog_format_date')) {
 
 if (!function_exists('rdv_blog_url')) {
     function rdv_blog_url($slug) {
-        return 'blog-post.php?slug=' . rawurlencode((string) $slug);
+        $slug = trim((string) $slug);
+        if (function_exists('rdv_url')) {
+            return rdv_url('blog/' . $slug);
+        }
+        return 'blog/' . rawurlencode($slug);
     }
 }
 
@@ -336,10 +340,11 @@ if (!function_exists('rdv_blog_index_url')) {
         if (isset($qs['page']) && (int) $qs['page'] <= 1) {
             unset($qs['page']);
         }
+        $base = function_exists('rdv_url') ? rdv_url('blog') : 'blog';
         if (!$qs) {
-            return 'blog.php';
+            return $base;
         }
-        return 'blog.php?' . http_build_query($qs);
+        return $base . (str_contains($base, '?') ? '&' : '?') . http_build_query($qs);
     }
 }
 

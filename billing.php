@@ -724,7 +724,7 @@
               <a href="contact" class="nav-link">Contact</a>
             </nav>
             <div class="navbar-actions">
-              ${session ? `<a href="${session.role === 'admin' ? 'admin/admin.php' : 'dashboard.php'}" class="btn btn-primary btn-sm">Dashboard</a>` : `<a href="login" class="btn btn-ghost btn-sm">Log in</a><a href="register" class="btn btn-primary btn-sm">Get Started</a>`}
+              ${session ? `<a href="${session.role === 'admin' ? 'admin' : 'dashboard'}" class="btn btn-primary btn-sm">Dashboard</a>` : `<a href="login" class="btn btn-ghost btn-sm">Log in</a><a href="register" class="btn btn-primary btn-sm">Get Started</a>`}
               <button class="btn-icon mobile-menu-toggle" id="mobile-menu-toggle">
                 <span></span><span></span><span></span>
               </button>

@@ -53,36 +53,36 @@ ServerSignature Off
     RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
 
     # ----- Clean URLs: hide .php from the browser -----
-    # Relative redirects (no leading /) keep XAMPP subfolders + Hostinger root working.
+    # Capture full URI path from THE_REQUEST so redirects work under
+    # Hostinger (site root) and XAMPP subfolders alike.
     # Keep POST/PUT/PATCH to *.php intact (forms, webhooks, OAuth callbacks)
     RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-    RewriteCond %{THE_REQUEST} \s[^?\s]*index\.php[\s?] [NC]
-    RewriteRule ^index\.php$ ./ [R=301,L]
+    RewriteCond %{THE_REQUEST} \s/+((?:[^?\s]*?/)?)index\.php[\s?] [NC]
+    RewriteRule ^index\.php$ /%1 [R=301,L,NE]
 
     RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-    RewriteCond %{THE_REQUEST} \s[^?\s]*admin/([^\s?]+)\.php[\s?] [NC]
-    RewriteRule ^admin/.+\.php$ admin/%1 [R=301,L,QSA]
-
-    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-    RewriteCond %{THE_REQUEST} \s[^?\s]*([^\s?]*)\.php[\s?] [NC]
+    RewriteCond %{THE_REQUEST} \s/+([^\s?]+?)\.php[\s?] [NC]
     RewriteCond %1 !sitemap\.xml$ [NC]
-    RewriteRule ^(.+)\.php$ $1 [R=301,L,QSA]
+    RewriteRule ^.+\.php$ /%1 [R=301,L,QSA,NE]
+
+    # Admin clean routes BEFORE the directory short-circuit (admin/ is a real folder)
+    RewriteRule ^admin/?$ admin/admin.php [L,QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f [OR]
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
 
     # Serve existing files/directories as-is (assets, uploads, etc.)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # /admin → admin/admin.php ; /admin/page → admin/page.php
-    RewriteRule ^admin/?$ admin/admin.php [L,QSA]
-    RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f
-    RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
-    RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
-
     # /page → page.php when that script exists
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^(.+?)/?$ $1.php [L,QSA]
+
+    # /blog/{slug} → article (must be before store catch-all)
+    RewriteRule ^blog/([a-z0-9-]+)/?$ blog-post.php?slug=$1 [L,QSA]
 
     # ----- Store path URLs (only when no matching .php page) -----
     # /{slug}/product/{id}-{name}

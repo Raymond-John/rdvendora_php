@@ -172,7 +172,7 @@
       var send = function (token) {
         var data = new FormData(form);
         if (token && !data.get('csrf_token')) data.append('csrf_token', token);
-        fetch(newsletterUrl(form, 'newsletter-subscribe.php'), { method: 'POST', body: data, credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        fetch(newsletterUrl(form, 'newsletter-subscribe'), { method: 'POST', body: data, credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
           .then(parseJsonResponse)
           .then(function (json) {
             if (status) {
@@ -189,7 +189,7 @@
       if (form.querySelector('input[name="csrf_token"]')) {
         send(null);
       } else {
-        fetch(newsletterUrl(form, 'csrf-token.php'), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        fetch(newsletterUrl(form, 'csrf-token'), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
           .then(parseJsonResponse)
           .then(function (j) { send(j && j.csrf_token ? j.csrf_token : null); })
           .catch(function () { send(null); });
@@ -217,9 +217,9 @@
     if (footer && footer.getAttribute('data-rdv-chrome') === '1') return;
     qsa('#footer .footer-links a').forEach(function (a) {
       var t = (a.textContent || '').trim().toLowerCase();
-      if (a.getAttribute('href') === '#' || t === 'privacy') a.setAttribute('href', 'privacy.php');
-      if (t === 'terms' || t === 'terms of service') a.setAttribute('href', 'terms.php');
-      if (t === 'cookies') a.setAttribute('href', 'cookies.php');
+      if (a.getAttribute('href') === '#' || t === 'privacy') a.setAttribute('href', 'privacy');
+      if (t === 'terms' || t === 'terms of service') a.setAttribute('href', 'terms');
+      if (t === 'cookies') a.setAttribute('href', 'cookies');
     });
   }
 

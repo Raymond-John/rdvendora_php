@@ -233,7 +233,7 @@ $allCount = (int) (($run($conn, "SELECT COUNT(*) AS cnt FROM user_activity_log")
 $total_pages = max(1, (int) ceil($total / $limit));
 $query_params = $_GET;
 unset($query_params['page'], $query_params['export']);
-$base_url = 'admin-user-activity.php' . ($query_params ? ('?' . http_build_query($query_params)) : '');
+$base_url = 'admin-user-activity' . ($query_params ? ('?' . http_build_query($query_params)) : '');
 $page_join = strpos($base_url, '?') === false ? '?' : '&';
 
 $adminPageTitle = 'User Activity - Admin';

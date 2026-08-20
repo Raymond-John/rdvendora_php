@@ -4,7 +4,7 @@ if (!isset($googleOauth) || !is_array($googleOauth)) {
         ? rdv_google_oauth_config($GLOBALS['conn'] ?? $GLOBALS['connect'] ?? null)
         : ['configured' => true];
 }
-$googleBtnHref = $googleBtnHref ?? 'oauth2callback.php';
+$googleBtnHref = $googleBtnHref ?? 'oauth2callback';
 $googleBtnLabel = $googleBtnLabel ?? 'Continue with Google';
 ?>
         <div class="auth-divider"><span>or</span></div>

@@ -97,8 +97,8 @@ if (!function_exists('rdv_google_oauth_fail')) {
         }
         $_SESSION['login_error'] = $message;
         $login = (defined('APP_URL') && strpos(APP_URL, 'https://rdvendora.com') === 0)
-            ? 'https://rdvendora.com/login.php'
-            : 'login.php';
+            ? 'https://rdvendora.com/login'
+            : 'login';
         header('Location: ' . $login);
         exit;
     }

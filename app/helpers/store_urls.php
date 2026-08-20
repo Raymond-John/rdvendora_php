@@ -51,7 +51,7 @@ if (!function_exists('rdv_reserved_store_subdomains')) {
     function rdv_reserved_store_subdomains() {
         return [
             'www', 'admin', 'api', 'mail', 'ftp', 'cpanel', 'webmail', 'support', 'help',
-            'blog', 'dashboard', 'app', 'cdn', 'static', 'assets', 'uploads', 'storage',
+            'blog', 'blog-post', 'news', 'dashboard', 'app', 'cdn', 'static', 'assets', 'uploads', 'storage',
             'vendor', 'marketplace', 'login', 'register', 'oauth', 'oauth2callback',
             'pay', 'payment', 'payments', 'checkout', 'cart', 'billing', 'status',
             'statuspage', 'ns1', 'ns2', 'mx', 'smtp', 'imap', 'pop', 'dev', 'test',

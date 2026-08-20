@@ -25,8 +25,9 @@ DirectorySlash Off
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Exact /vendor → public vendor chat URL (avoid /vendor/ directory + relative redirects)
-    RewriteRule ^vendor/?$ vendor-chat [R=302,L,QSA]
+    # Exact /vendor → vendor chat (composer lives in /vendor/; do not use [R] here —
+    # relative redirects break under subdirectory installs like /RD%20Vendora/)
+    RewriteRule ^vendor/?$ vendor-chat.php [L,QSA]
 
     # Block private application folders / composer package files
     RewriteRule ^(app|storage|archive|config|database)(/|$) - [F,L]

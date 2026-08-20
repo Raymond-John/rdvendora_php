@@ -11,7 +11,7 @@ if (!isset($conn) || $conn === null) {
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -29,7 +29,7 @@ if ($existingStore) {
     $_SESSION['store_id']   = $existingStore['id'];
     $_SESSION['store_name'] = $existingStore['store_name'];
     $_SESSION['store_slug'] = $existingStore['store_slug'];
-    header('Location: dashboard.php');
+    header('Location: dashboard');
     exit;
 }
 
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['store_id'] = $store_id;
                 $_SESSION['store_name'] = $store_name;
                 $_SESSION['store_slug'] = $store_slug;
-                header('Location: dashboard.php');
+                header('Location: dashboard');
                 exit;
             } else {
                 $error = 'Could not create your store. Please try again.';

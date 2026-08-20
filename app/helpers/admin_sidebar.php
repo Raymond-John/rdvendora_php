@@ -26,14 +26,17 @@ $can = static function ($key) use ($conn) {
     return adminHasPermission($key, $conn);
 };
 
-$item = static function ($url, $label, $icon) use ($currentPage) {
-    $active = $currentPage === $url ? ' active' : '';
-    echo '<a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" class="sidebar-item' . $active . '">' . $icon . '<span>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span></a>';
+$item = static function ($file, $label, $icon) use ($currentPage) {
+    $active = $currentPage === $file ? ' active' : '';
+    $clean = preg_replace('/\.php$/i', '', $file);
+    // /admin maps to admin/admin.php; other pages live under /admin/{name}
+    $href = ($clean === 'admin') ? '../admin' : $clean;
+    echo '<a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '" class="sidebar-item' . $active . '">' . $icon . '<span>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span></a>';
 };
 ?>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <a href="../index.php" class="nav-logo">
+        <a href="../" class="nav-logo">
             <img class="rdv-brand-logo rdv-brand-logo--sidebar" src="<?= htmlspecialchars(rdv_asset('assets/brand-logo.png', '../'), ENT_QUOTES, 'UTF-8') ?>" alt="">
             <span class="rdv-brand-name">RD Vendora</span>
         </a>
@@ -64,7 +67,7 @@ $item = static function ($url, $label, $icon) use ($currentPage) {
         <div class="sidebar-section-title">System</div>
         <?php if ($can('pricing')) { $item('admin-subscriptions.php', 'Subscriptions', $svg['pricing']); } ?>
         <?php if ($can('settings')) { $item('adminsettings.php', 'Settings', $svg['gear']); } ?>
-        <a href="../dashboard.php" class="sidebar-item"><?= $svg['logout'] ?><span>Back to Store</span></a>
+        <a href="../dashboard" class="sidebar-item"><?= $svg['logout'] ?><span>Back to Store</span></a>
         <a href="#" class="sidebar-item" onclick="logout()"><?= $svg['logout'] ?><span>Logout</span></a>
     </nav>
 </div>

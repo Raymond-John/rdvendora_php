@@ -627,7 +627,7 @@
     <p>
       We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic.
       By clicking "Accept All", you consent to our use of cookies.
-      <a href="privacy.php">Learn more</a>
+      <a href="privacy">Learn more</a>
     </p>
     <button class="btn-accept" id="accept-cookies">Accept All</button>
   </div>
@@ -696,7 +696,7 @@
     const Auth = {
       sessionKey: 'RD Vendora_session',
       login(email, password) { const user = DB.getAll('users').find(u => u.email === email && u.password === password); if (user) { localStorage.setItem(this.sessionKey, JSON.stringify({ userId: user.id, email: user.email, name: user.name, role: user.role, initials: user.initials, expiresAt: Date.now() + 86400000 })); return { success: true }; } return { success: false }; },
-      logout() { localStorage.removeItem(this.sessionKey); window.location.href = 'index.php'; },
+      logout() { localStorage.removeItem(this.sessionKey); window.location.href='./'; },
       getSession() { try { const s = JSON.parse(localStorage.getItem(this.sessionKey)); if (s && s.expiresAt > Date.now()) return s; localStorage.removeItem(this.sessionKey); return null; } catch { return null; } },
       isLoggedIn() { return !!this.getSession(); }
     };
@@ -712,19 +712,19 @@
         const session = Auth.getSession();
         nav.innerHTML = `
           <div class="navbar-inner">
-            <a href="index.php" class="navbar-brand">
+            <a href="./" class="navbar-brand">
               <img src="assets/brand-logo.png" alt="" class="rdv-brand-logo" style="height:28px;width:auto;max-width:100px;object-fit:contain;background:#fff;border-radius:6px;padding:1px 4px;display:block;">
               <span class="rdv-brand-name">RD Vendora</span>
             </a>
             <nav class="navbar-nav" id="navbar-nav">
-              <a href="index.php" class="nav-link">Home</a>
-              <a href="features.php" class="nav-link">Features</a>
-              <a href="pricing.php" class="nav-link active">Pricing</a>
-              <a href="about.php" class="nav-link">About</a>
-              <a href="contact.php" class="nav-link">Contact</a>
+              <a href="./" class="nav-link">Home</a>
+              <a href="features" class="nav-link">Features</a>
+              <a href="pricing" class="nav-link active">Pricing</a>
+              <a href="about" class="nav-link">About</a>
+              <a href="contact" class="nav-link">Contact</a>
             </nav>
             <div class="navbar-actions">
-              ${session ? `<a href="${session.role === 'admin' ? 'admin/admin.php' : 'dashboard.php'}" class="btn btn-primary btn-sm">Dashboard</a>` : `<a href="login.php" class="btn btn-ghost btn-sm">Log in</a><a href="register.php" class="btn btn-primary btn-sm">Get Started</a>`}
+              ${session ? `<a href="${session.role === 'admin' ? 'admin/admin.php' : 'dashboard.php'}" class="btn btn-primary btn-sm">Dashboard</a>` : `<a href="login" class="btn btn-ghost btn-sm">Log in</a><a href="register" class="btn btn-primary btn-sm">Get Started</a>`}
               <button class="btn-icon mobile-menu-toggle" id="mobile-menu-toggle">
                 <span></span><span></span><span></span>
               </button>
@@ -738,7 +738,7 @@
           <div class="container">
             <div class="footer-grid">
               <div class="footer-brand">
-                <a href="index.php" class="navbar-brand" style="margin-bottom:16px;">
+                <a href="./" class="navbar-brand" style="margin-bottom:16px;">
                   <img src="assets/brand-logo.png" alt="" class="rdv-brand-logo" style="height:28px;width:auto;max-width:100px;object-fit:contain;background:#fff;border-radius:6px;padding:1px 4px;display:block;">
                   <span class="rdv-brand-name">RD Vendora</span>
                 </a>
@@ -747,13 +747,13 @@
               <div class="footer-column">
                 <h4>Product</h4>
                 <div class="footer-links">
-                  <a href="features.php">Features</a><a href="pricing.php">Pricing</a><a href="storefront.php">Store Demo</a><a href="#">Changelog</a>
+                  <a href="features">Features</a><a href="pricing">Pricing</a><a href="storefront">Store Demo</a><a href="#">Changelog</a>
                 </div>
               </div>
               <div class="footer-column">
                 <h4>Company</h4>
                 <div class="footer-links">
-                  <a href="about.php">About</a><a href="contact.php">Contact</a><a href="faq.php">FAQ</a><a href="#">Careers</a>
+                  <a href="about">About</a><a href="contact">Contact</a><a href="faq">FAQ</a><a href="#">Careers</a>
                 </div>
               </div>
               <div class="footer-column">
@@ -896,12 +896,12 @@
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <nav class="mobile-nav-links">
-            <a href="index.php" class="mobile-nav-link">Home</a>
-            <a href="features.php" class="mobile-nav-link">Features</a>
-            <a href="pricing.php" class="mobile-nav-link">Pricing</a>
-            <a href="about.php" class="mobile-nav-link">About</a>
-            <a href="contact.php" class="mobile-nav-link">Contact</a>
-            <a href="register.php" class="mobile-nav-link">Get Started</a>
+            <a href="./" class="mobile-nav-link">Home</a>
+            <a href="features" class="mobile-nav-link">Features</a>
+            <a href="pricing" class="mobile-nav-link">Pricing</a>
+            <a href="about" class="mobile-nav-link">About</a>
+            <a href="contact" class="mobile-nav-link">Contact</a>
+            <a href="register" class="mobile-nav-link">Get Started</a>
           </nav>
           <div class="mobile-menu-footer">
             <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Security</a>

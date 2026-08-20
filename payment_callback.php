@@ -25,10 +25,10 @@ if ($gateway === 'paystack') {
     $verification = $paystack->transaction->verify(['reference' => $reference]);
     if ($verification && $verification->data->status === 'success') {
         $conn->query("UPDATE orders SET status = 'completed', payment_status = 'paid' WHERE id = $order_id");
-        echo "<script>localStorage.removeItem('marketplace_cart'); window.location.href='order-confirmation.php?id=$order_id&payment=success';</script>";
+        echo "<script>localStorage.removeItem('marketplace_cart'); window.location.href='order-confirmation?id=$order_id&payment=success';</script>";
     } else {
         $conn->query("UPDATE orders SET status = 'cancelled', payment_status = 'failed' WHERE id = $order_id");
-        header('Location: order-confirmation.php?id=' . $order_id . '&payment=failed');
+        header('Location: order-confirmation?id=' . $order_id . '&payment=failed');
     }
 }
 elseif ($gateway === 'flutterwave') {
@@ -38,10 +38,10 @@ elseif ($gateway === 'flutterwave') {
     $verification = $flutterwave->transactions->verify($transaction_id);
     if ($verification && isset($verification['data']['status']) && $verification['data']['status'] === 'successful') {
         $conn->query("UPDATE orders SET status = 'completed', payment_status = 'paid' WHERE id = $order_id");
-        echo "<script>localStorage.removeItem('marketplace_cart'); window.location.href='order-confirmation.php?id=$order_id&payment=success';</script>";
+        echo "<script>localStorage.removeItem('marketplace_cart'); window.location.href='order-confirmation?id=$order_id&payment=success';</script>";
     } else {
         $conn->query("UPDATE orders SET status = 'cancelled', payment_status = 'failed' WHERE id = $order_id");
-        header('Location: order-confirmation.php?id=' . $order_id . '&payment=failed');
+        header('Location: order-confirmation?id=' . $order_id . '&payment=failed');
     }
 } else {
     die('Invalid gateway');

@@ -116,7 +116,7 @@ require __DIR__ . '/includes/public_layout_start.php';
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <h3>Who we serve</h3>
-        <p>Sellers who need a storefront, buyers who want to purchase from those stores, and the operators who moderate the platform. Start from <a href="register.php">create an account</a> or <a href="contact.php">contact us</a>.</p>
+        <p>Sellers who need a storefront, buyers who want to purchase from those stores, and the operators who moderate the platform. Start from <a href="register">create an account</a> or <a href="contact">contact us</a>.</p>
       </article>
     </div>
     </div>
@@ -160,7 +160,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="mk-cta-band">
     <h2>Work with us</h2>
     <p>Questions about the product, partnership, or your store? Send a message.</p>
-    <a href="contact.php" class="btn btn-white btn-lg">Contact RD Vendora</a>
+    <a href="contact" class="btn btn-white btn-lg">Contact RD Vendora</a>
     </div>
   </div>
 

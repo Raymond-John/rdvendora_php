@@ -13,13 +13,13 @@ if (!$isAdmin) {
         $_SESSION['is_admin'] = true;
         $isAdmin = true;
     } else {
-        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
     }
 }
 
 // ---------- PERMISSION CHECK FOR CHAT PAGE ----------
 if (!adminHasPermission('chat', $conn)) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to access the chat.</p><a href="admin.php">Go to Dashboard</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to access the chat.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
 // Create chat table if not exists
@@ -385,7 +385,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     
     // Activity ping (online status)
     setInterval(() => {
-        fetch('../chat_update_activity.php', { method: 'POST' });
+        fetch('../chat_update_activity', { method: 'POST' });
     }, 30000);
     
     async function fetchVendorPeerIdFromDB(vendorId) {
@@ -413,7 +413,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                             if (msg.sender_type === 'vendor') {
                                 const peerId = msg.message.replace('__PEER_ID__', '');
                                 vendorPeerId = peerId;
-                                fetch('../chat_save_peer_id.php', {
+                                fetch('../chat_save_peer_id', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                                     body: `vendor_id=${currentVendorId}&peer_id=${peerId}`
@@ -445,7 +445,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     }
 
     function markAsRead(vendorId) {
-        fetch('../chat_mark_read.php', { method: 'POST' });
+        fetch('../chat_mark_read', { method: 'POST' });
         const activeItem = document.querySelector(`.vendor-item[data-vendor-id="${vendorId}"]`);
         if (activeItem) {
             const badge = activeItem.querySelector('.unread-badge');
@@ -527,17 +527,17 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     function sendTypingStart() {
         if (isTyping) return;
         isTyping = true;
-        fetch('../chat_typing_ping.php', { method: 'POST', body: 'action=start' });
+        fetch('../chat_typing_ping', { method: 'POST', body: 'action=start' });
         if (typingInterval) clearInterval(typingInterval);
         typingInterval = setInterval(() => {
-            fetch('../chat_typing_ping.php', { method: 'POST', body: 'action=start' });
+            fetch('../chat_typing_ping', { method: 'POST', body: 'action=start' });
         }, 3000);
     }
     function sendTypingStop() {
         if (!isTyping) return;
         isTyping = false;
         clearInterval(typingInterval);
-        fetch('../chat_typing_ping.php', { method: 'POST', body: 'action=stop' });
+        fetch('../chat_typing_ping', { method: 'POST', body: 'action=stop' });
     }
     function setupTyping() {
         const input = document.getElementById('messageInput');
@@ -604,7 +604,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.webm');
             formData.append('vendor_id', currentVendorId);
-            const res = await fetch('../chat_upload_audio.php', { method: 'POST', body: formData });
+            const res = await fetch('../chat_upload_audio', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.success) loadMessages();
             else alert('Audio upload failed');

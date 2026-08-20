@@ -51,11 +51,11 @@ require __DIR__ . '/includes/public_layout_start.php';
         <?php endif; ?>
         <div class="mk-contact-item" style="margin-bottom:0;">
           <h3>Also useful</h3>
-          <p><a href="faq.php">FAQ</a> · <a href="pricing.php">Pricing</a> · <a href="register.php">Create a store</a></p>
+          <p><a href="faq">FAQ</a> · <a href="pricing">Pricing</a> · <a href="register">Create a store</a></p>
         </div>
       </aside>
       <div class="mk-form-card reveal">
-        <form id="contact-form" method="post" action="submit-contact.php" novalidate>
+        <form id="contact-form" method="post" action="submit-contact" novalidate>
           <?= rdv_csrf_field() ?>
           <input type="text" name="website" class="rdv-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="form-group">

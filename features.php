@@ -53,8 +53,8 @@ $features = [
     <h2>See it on your own store</h2>
     <p>Create an account and add a product. If you already sell, compare plans next.</p>
     <div class="mk-actions" style="justify-content:center;">
-      <a href="register.php" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Get started</a>
-      <a href="pricing.php" class="btn btn-outline-white btn-lg">View pricing</a>
+      <a href="register" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Get started</a>
+      <a href="pricing" class="btn btn-outline-white btn-lg">View pricing</a>
     </div>
     </div>
   </div>

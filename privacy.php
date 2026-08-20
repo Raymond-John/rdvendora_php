@@ -8,7 +8,7 @@ $updated = '17 August 2026';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Privacy Policy</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Privacy Policy</nav>
     <h1>Privacy Policy</h1>
     <p class="rdv-updated">Last updated <?= htmlspecialchars($updated, ENT_QUOTES, 'UTF-8') ?>. This policy describes RD Vendora (rdvendora.com), operated in connection with RD NEXA TECH. It is not legal advice.</p>
 
@@ -41,13 +41,13 @@ $updated = '17 August 2026';
     <p>We do not sell your personal information. Store owners may see customer information related to orders placed with their store.</p>
 
     <h2>Cookies</h2>
-    <p>Necessary cookies keep sessions working. Optional analytics and advertising cookies are described in the <a href="cookies.php">Cookie Policy</a> and are not set for those purposes until you make a choice in the cookie banner.</p>
+    <p>Necessary cookies keep sessions working. Optional analytics and advertising cookies are described in the <a href="cookies">Cookie Policy</a> and are not set for those purposes until you make a choice in the cookie banner.</p>
 
     <h2>Retention</h2>
     <p>We keep account and store records while the account is active and for a reasonable period afterward for security, dispute, and legal reasons. Newsletter records are kept so we can honour unsubscribe requests. Contact messages are kept for support history until an administrator deletes them.</p>
 
     <h2>Your choices</h2>
-    <p>You can update profile information in your account settings, unsubscribe from the newsletter at <a href="newsletter-unsubscribe.php">newsletter-unsubscribe.php</a>, and request access or deletion by contacting us via the <a href="contact.php">contact form</a>. We may need to verify that the request comes from the account holder. Some records may be retained where we have a legal reason to keep them.</p>
+    <p>You can update profile information in your account settings, unsubscribe from the newsletter at <a href="newsletter-unsubscribe">newsletter-unsubscribe.php</a>, and request access or deletion by contacting us via the <a href="contact">contact form</a>. We may need to verify that the request comes from the account holder. Some records may be retained where we have a legal reason to keep them.</p>
 
     <h2>Children</h2>
     <p>RD Vendora is intended for people who can form a contract to run or buy from an online store. It is not directed at children under 13 (or the equivalent age in your country). If you believe a child has submitted personal data, contact us so we can delete it.</p>
@@ -62,7 +62,7 @@ $updated = '17 August 2026';
     <p>We may update this policy when the product or the law changes. The “last updated” date will change. Continued use after an update means you have had a chance to read the new version.</p>
 
     <h2>Contact</h2>
-    <p>Privacy questions can be sent through the <a href="contact.php">Contact</a> page. Do not send passwords or full payment-card numbers by email.</p>
+    <p>Privacy questions can be sent through the <a href="contact">Contact</a> page. Do not send passwords or full payment-card numbers by email.</p>
   </div>
 </section>
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

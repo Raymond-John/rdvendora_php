@@ -111,7 +111,7 @@ if (!function_exists('rdv_blog_seed_defaults')) {
 <h2>Explain fulfilment</h2>
 <p>If you ship, say from where and roughly how long. If you offer pickup, say where. Hidden shipping costs at the last step are a common reason for abandoned carts and complaints.</p>
 <h2>Follow the platform rules</h2>
-<p>Read the <a href="community-guidelines.php">Community Guidelines</a>. Do not post fake testimonials. Product HTML that tries to run scripts will be treated as abuse.</p>',
+<p>Read the <a href="community-guidelines">Community Guidelines</a>. Do not post fake testimonials. Product HTML that tries to run scripts will be treated as abuse.</p>',
             ],
             [
                 'slug' => 'marketplace-multiple-stores',
@@ -157,7 +157,7 @@ if (!function_exists('rdv_blog_seed_defaults')) {
 <h2>Advertisements</h2>
 <p>Some public pages reserve labelled advertisement areas. Live Google ads load only if the site owner has configured AdSense and you have allowed advertising cookies. We do not ask anyone to click ads, and we do not invent advertiser brands.</p>
 <h2>Where to read more</h2>
-<p>The <a href="privacy.php">Privacy Policy</a> and <a href="cookies.php">Cookie Policy</a> describe what we collect and how to change your choice later using Cookie settings on the page.</p>',
+<p>The <a href="privacy">Privacy Policy</a> and <a href="cookies">Cookie Policy</a> describe what we collect and how to change your choice later using Cookie settings on the page.</p>',
             ],
             [
                 'slug' => 'contacting-support',
@@ -168,7 +168,7 @@ if (!function_exists('rdv_blog_seed_defaults')) {
                 'is_featured' => 0,
                 'published_at' => '2026-08-14 12:00:00',
                 'legacy' => '',
-                'body' => '<p>If something on the platform is broken, unclear, or you need a human reply, use the <a href="contact.php">contact form</a>.</p>
+                'body' => '<p>If something on the platform is broken, unclear, or you need a human reply, use the <a href="contact">contact form</a>.</p>
 <h2>What to include</h2>
 <ul>
 <li>The email address on your RD Vendora account.</li>
@@ -187,7 +187,7 @@ if (!function_exists('rdv_blog_seed_defaults')) {
                 'is_featured' => 0,
                 'published_at' => '2026-08-13 09:30:00',
                 'legacy' => '',
-                'body' => '<p>If you need a paid plan, open the <a href="pricing.php">pricing</a> page and, after you sign in, the billing screen. Those pages are the source of truth for what you are buying.</p>
+                'body' => '<p>If you need a paid plan, open the <a href="pricing">pricing</a> page and, after you sign in, the billing screen. Those pages are the source of truth for what you are buying.</p>
 <h2>Payment processing is separate</h2>
 <p>Paystack and Flutterwave charge their own fees on customer checkouts. That is not the same as an RD Vendora subscription. If a screen does not list a platform commission, do not assume there is none—read the plan details in the dashboard.</p>
 <h2>Cancelling</h2>

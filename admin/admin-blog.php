@@ -10,10 +10,10 @@ if (!$conn) {
 
 $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
 if (!$isAdmin) {
-    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><a href="admin.php">Dashboard</a></div>');
+    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><a href="admin">Dashboard</a></div>');
 }
 if (!adminHasPermission('blog', $conn) && !adminHasPermission('about', $conn) && !adminHasPermission('newsletter', $conn)) {
-    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><p>You do not have permission to manage News.</p><a href="admin.php">Dashboard</a></div>');
+    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><p>You do not have permission to manage News.</p><a href="admin">Dashboard</a></div>');
 }
 
 rdv_ensure_blog_table($conn);
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'delete') {
             $id = (int) ($_POST['id'] ?? 0);
             if ($id > 0 && rdv_blog_delete($conn, $id)) {
-                header('Location: admin-blog.php?ok=1');
+                header('Location: admin-blog?ok=1');
                 exit;
             }
             $error = 'Could not delete that story.';
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'published_at' => $_POST['published_at'] ?? '',
                 ], $id);
                 if ($result['ok']) {
-                    header('Location: admin-blog.php?id=' . (int) $result['id'] . '&ok=1');
+                    header('Location: admin-blog?id=' . (int) $result['id'] . '&ok=1');
                     exit;
                 }
                 $error = $result['message'];
@@ -126,7 +126,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         <option value="draft" <?= $statusFilter === 'draft' ? 'selected' : '' ?>>Draft</option>
       </select>
       <button type="submit">Filter</button>
-      <a class="btn" href="admin-blog.php?new=1">New story</a>
+      <a class="btn" href="admin-blog?new=1">New story</a>
     </form>
 
     <?php if (!$isNew && !$edit): ?>
@@ -136,7 +136,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
       </thead>
       <tbody>
         <?php if (!$rows): ?>
-          <tr><td colspan="6">No stories yet. <a href="admin-blog.php?new=1">Write the first one</a>.</td></tr>
+          <tr><td colspan="6">No stories yet. <a href="admin-blog?new=1">Write the first one</a>.</td></tr>
         <?php endif; ?>
         <?php foreach ($rows as $row): ?>
           <tr>
@@ -146,7 +146,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             <td><?= rdv_blog_h((string) $row['published_at']) ?></td>
             <td><?= ((int) $row['is_featured'] === 1) ? 'Yes' : '' ?></td>
             <td>
-              <a class="btn ghost" href="admin-blog.php?id=<?= (int) $row['id'] ?>">Edit</a>
+              <a class="btn ghost" href="admin-blog?id=<?= (int) $row['id'] ?>">Edit</a>
               <?php if ($row['status'] === 'published'): ?>
                 <a class="btn ghost" href="../<?= rdv_blog_h(rdv_blog_url($row['slug'])) ?>" target="_blank" rel="noopener">View</a>
               <?php else: ?>
@@ -220,7 +220,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         </div>
         <p class="toolbar">
           <button type="submit">Save</button>
-          <a class="btn ghost" href="admin-blog.php">Back to list</a>
+          <a class="btn ghost" href="admin-blog">Back to list</a>
         </p>
       </form>
       <?php if ($edit): ?>

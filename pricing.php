@@ -42,7 +42,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="container">
     <div class="pricing-grid">
       <?php if (empty($activePlans)): ?>
-        <div class="pricing-card" style="grid-column:1/-1;text-align:center;padding:2rem;">No active subscription plans are listed. <a href="contact.php">Contact us</a> for access.</div>
+        <div class="pricing-card" style="grid-column:1/-1;text-align:center;padding:2rem;">No active subscription plans are listed. <a href="contact">Contact us</a> for access.</div>
       <?php else: ?>
         <?php
         $planCount = count($activePlans);
@@ -84,9 +84,9 @@ require __DIR__ . '/includes/public_layout_start.php';
             <?php endforeach; endif; ?>
           </div>
           <?php if ($planNameLower === 'empire'): ?>
-            <a href="contact.php" class="btn btn-outline w-full" style="justify-content:center;">Contact sales</a>
+            <a href="contact" class="btn btn-outline w-full" style="justify-content:center;">Contact sales</a>
           <?php else: ?>
-            <a href="register.php" class="btn <?= $isPopular ? 'btn-primary' : 'btn-outline' ?> w-full" style="justify-content:center;">Get started</a>
+            <a href="register" class="btn <?= $isPopular ? 'btn-primary' : 'btn-outline' ?> w-full" style="justify-content:center;">Get started</a>
           <?php endif; ?>
         </div>
         <?php endforeach; endif; ?>
@@ -115,7 +115,7 @@ require __DIR__ . '/includes/public_layout_start.php';
       </div>
       <div class="rdv-faq-item">
         <h2><button type="button" aria-expanded="false">Need help picking a plan?</button></h2>
-        <div class="rdv-faq-a"><p>Write to us from the <a href="contact.php">contact page</a> with how many products you sell and we will point you to the right tier.</p></div>
+        <div class="rdv-faq-a"><p>Write to us from the <a href="contact">contact page</a> with how many products you sell and we will point you to the right tier.</p></div>
       </div>
     </div>
   </div>
@@ -125,7 +125,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="mk-cta-band">
     <h2>Start with a store, not a sales call</h2>
     <p>Register, add products, and upgrade when you need more capacity.</p>
-    <a href="register.php" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Create your store</a>
+    <a href="register" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Create your store</a>
   </div>
 </div>
 

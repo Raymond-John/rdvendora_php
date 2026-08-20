@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $validToken && $userId) {
                 $useStmt->execute();
                 $useStmt->close();
                 
-                $message = 'Password has been reset successfully. You can now <a href="login.php">login</a>.';
+                $message = 'Password has been reset successfully. You can now <a href="login">login</a>.';
                 $messageType = 'success';
                 $validToken = false; // hide form
             } else {
@@ -139,9 +139,9 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">Reset password</button>
         </form>
         <?php elseif ($token): ?>
-        <a href="forgot-password.php" class="btn btn-outline w-full" style="justify-content:center;">Request a new link</a>
+        <a href="forgot-password" class="btn btn-outline w-full" style="justify-content:center;">Request a new link</a>
         <?php endif; ?>
         <div class="auth-footer">
-          <a href="login.php">Back to login</a>
+          <a href="login">Back to login</a>
         </div>
 <?php require __DIR__ . '/includes/auth_layout_end.php'; ?>

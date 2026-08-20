@@ -3,7 +3,7 @@ session_start();
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php?error=Not logged in');
+    header('Location: login?error=Not logged in');
     exit();
 }
 
@@ -57,7 +57,7 @@ $stmt->bind_param("i", $_SESSION['user_id']);
 $stmt->execute();
 $storeResult = $stmt->get_result();
 if ($storeResult->num_rows === 0) {
-    header("Location: create-store.php");
+    header("Location: create-store");
     exit();
 }
 $storeData = $storeResult->fetch_assoc();
@@ -1039,7 +1039,7 @@ $revenue = $total_revenue;
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="index.php" class="sidebar-brand">
+            <a href="./" class="sidebar-brand">
                 <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
@@ -1048,11 +1048,11 @@ $revenue = $total_revenue;
         </div>
         <nav class="sidebar-nav">
             <div class="sidebar-section-title">Main</div>
-            <a href="dashboard.php" class="sidebar-link active">
+            <a href="dashboard" class="sidebar-link active">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
                 <span class="sidebar-link-text">Dashboard</span>
             </a>
-            <a href="analytics.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="analytics" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="20" x2="18" y2="10" />
                     <line x1="12" y1="20" x2="12" y2="4" />
@@ -1060,15 +1060,15 @@ $revenue = $total_revenue;
                 </svg>
                 <span class="sidebar-link-text">Analytics</span>
             </a>
-            <a href="products.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="products" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 <span class="sidebar-link-text">Products</span>
             </a>
-            <a href="orders.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="orders" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
                 <span class="sidebar-link-text">Orders</span>
             </a>
-            <a href="customers.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="customers" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 <span class="sidebar-link-text">Customers</span>
             </a>
@@ -1077,33 +1077,33 @@ $revenue = $total_revenue;
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 <span class="sidebar-link-text">Storefront</span>
             </a>
-            <a href="settings.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="settings" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
                 <span class="sidebar-link-text">Store Settings</span>
             </a>
-            <a href="subscription.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="subscription" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
                 <span class="sidebar-link-text">Subscription</span>
             </a>
-            <a href="vendor-chat.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="vendor-chat" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span class="sidebar-link-text">Chat</span>
             </a>
-            <a href="vendor-communication.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="vendor-communication" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 <span class="sidebar-link-text">Communication</span>
             </a>
-            <a href="notifications.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="notifications" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="sidebar-link-text">Notifications</span>
             </a>
             <div class="sidebar-section-title">AI Tools</div>
-            <a href="ai-chat.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="ai-chat" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zM12 6v4M12 16h.01"/><line x1="12" y1="12" x2="12" y2="12"/></svg>
                 <span class="sidebar-link-text">AI Chat</span>
             </a>
             <div class="sidebar-section-title">Account</div>
-            <a href="profile.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="profile" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
                 <span class="sidebar-link-text">Profile</span>
             </a>
@@ -1126,7 +1126,7 @@ $revenue = $total_revenue;
                         <?php if ($_SESSION['store_name']): ?>
                             🏪 <?= htmlspecialchars($_SESSION['store_name']) ?>
                         <?php else: ?>
-                            <a href="create-store.php" style="color: var(--primary);">Create Store</a>
+                            <a href="create-store" style="color: var(--primary);">Create Store</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -1177,7 +1177,7 @@ $revenue = $total_revenue;
                                 <?php if ($_SESSION['store_name']): ?>
                                     Store: <?= htmlspecialchars($_SESSION['store_name']) ?>
                                 <?php else: ?>
-                                    <a href="create-store.php" style="color:var(--primary);">Create Store</a>
+                                    <a href="create-store" style="color:var(--primary);">Create Store</a>
                                 <?php endif; ?>
                             </span>
                         </div>
@@ -1220,9 +1220,9 @@ $revenue = $total_revenue;
                         <p><?= htmlspecialchars($restrictionMessage) ?></p>
                     </div>
                     <?php if ($isSuspended): ?>
-                        <a href="subscription.php" class="contact-btn" style="background: #6366f1;">Renew Now →</a>
+                        <a href="subscription" class="contact-btn" style="background: #6366f1;">Renew Now →</a>
                     <?php else: ?>
-                        <a href="contact.php" class="contact-btn">Contact Us →</a>
+                        <a href="contact" class="contact-btn">Contact Us →</a>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
@@ -1251,7 +1251,7 @@ $revenue = $total_revenue;
                     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
                         <button type="button" class="btn btn-outline btn-sm" id="dashCopyStoreUrl">Copy URL</button>
                         <a href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Open Store</a>
-                        <a href="settings.php#my-store-url" class="btn btn-ghost btn-sm">Edit Store URL</a>
+                        <a href="settings#my-store-url" class="btn btn-ghost btn-sm">Edit Store URL</a>
                     </div>
                 </div>
                 <script>
@@ -1266,7 +1266,7 @@ $revenue = $total_revenue;
                 </script>
                 <?php endif; ?>
                 <div class="quick-actions">
-                    <a href="products.php" class="quick-action-card animate-fade-in-up delay-100"><div class="quick-action-icon" style="background:var(--primary-light);color:var(--primary);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Add Product</div><div class="quick-action-desc">Create new product</div></div></a>
+                    <a href="products" class="quick-action-card animate-fade-in-up delay-100"><div class="quick-action-icon" style="background:var(--primary-light);color:var(--primary);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Add Product</div><div class="quick-action-desc">Create new product</div></div></a>
                     <div class="quick-action-card animate-fade-in-up delay-200" onclick="openInviteModal()"><div class="quick-action-icon" style="background:var(--success-light);color:var(--success-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Invite Team</div><div class="quick-action-desc">Add staff members</div></div></div>
                     <a href="<?= htmlspecialchars($dashStoreUrl !== '' ? $dashStoreUrl : 'storefront.php', ENT_QUOTES, 'UTF-8') ?>" class="quick-action-card animate-fade-in-up delay-300"<?= $dashStoreUrl !== '' ? ' target="_blank" rel="noopener"' : '' ?>><div class="quick-action-icon" style="background:var(--warning-light);color:var(--warning-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="quick-action-info"><div class="quick-action-title">View Store</div><div class="quick-action-desc">See your storefront</div></div></a>
                     <div class="quick-action-card animate-fade-in-up delay-400" onclick="showToast('info','Coming Soon','Reports feature will be available soon.')"><div class="quick-action-icon" style="background:var(--info-light);color:var(--info-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Reports</div><div class="quick-action-desc">View analytics</div></div></div>
@@ -1285,7 +1285,7 @@ $revenue = $total_revenue;
                 </div>
 
                 <div class="animate-fade-in-up delay-500">
-                    <div class="section-heading"><h3>Recent Orders</h3><a href="orders.php" class="view-all-link">View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg></a></div>
+                    <div class="section-heading"><h3>Recent Orders</h3><a href="orders" class="view-all-link">View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg></a></div>
                     <div class="table-container">
                         <table class="data-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody id="recentOrdersBody"></tbody></table>
                     </div>
@@ -1345,9 +1345,9 @@ $revenue = $total_revenue;
                     </h3>
                     <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;"><?= htmlspecialchars($restrictionMessage) ?></p>
                     <?php if ($isSuspended): ?>
-                        <a href="subscription.php" class="btn btn-primary" style="margin-top: 24px;">Renew Subscription</a>
+                        <a href="subscription" class="btn btn-primary" style="margin-top: 24px;">Renew Subscription</a>
                     <?php elseif ($storeStatus === 'active' && strpos($restrictionMessage, 'subscription') !== false): ?>
-                        <a href="subscription.php" class="btn btn-primary" style="margin-top: 24px;">View Plans</a>
+                        <a href="subscription" class="btn btn-primary" style="margin-top: 24px;">View Plans</a>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
@@ -1476,7 +1476,7 @@ $revenue = $total_revenue;
         document.getElementById('orderModal')?.addEventListener('click',e=>{ if(e.target===e.currentTarget) closeOrderModal(); });
 
         // Sidebar, theme, logout
-        function handleLogout() { if(confirm('Are you sure you want to log out?')) window.location.href='logout.php'; }
+        function handleLogout() { if(confirm('Are you sure you want to log out?')) window.location.href='logout'; }
         const html=document.documentElement; const savedTheme=localStorage.getItem('RD Vendora-theme')||'light'; html.setAttribute('data-theme',savedTheme);
         document.getElementById('themeToggle')?.addEventListener('click',()=>{ const next=html.getAttribute('data-theme')==='light'?'dark':'light'; html.setAttribute('data-theme',next); localStorage.setItem('RD Vendora-theme',next); updateChartsTheme(); });
         const sidebar=document.getElementById('sidebar'); const overlay=document.getElementById('sidebarOverlay');

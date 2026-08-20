@@ -13,7 +13,7 @@ if (class_exists('Dotenv\\Dotenv')) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: marketplace.php');
+    header('Location: marketplace');
     exit;
 }
 

@@ -24,13 +24,13 @@ $faqs = [
     ['Can more than one vendor sell on the same marketplace?', 'Yes. The platform is designed so multiple stores can exist, and public marketplace pages can list products from those stores when that feature is turned on.'],
     ['How do I cancel a subscription?', 'If you have a paid plan, use the billing or account area in your dashboard. Access typically continues until the end of the period you already paid for, unless that screen states something different.'],
     ['How do refunds work?', 'Refunds for products you sold are between you and your customer, plus any rules of Paystack or Flutterwave. Refunds for an RD Vendora subscription, if offered, will be stated at purchase or in a written policy—not as an automatic “always 30 days” promise on this FAQ.'],
-    ['How do I get help?', 'Use the <a href="contact.php">contact form</a>. For store-specific issues, include the store name and your account email. You can also read the <a href="blog.php">News</a> section for setup guidance.'],
+    ['How do I get help?', 'Use the <a href="contact">contact form</a>. For store-specific issues, include the store name and your account email. You can also read the <a href="blog">News</a> section for setup guidance.'],
     ['Do you show advertisements?', 'Public marketing and article pages may include clearly labelled advertisement areas. Live Google ads appear only if the site owner configures AdSense and a visitor accepts advertising cookies. We do not ask anyone to click ads.'],
 ];
 ?>
 <section class="section">
   <div class="container" style="max-width:720px">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / FAQ</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / FAQ</nav>
     <div class="section-header">
       <div class="section-label">FAQ</div>
       <h1 class="section-title">Frequently asked questions</h1>

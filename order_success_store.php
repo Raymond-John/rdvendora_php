@@ -556,15 +556,15 @@ $conn->close();
 
 <!-- HEADER -->
 <header>
-    <a href="marketplace.php" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
+    <a href="marketplace" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
     <div class="search-bar">
-        <form method="get" action="marketplace.php" style="display:flex; flex:1; width:100%;">
+        <form method="get" action="marketplace" style="display:flex; flex:1; width:100%;">
             <input type="text" name="q" placeholder="Search products, brands and categories…" />
             <button type="submit"><i class="fas fa-search"></i></button>
         </form>
     </div>
     <div class="header-actions">
-        <a href="marketplaceaddtocart.php">
+        <a href="marketplaceaddtocart">
             <div class="cart-badge">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="badge" id="cartCount">0</span>
@@ -581,7 +581,7 @@ $conn->close();
             <i class="fas fa-exclamation-triangle error-icon"></i>
             <h1>Order Error</h1>
             <p><?= htmlspecialchars($error) ?></p>
-            <a href="marketplace.php" class="btn"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+            <a href="marketplace" class="btn"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
         </div>
     <?php else: ?>
         <!-- SUCCESS CARD -->
@@ -626,7 +626,7 @@ $conn->close();
             </div>
 
             <!-- Only Continue Shopping button -->
-            <a href="marketplace.php" class="btn"><i class="fas fa-shopping-cart"></i> Continue Shopping</a>
+            <a href="marketplace" class="btn"><i class="fas fa-shopping-cart"></i> Continue Shopping</a>
         </div>
     <?php endif; ?>
 </div>

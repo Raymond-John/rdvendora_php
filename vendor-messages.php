@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php?error=Not logged in');
+    header('Location: login?error=Not logged in');
     exit();
 }
 
@@ -17,7 +17,7 @@ $stmt = $conn->prepare("SELECT id FROM stores WHERE user_id = ?");
 $stmt->bind_param("i", $_SESSION['user_id']);
 $stmt->execute();
 if ($stmt->get_result()->num_rows === 0) {
-    header("Location: create-store.php");
+    header("Location: create-store");
     exit();
 }
 $stmt->close();
@@ -152,13 +152,13 @@ $stmt->close();
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">RD Vendora</div>
     <nav class="sidebar-nav">
-        <a href="dashboard.php" class="sidebar-link">📊 Dashboard</a>
-        <a href="products.php" class="sidebar-link">📦 Products</a>
-        <a href="orders.php" class="sidebar-link">🛒 Orders</a>
-        <a href="customers.php" class="sidebar-link">👥 Customers</a>
-        <a href="settings.php" class="sidebar-link">⚙️ Settings</a>
-        <a href="subscription.php" class="sidebar-link">💳 Subscription</a>
-        <a href="vendor-messages.php" class="sidebar-link active">💬 Messages</a>
+        <a href="dashboard" class="sidebar-link">📊 Dashboard</a>
+        <a href="products" class="sidebar-link">📦 Products</a>
+        <a href="orders" class="sidebar-link">🛒 Orders</a>
+        <a href="customers" class="sidebar-link">👥 Customers</a>
+        <a href="settings" class="sidebar-link">⚙️ Settings</a>
+        <a href="subscription" class="sidebar-link">💳 Subscription</a>
+        <a href="vendor-messages" class="sidebar-link active">💬 Messages</a>
         <a href="#" class="sidebar-link" onclick="logout()">🚪 Logout</a>
     </nav>
 </aside>
@@ -228,7 +228,7 @@ $stmt->close();
     if (mobileToggle) {
         mobileToggle.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
     }
-    function logout() { if(confirm('Logout?')) window.location.href='logout.php'; }
+    function logout() { if(confirm('Logout?')) window.location.href='logout'; }
 </script>
 </body>
 </html>

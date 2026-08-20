@@ -39,7 +39,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Unsubscribe</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Unsubscribe</nav>
     <h1>Unsubscribe</h1>
     <?php if ($done): ?>
       <p>If that address was on our newsletter list, it is now unsubscribed. You will not receive future RD Vendora newsletter emails unless you subscribe again and confirm.</p>

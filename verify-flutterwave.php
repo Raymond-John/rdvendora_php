@@ -84,7 +84,7 @@ if ($httpCode === 200 && isset($result['status']) && $result['status'] === 'succ
     }
     
     // --- Redirect to order success page ---
-    header("Location: order_success.php?order_id=" . $orderId);
+    header("Location: order_success?order_id=" . $orderId);
     exit;
     
 } else {

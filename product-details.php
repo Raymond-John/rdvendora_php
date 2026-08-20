@@ -249,7 +249,7 @@ $reviewCount = rand(10, 200);
             <h4><?= htmlspecialchars($store['store_name']) ?></h4>
         </a>
         <div class="store-actions">
-            <a href="cart.php?store_id=<?= $store['id'] ?>" class="cart-link">
+            <a href="cart?store_id=<?= $store['id'] ?>" class="cart-link">
                 🛒 <span id="cartCount" class="cart-count">0</span>
             </a>
         </div>

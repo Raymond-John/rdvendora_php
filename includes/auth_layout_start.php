@@ -34,7 +34,7 @@ $checkIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
     <div class="auth-visual">
       <div class="auth-visual-bg"></div>
       <div class="auth-visual-content">
-        <a href="index.php" class="auth-visual-brand">
+        <a href="./" class="auth-visual-brand">
           <?= rdv_brand_logo('', 'rdv-brand-logo--auth') ?>
         </a>
       </div>

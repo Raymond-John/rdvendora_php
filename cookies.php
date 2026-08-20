@@ -7,7 +7,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Cookie Policy</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Cookie Policy</nav>
     <h1>Cookie Policy</h1>
     <p class="rdv-updated">Last updated 17 August 2026.</p>
 
@@ -27,7 +27,7 @@ require __DIR__ . '/includes/public_layout_start.php';
     <p>Use “Cookie settings” at the bottom of public pages, or clear site data in your browser. Blocking all cookies may stop sign-in from working.</p>
 
     <h2>More information</h2>
-    <p>See the <a href="privacy.php">Privacy Policy</a>. Questions: <a href="contact.php">Contact</a>.</p>
+    <p>See the <a href="privacy">Privacy Policy</a>. Questions: <a href="contact">Contact</a>.</p>
   </div>
 </section>
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

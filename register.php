@@ -10,7 +10,7 @@ if (!$conn) {
 }
 
 if (!empty($_SESSION['user_id'])) {
-    header('Location: create-store.php');
+    header('Location: create-store');
     exit;
 }
 
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 sendWelcomeEmail($email, $fullname);
                             }
                         }
-                header('Location: create-store.php');
+                header('Location: create-store');
                 exit;
                     }
                     $error = 'Could not create the account. Please try again.';
@@ -155,7 +155,7 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <div class="form-group">
             <label class="form-check">
               <input type="checkbox" id="reg-terms" name="terms" required>
-              <span style="font-size:14px;color:var(--text-secondary);">I agree to the <a href="terms.php">Terms</a> and <a href="privacy.php">Privacy Policy</a></span>
+              <span style="font-size:14px;color:var(--text-secondary);">I agree to the <a href="terms">Terms</a> and <a href="privacy">Privacy Policy</a></span>
             </label>
           </div>
           <button type="submit" class="btn btn-primary w-full" style="justify-content:center;" id="reg-btn">Create account</button>
@@ -165,5 +165,5 @@ require __DIR__ . '/includes/auth_layout_start.php';
         $googleBtnLabel = 'Continue with Google';
         require __DIR__ . '/includes/auth_google_button.php';
         ?>
-        <div class="auth-footer">Already have an account? <a href="login.php">Log in</a></div>
+        <div class="auth-footer">Already have an account? <a href="login">Log in</a></div>
 <?php require __DIR__ . '/includes/auth_layout_end.php'; ?>

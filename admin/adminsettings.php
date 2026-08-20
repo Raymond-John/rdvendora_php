@@ -8,7 +8,7 @@ if (!$conn) die('Database connection failed.');
 // Allow only logged-in admins
 $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
 if (!$isAdmin) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
 }
 
 // Determine if this is a super admin (role_name = 'super_admin')
@@ -441,7 +441,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                                 <?= $maintenance_mode == '1' ? 'ON' : 'OFF' ?>
                             </span>
                         </span>
-                        <a href="maintenance.php" target="_blank" class="preview-link">Preview</a>
+                        <a href="maintenance" target="_blank" class="preview-link">Preview</a>
                     </div>
                     <small style="display:block; color:var(--text-muted); font-size:0.7rem; margin-top:4px;">Toggle to enable/disable maintenance mode.</small>
                 </div>

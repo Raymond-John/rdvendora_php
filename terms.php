@@ -7,12 +7,12 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Terms and Conditions</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Terms and Conditions</nav>
     <h1>Terms and Conditions</h1>
     <p class="rdv-updated">Last updated 17 August 2026. These terms apply to rdvendora.com and the RD Vendora platform. They are not a substitute for professional legal advice.</p>
 
     <h2>Agreement</h2>
-    <p>By creating an account, opening a store, placing an order, or using public pages, you agree to these terms and to the <a href="privacy.php">Privacy Policy</a>, <a href="cookies.php">Cookie Policy</a>, and <a href="community-guidelines.php">Community Guidelines</a>. If you do not agree, do not use the service.</p>
+    <p>By creating an account, opening a store, placing an order, or using public pages, you agree to these terms and to the <a href="privacy">Privacy Policy</a>, <a href="cookies">Cookie Policy</a>, and <a href="community-guidelines">Community Guidelines</a>. If you do not agree, do not use the service.</p>
 
     <h2>The service</h2>
     <p>RD Vendora provides software for multi-vendor eCommerce: store setup, catalogues, orders, vendor tools, and related admin features. Features depend on your account type, subscription plan (if any), and configuration. We may change, pause, or discontinue features with reasonable notice where practical. We do not guarantee uninterrupted uptime.</p>
@@ -36,7 +36,7 @@ require __DIR__ . '/includes/public_layout_start.php';
     <p>Public pages may display third-party advertising (including Google AdSense) when that programme is enabled. Ads are marked as advertisements. Do not click ads except as a genuine visitor. We do not ask anyone to click ads in exchange for a benefit.</p>
 
     <h2>Disclaimer of warranties</h2>
-    <p>The platform is provided “as is”. We do not warrant that listings are accurate, that a store will make a particular amount of revenue, or that third-party services will always work. See also the <a href="disclaimer.php">Disclaimer</a>.</p>
+    <p>The platform is provided “as is”. We do not warrant that listings are accurate, that a store will make a particular amount of revenue, or that third-party services will always work. See also the <a href="disclaimer">Disclaimer</a>.</p>
 
     <h2>Limitation of liability</h2>
     <p>To the extent permitted by law, RD Vendora and RD NEXA TECH are not liable for lost profits, lost data, or indirect damages arising from use of the platform. Our total liability for a claim relating to the service is limited to the amount you paid us for the service in the three months before the claim, or a small nominal amount if you paid nothing. Some jurisdictions do not allow certain limitations; in those places, the limitation applies only as far as the law allows.</p>
@@ -48,7 +48,7 @@ require __DIR__ . '/includes/public_layout_start.php';
     <p>We may update these terms. The date at the top will change. If a change is material we will try to notice it on the site. Continued use after the update constitutes acceptance where the law allows.</p>
 
     <h2>Contact</h2>
-    <p>Questions about these terms: <a href="contact.php">Contact RD Vendora</a>.</p>
+    <p>Questions about these terms: <a href="contact">Contact RD Vendora</a>.</p>
   </div>
 </section>
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

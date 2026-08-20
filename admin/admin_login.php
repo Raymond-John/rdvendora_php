@@ -11,7 +11,7 @@ if (rdv_hydrate_admin_session($conn) && rdv_admin_flag_is_set()) {
         header("Location: $target");
     } else {
         session_destroy();
-        header('Location: admin_login.php?error=no_permissions');
+        header('Location: admin_login?error=no_permissions');
     }
     exit;
 }
@@ -146,8 +146,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit" class="btn">Login</button>
         </form>
-        <div class="register-link">No admin account? <a href="admin_register.php">Register here</a></div>
-        <div class="back-link"><a href="../index.php">← Back to Store</a></div>
+        <div class="register-link">No admin account? <a href="admin_register">Register here</a></div>
+        <div class="back-link"><a href="../">← Back to Store</a></div>
     </div>
 </div>
 </body>

@@ -21,7 +21,7 @@ try {
     error_log('maintenance.php settings: ' . $e->getMessage());
 }
 if ($maintenanceMode !== '1') {
-    header('Location: index.php');
+    header('Location: ./');
     exit;
 }
 // --------------------------------------------------------------------
@@ -357,7 +357,7 @@ $conn->close();
   <!-- ========== SIMPLIFIED NAVBAR ========== -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <a href="index.php" class="navbar-brand">
+      <a href="./" class="navbar-brand">
         <img class="rdv-brand-logo" src="assets/brand-logo.png" alt="">
         <span class="rdv-brand-name">RD Vendora</span>
       </a>

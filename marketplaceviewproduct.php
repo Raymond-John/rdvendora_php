@@ -41,7 +41,7 @@ $btn_bg_darker = darkenHex($primary_btn_bg, 0.5);
 // Get product ID from URL
 $product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($product_id <= 0) {
-    header('Location: marketplace.php');
+    header('Location: marketplace');
     exit;
 }
 
@@ -60,7 +60,7 @@ $product = $result->fetch_assoc();
 $stmt->close();
 
 if (!$product) {
-    header('Location: marketplace.php?error=Product+not+found');
+    header('Location: marketplace?error=Product+not+found');
     exit;
 }
 
@@ -603,15 +603,15 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
 
 <!-- HEADER -->
 <header>
-    <a href="marketplace.php" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
+    <a href="marketplace" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
     <div class="search-bar">
-        <form method="get" action="marketplace.php" style="display:flex; flex:1; width:100%;">
+        <form method="get" action="marketplace" style="display:flex; flex:1; width:100%;">
             <input type="text" name="q" placeholder="Search products, brands and categories…" />
             <button type="submit"><i class="fas fa-search"></i></button>
         </form>
     </div>
     <div class="header-actions">
-        <a href="marketplaceaddtocart.php">
+        <a href="marketplaceaddtocart">
             <div class="cart-badge">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="badge" id="cartCount">0</span>
@@ -619,12 +619,12 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
             <span>Cart</span>
         </a>
         <?php if (isset($_SESSION['user_id'])): ?>
-            <a href="dashboard.php">
+            <a href="dashboard">
                 <i class="fas fa-user-circle"></i>
                 <span>Account</span>
             </a>
         <?php else: ?>
-            <a href="login.php">
+            <a href="login">
                 <i class="fas fa-sign-in-alt"></i>
                 <span>Login</span>
             </a>
@@ -633,7 +633,7 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
 </header>
 
 <div class="back-link">
-    <a href="marketplace.php"><i class="fas fa-arrow-left"></i> Back to Marketplace</a>
+    <a href="marketplace"><i class="fas fa-arrow-left"></i> Back to Marketplace</a>
 </div>
 
 <div class="product-detail-container">
@@ -697,7 +697,7 @@ $discount = round((1 - $product['price'] / $originalPrice) * 100);
         <div class="related-grid">
             <?php foreach ($related as $rel): ?>
                 <div class="related-card">
-                    <a href="marketplaceviewproduct.php?id=<?= $rel['id'] ?>">
+                    <a href="marketplaceviewproduct?id=<?= $rel['id'] ?>">
                         <img src="<?= htmlspecialchars($rel['image'] ?? 'https://placehold.co/400x400?text=No+Image') ?>" alt="<?= htmlspecialchars($rel['name']) ?>">
                         <div class="related-info">
                             <div class="related-name"><?= htmlspecialchars($rel['name']) ?></div>

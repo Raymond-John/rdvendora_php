@@ -11,22 +11,22 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     // Validation
     if (empty($fullname) || empty($email) || empty($password) || empty($confirm)) {
-        header('location: ../register.php?error=All fields are required');
+        header('Location: ../register?error=All fields are required');
         exit();
     }
    
     if (strlen($password) < 6) {
-        header('location: ../register.php?error=Password too short');
+        header('Location: ../register?error=Password too short');
         exit();
     }
 
     if ($password !== $confirm) {
-        header('location: ../register.php?error=Password mismatch');
+        header('Location: ../register?error=Password mismatch');
         exit();
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header('location: ../register.php?error=Invalid email');
+        header('Location: ../register?error=Invalid email');
         exit();
     }
 
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $result = $checkEmail->get_result();
     if ($result->num_rows > 0) {
         $checkEmail->close();
-        header('location: ../register.php?error=Email already exists');
+        header('Location: ../register?error=Email already exists');
         exit();
     }
     $checkEmail->close();
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $stmt->bind_param('sss', $fullname, $email, $hashedPassword);
     if (!$stmt->execute()) {
         $stmt->close();
-        header('location: ../register.php?error=Registration failed');
+        header('Location: ../register?error=Registration failed');
         exit();
     }
     $userId = $stmt->insert_id;
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $_SESSION['email']     = $email;
 
     // Redirect to the store creation wizard
-    header('location: ../create-store.php?success=Account created! Now set up your store.');
+    header('Location: ../create-store?success=Account created! Now set up your store.');
     exit();
 }
 ?>

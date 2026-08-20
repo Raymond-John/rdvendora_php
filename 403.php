@@ -17,8 +17,8 @@
       <h1 class="error-title">Access denied</h1>
       <p class="error-text">This area is private or blocked.</p>
       <p>
-        <a class="btn btn-primary" href="index.php">Home</a>
-        <a class="btn btn-outline" href="login.php">Log in</a>
+        <a class="btn btn-primary" href="./">Home</a>
+        <a class="btn btn-outline" href="login">Log in</a>
       </p>
     </div>
   </div>

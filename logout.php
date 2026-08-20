@@ -22,5 +22,5 @@ if (isset($_COOKIE['remember_token'])) {
 }
 
 // Redirect to login page or home
-header('Location: login.php');
+header('Location: login');
 exit;

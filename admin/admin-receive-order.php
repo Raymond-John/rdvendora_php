@@ -9,12 +9,12 @@ if (!$conn) die('Database connection failed.');
 // Admin authentication – no hardcoded email fallback
 $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
 if (!$isAdmin) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
 }
 
 // Permission check for orders
 if (!adminHasPermission('orders', $conn)) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view orders.</p><a href="admin.php">Go to Dashboard</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view orders.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
 // ---------- DETECT ORDER TABLE COLUMNS ----------
@@ -286,7 +286,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     orderSearch.addEventListener('change', applyFilters);
     statusFilter.addEventListener('change', applyFilters);
     paymentFilter.addEventListener('change', applyFilters);
-    resetBtn.addEventListener('click', () => { window.location.href = 'admin-receive-order.php'; });
+    resetBtn.addEventListener('click', () => { window.location.href='admin-receive-order'; });
 
     // View order modal
     const modal = document.getElementById('orderModal');
@@ -299,7 +299,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             document.body.style.overflow = 'hidden';
             document.getElementById('orderModalBody').innerHTML = '<div style="text-align:center;">Loading...</div>';
             try {
-                const res = await fetch('admin-get-order.php?id=' + orderId);
+                const res = await fetch('admin-get-order?id=' + orderId);
                 const order = await res.json();
                 if (order.error) throw new Error(order.error);
                 let itemsHtml = '';
@@ -337,6 +337,6 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     window.closeModal = closeModal;
 
-    function logout() { if(confirm('Logout from admin panel?')) window.location.href='../logout.php'; }
+    function logout() { if(confirm('Logout from admin panel?')) window.location.href='../logout'; }
 </script>
 <?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>

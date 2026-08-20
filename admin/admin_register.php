@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install_schema'])) {
     $installOk = !empty($result['ok']);
     $installMessage = (string) ($result['message'] ?? '');
     if ($installOk) {
-        header('Location: admin_register.php?installed=1');
+        header('Location: admin_register?installed=1');
         exit;
     }
 }
@@ -55,7 +55,7 @@ rdv_hydrate_admin_session($conn);
 $isSuperAdmin = isset($_SESSION['role_name']) && $_SESSION['role_name'] === 'super_admin';
 
 if ($adminExists && !$isSuperAdmin) {
-    header('Location: admin_login.php');
+    header('Location: admin_login');
     exit;
 }
 
@@ -64,7 +64,7 @@ $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['install_schema'])) {
     if ($adminExists && !$isSuperAdmin) {
-        header('Location: admin_login.php');
+        header('Location: admin_login');
         exit;
     }
     $fullname = trim($_POST['fullname'] ?? '');
@@ -225,11 +225,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['install_schema'])) {
                 <button type="submit" class="btn"><?= $adminExists ? 'Create admin' : 'Register Super Admin' ?></button>
             </form>
             <?php if ($isSuperAdmin): ?>
-                <div class="login-link"><a href="admin.php">Back to dashboard</a></div>
+                <div class="login-link"><a href="admin">Back to dashboard</a></div>
             <?php else: ?>
-                <div class="login-link">Already have an admin account? <a href="admin_login.php">Login here</a></div>
+                <div class="login-link">Already have an admin account? <a href="admin_login">Login here</a></div>
             <?php endif; ?>
-        <div class="back-link"><a href="../index.php">← Back to Store</a></div>
+        <div class="back-link"><a href="../">← Back to Store</a></div>
     </div>
 </div>
 </body>

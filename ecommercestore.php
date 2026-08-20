@@ -989,7 +989,7 @@ $conn->close();
         <div class="nav-left">
             <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
             <div class="logo">
-                <a href="marketplace.php">
+                <a href="marketplace">
                     <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
                 </a>
             </div>
@@ -1001,7 +1001,7 @@ $conn->close();
             </form>
         </div>
         <div class="header-icons">
-            <a href="marketplaceaddtocart.php" class="cart-link">
+            <a href="marketplaceaddtocart" class="cart-link">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
             </a>
@@ -1066,7 +1066,7 @@ $conn->close();
             <div class="sidebar-section">
                 <div class="sidebar-title"><i class="fas fa-list"></i> Categories</div>
                 <ul class="category-list">
-                    <li><a href="marketplace.php" class="<?= empty($categoryFilter) ? 'active' : '' ?>"><i class="fas fa-th-large"></i> All Categories</a></li>
+                    <li><a href="marketplace" class="<?= empty($categoryFilter) ? 'active' : '' ?>"><i class="fas fa-th-large"></i> All Categories</a></li>
                     <?php foreach ($allCategories as $cat): ?>
                         <li><a href="?category=<?= urlencode($cat) ?><?= $storeFilter ? '&store_id='.$storeFilter : '' ?><?= !empty($search) ? '&q='.urlencode($search) : '' ?>" class="<?= $categoryFilter == $cat ? 'active' : '' ?>"><i class="fas fa-tag"></i> <?= htmlspecialchars(ucfirst($cat)) ?></a></li>
                     <?php endforeach; ?>
@@ -1075,7 +1075,7 @@ $conn->close();
             <div class="sidebar-section">
                 <div class="sidebar-title"><i class="fas fa-store"></i> Stores</div>
                 <ul class="store-list">
-                    <li><a href="marketplace.php" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
+                    <li><a href="marketplace" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
                     <?php foreach ($stores as $store): ?>
                         <li><a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
                             <span class="store-badge">
@@ -1099,20 +1099,20 @@ $conn->close();
                 <p><?= count($products) ?> product<?= count($products) != 1 ? 's' : '' ?> found</p>
             </div>
             <?php if (empty($products)): ?>
-                <div class="no-results"><i class="fas fa-frown" style="font-size: 3rem; color: #94a3b8;"></i><p style="margin-top: 1rem;">No products match your criteria.</p><a href="marketplace.php" class="btn-add-cart" style="display: inline-block; width: auto; padding: 0.5rem 1rem;">Clear filters</a></div>
+                <div class="no-results"><i class="fas fa-frown" style="font-size: 3rem; color: #94a3b8;"></i><p style="margin-top: 1rem;">No products match your criteria.</p><a href="marketplace" class="btn-add-cart" style="display: inline-block; width: auto; padding: 0.5rem 1rem;">Clear filters</a></div>
             <?php else: ?>
                 <div class="product-grid">
                     <?php foreach ($products as $product):
                         $rating = 4.5;
                     ?>
                         <div class="product-card" data-product-id="<?= $product['id'] ?>" data-store-id="<?= $product['store_pk'] ?>" data-name="<?= htmlspecialchars($product['name']) ?>" data-price="<?= $product['price'] ?>" data-image="<?= htmlspecialchars($product['image'] ?? 'https://placehold.co/400x400') ?>">
-                            <a href="marketplaceviewproduct.php?id=<?= $product['id'] ?>&store=<?= $product['store_pk'] ?>" style="text-decoration: none; color: inherit;"><div class="product-image"><img src="<?= htmlspecialchars($product['image'] ?? 'https://placehold.co/400x400?text=No+Image') ?>" alt="<?= htmlspecialchars($product['name']) ?>"></div></a>
+                            <a href="marketplaceviewproduct?id=<?= $product['id'] ?>&store=<?= $product['store_pk'] ?>" style="text-decoration: none; color: inherit;"><div class="product-image"><img src="<?= htmlspecialchars($product['image'] ?? 'https://placehold.co/400x400?text=No+Image') ?>" alt="<?= htmlspecialchars($product['name']) ?>"></div></a>
                             <div class="product-info">
                                 <div class="store-name">
                                     <?php if (!empty($product['logo_path'])): ?><img src="<?= htmlspecialchars($product['logo_path']) ?>" style="width: 14px; height: 14px; border-radius: 2px;"><?php else: ?><i class="fas fa-store"></i><?php endif; ?>
                                     <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$product['store_pk'], 'store_slug' => (string)($product['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" style="color: inherit;"><?= htmlspecialchars($product['store_name']) ?></a>
                                 </div>
-                                <a href="product-details.php?id=<?= $product['id'] ?>&store=<?= $product['store_pk'] ?>" style="text-decoration: none; color: inherit;"><h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3></a>
+                                <a href="product-details?id=<?= $product['id'] ?>&store=<?= $product['store_pk'] ?>" style="text-decoration: none; color: inherit;"><h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3></a>
                                 <div class="price-section"><span class="current-price">₦ <?= number_format($product['price'], 2) ?></span></div>
                                 <div class="rating"><?php for ($i = 1; $i <= 5; $i++): ?><?php if ($i <= floor($rating)): ?><i class="fas fa-star"></i><?php elseif ($i - $rating < 0.6): ?><i class="fas fa-star-half-alt"></i><?php else: ?><i class="far fa-star"></i><?php endif; ?><?php endfor; ?><span>(<?= rand(10, 200) ?>)</span></div>
                                 <button class="btn-add-cart add-to-cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
@@ -1135,7 +1135,7 @@ $conn->close();
     <div class="sidebar-section">
         <div class="sidebar-title"><i class="fas fa-list"></i> Categories</div>
         <ul class="category-list">
-            <li><a href="marketplace.php" class="<?= empty($categoryFilter) ? 'active' : '' ?>"><i class="fas fa-th-large"></i> All Categories</a></li>
+            <li><a href="marketplace" class="<?= empty($categoryFilter) ? 'active' : '' ?>"><i class="fas fa-th-large"></i> All Categories</a></li>
             <?php foreach ($allCategories as $cat): ?>
                 <li><a href="?category=<?= urlencode($cat) ?><?= $storeFilter ? '&store_id='.$storeFilter : '' ?><?= !empty($search) ? '&q='.urlencode($search) : '' ?>" class="<?= $categoryFilter == $cat ? 'active' : '' ?>"><i class="fas fa-tag"></i> <?= htmlspecialchars(ucfirst($cat)) ?></a></li>
             <?php endforeach; ?>
@@ -1144,7 +1144,7 @@ $conn->close();
     <div class="sidebar-section">
         <div class="sidebar-title"><i class="fas fa-store"></i> Stores</div>
         <ul class="store-list">
-            <li><a href="marketplace.php" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
+            <li><a href="marketplace" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
             <?php foreach ($stores as $store): ?>
                 <li><a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
                     <span class="store-badge">

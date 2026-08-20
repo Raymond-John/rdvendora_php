@@ -12,6 +12,20 @@ if (!function_exists('rdv_canonical_url')) {
             $path = basename(parse_url($_SERVER['SCRIPT_NAME'] ?? 'index.php', PHP_URL_PATH) ?: 'index.php');
         }
         $path = ltrim((string) $path, '/');
+        // Prefer clean URLs in SEO tags
+        if (function_exists('rdv_url')) {
+            // Absolute http(s) already (e.g. store URLs)
+            if (preg_match('#^https?://#i', $path)) {
+                return $path;
+            }
+            return rdv_url($path);
+        }
+        if (preg_match('/\.php$/i', $path)) {
+            $path = substr($path, 0, -4);
+        }
+        if ($path === '' || $path === 'index') {
+            return rtrim(APP_URL, '/') . '/';
+        }
         return rtrim(APP_URL, '/') . '/' . $path;
     }
 }
@@ -145,7 +159,7 @@ if (!function_exists('rdv_newsletter_form')) {
         $csrf = rdv_csrf_field();
         $id = 'rdv-newsletter-' . preg_replace('/[^a-z0-9-]/', '', $context);
         return <<<HTML
-<form class="rdv-newsletter-form" id="{$id}" method="post" action="newsletter-subscribe.php" novalidate>
+<form class="rdv-newsletter-form" id="{$id}" method="post" action="newsletter-subscribe" novalidate>
   {$csrf}
   <input type="text" name="website" class="rdv-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
   <label class="rdv-sr-only" for="{$id}-email">Email address</label>
@@ -164,12 +178,12 @@ HTML;
 if (!function_exists('rdv_public_nav_items')) {
     function rdv_public_nav_items() {
         return [
-            'index.php' => 'Home',
-            'features.php' => 'Features',
-            'pricing.php' => 'Pricing',
-            'blog.php' => 'News',
-            'about.php' => 'About',
-            'contact.php' => 'Contact',
+            'index' => 'Home',
+            'features' => 'Features',
+            'pricing' => 'Pricing',
+            'blog' => 'News',
+            'about' => 'About',
+            'contact' => 'Contact',
         ];
     }
 }

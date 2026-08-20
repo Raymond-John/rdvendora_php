@@ -12,7 +12,7 @@ if (!$isAdmin) {
         $_SESSION['is_admin'] = true;
         $isAdmin = true;
     } else {
-        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
     }
 }
 
@@ -293,7 +293,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
 
     function deleteManifest(filename) {
         if (confirm(`Delete manifest "${filename}"? This action cannot be undone.`)) {
-            window.location.href = 'admin-transport.php?delete=' + encodeURIComponent(filename);
+            window.location.href='admin-transport?delete=' + encodeURIComponent(filename);
         }
     }
 

@@ -3,7 +3,7 @@ session_start();
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php?error=Not logged in');
+    header('Location: login?error=Not logged in');
     exit();
 }
 
@@ -48,7 +48,7 @@ $stmt = $conn->prepare("SELECT id FROM stores WHERE user_id = ?");
 $stmt->bind_param("i", $_SESSION['user_id']);
 $stmt->execute();
 if ($stmt->get_result()->num_rows === 0) {
-    header("Location: create-store.php");
+    header("Location: create-store");
     exit();
 }
 $stmt->close();
@@ -73,7 +73,7 @@ if (!isStoreActive($conn, $_SESSION['user_id'])) {
     <body style="font-family: sans-serif; text-align: center; padding: 50px;">
         <h1>⛔ Store Disabled</h1>
         <p>Your store has been disabled by the administrator. Please contact support for more information.</p>
-        <a href="logout.php">Logout</a>
+        <a href="logout">Logout</a>
     </body>
     </html>
     <?php
@@ -278,7 +278,7 @@ if (isset($_GET['flutterwave_callback']) && isset($_GET['transaction_id'])) {
 
             if (!$userExists) {
                 session_destroy();
-                header("Location: login.php?error=Your account was not found. Please log in again.");
+                header("Location: login?error=Your account was not found. Please log in again.");
                 exit();
             }
 
@@ -333,24 +333,24 @@ if (isset($_GET['flutterwave_callback']) && isset($_GET['transaction_id'])) {
                         
                         if ($allApproved) {
                             $conn->query("UPDATE stores SET status = 'active' WHERE user_id = $user_id");
-                            header("Location: dashboard.php?msg=Subscription activated! Your store is now live.");
+                            header("Location: dashboard?msg=Subscription activated! Your store is now live.");
                             exit();
                         } elseif ($hasRejected) {
                             $conn->query("UPDATE stores SET status = 'pending_docs' WHERE user_id = $user_id");
-                            header("Location: company-documents.php?subscription=active&rejected=1");
+                            header("Location: company-documents?subscription=active&rejected=1");
                             exit();
                         } else {
                             $conn->query("UPDATE stores SET status = 'pending_docs' WHERE user_id = $user_id");
-                            header("Location: dashboard.php?msg=Your documents are still under review. You will be notified when approved.");
+                            header("Location: dashboard?msg=Your documents are still under review. You will be notified when approved.");
                             exit();
                         }
                     } else {
                         $conn->query("UPDATE stores SET status = 'pending_docs' WHERE user_id = $user_id");
-                        header("Location: company-documents.php?subscription=active");
+                        header("Location: company-documents?subscription=active");
                         exit();
                     }
                 } else {
-                    header("Location: subscription.php?success=1");
+                    header("Location: subscription?success=1");
                     exit();
                 }
 
@@ -450,7 +450,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 notifyTeamMembers($conn, $storeId, $title, $message, $link);
             }
 
-            header("Location: subscription.php");
+            header("Location: subscription");
             exit();
         } else {
             $activation_error = "Failed to activate subscription.";
@@ -475,7 +475,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         $current_subscription = null;
-        header("Location: subscription.php");
+        header("Location: subscription");
         exit();
     } else {
         $activation_error = "Failed to cancel subscription.";
@@ -1002,51 +1002,51 @@ if (!$current_subscription) {
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="index.php" class="sidebar-brand">
+            <a href="./" class="sidebar-brand">
                 <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
             <button class="sidebar-toggle" id="sidebarToggle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg></button>
         </div>
         <nav class="sidebar-nav">
             <div class="sidebar-section-title">Main</div>
-            <a href="dashboard.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="dashboard" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 <span class="sidebar-link-text">Dashboard</span>
             </a>
-            <a href="products.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="products" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 <span class="sidebar-link-text">Products</span>
             </a>
-            <a href="orders.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="orders" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 <span class="sidebar-link-text">Orders</span>
             </a>
-            <a href="customers.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="customers" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span class="sidebar-link-text">Customers</span>
             </a>
             <div class="sidebar-section-title">Store</div>
-            <a href="storefront.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="storefront" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 <span class="sidebar-link-text">Storefront</span>
             </a>
-            <a href="settings.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="settings" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <span class="sidebar-link-text">Store Settings</span>
             </a>
-            <a href="subscription.php" class="sidebar-link active">
+            <a href="subscription" class="sidebar-link active">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 <span class="sidebar-link-text">Subscription</span>
                 <?php if ($isExpired): ?>
                     <span class="expired-badge" style="font-size:0.6rem;padding:1px 8px;">Expired</span>
                 <?php endif; ?>
             </a>
-            <a href="vendor-chat.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="vendor-chat" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span class="sidebar-link-text">Chat</span>
             </a>
             <div class="sidebar-section-title">Account</div>
-            <a href="profile.php" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
+            <a href="profile" class="sidebar-link <?= ($isExpired) ? 'disabled' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <span class="sidebar-link-text">Profile</span>
             </a>
@@ -1386,7 +1386,7 @@ if (!$current_subscription) {
             setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 300); }, 3500);
         }
 
-        function handleLogout() { if(confirm('Logout?')) window.location.href='logout.php'; }
+        function handleLogout() { if(confirm('Logout?')) window.location.href='logout'; }
 
         // ======================= Pricing & Billing Toggle =======================
         let activeBilling = 'monthly';

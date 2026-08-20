@@ -1035,15 +1035,15 @@ if ($isAjax) {
 
 <!-- HEADER -->
 <header>
-    <a href="marketplace.php" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
+    <a href="marketplace" class="logo"><img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a>
     <div class="search-bar">
-        <form method="get" action="marketplace.php" style="display:flex; flex:1; width:100%;">
+        <form method="get" action="marketplace" style="display:flex; flex:1; width:100%;">
             <input type="text" name="q" placeholder="Search products, brands and categories…" />
             <button type="submit"><i class="fas fa-search"></i></button>
         </form>
     </div>
     <div class="header-actions">
-        <a href="marketplaceaddtocart.php">
+        <a href="marketplaceaddtocart">
             <div class="cart-badge">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="badge" id="cartCount">0</span>
@@ -1240,7 +1240,7 @@ function renderOrderSummary() {
             <div class="empty-cart">
                 <i class="fas fa-shopping-cart"></i>
                 <p>Your cart is empty.</p>
-                <a href="marketplace.php">Continue Shopping</a>
+                <a href="marketplace">Continue Shopping</a>
             </div>
         `;
         totalDiv.innerHTML = '';

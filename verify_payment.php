@@ -134,7 +134,7 @@ if ($verified && $paymentData) {
         exit;
     } else {
         // Browser redirect (Flutterwave) → redirect to success page
-        header("Location: order_success.php?order_id=" . $orderId);
+        header("Location: order_success?order_id=" . $orderId);
         exit;
     }
 } else {

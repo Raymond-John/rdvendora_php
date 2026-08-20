@@ -32,7 +32,7 @@ const Auth = {
     },
 
     logout() {
-        window.location.href = 'logout.php';
+        window.location.href='logout';
     }
 };
 
@@ -57,7 +57,7 @@ const UI = {
 
         let currentSection = '';
         let html = '<div class="sidebar-header">\n' +
-                   '  <a href="dashboard.php" class="sidebar-brand">\n' +
+                   '  <a href="dashboard" class="sidebar-brand">\n' +
                    '    <div class="sidebar-brand-icon"><img src="assets/brand-logo.png" alt="RD Vendora" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:6px;"></div>\n' +
                    '    RD Vendora\n' +
                    '  </a>\n' +
@@ -116,7 +116,7 @@ const UI = {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="profile.php" class="dropdown-item">Profile</a>
+                        <a href="profile" class="dropdown-item">Profile</a>
                         <a href="#" class="dropdown-item" onclick="Auth.logout()">Logout</a>
                     </div>
                 </div>

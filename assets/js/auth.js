@@ -68,7 +68,7 @@ function handleLogin(e) {
       Toast.success('Welcome back!', 'Login Successful');
 
       setTimeout(() => {
-        window.location.href = 'dashboard.php';
+        window.location.href='dashboard';
       }, 1000);
     } else {
       showAuthMessage('error', 'Invalid email or password. Try alex@example.com / any password');
@@ -120,7 +120,7 @@ function handleRegister(e) {
     Toast.success('Welcome to RD Vendora!', 'Account Created');
 
     setTimeout(() => {
-      window.location.href = 'create-store.php';
+      window.location.href='create-store';
     }, 1000);
   }, 1500);
 }
@@ -166,7 +166,7 @@ function handleSocialLogin(provider) {
 
     Toast.success(`Logged in with ${provider}!`);
     setTimeout(() => {
-      window.location.href = 'dashboard.php';
+      window.location.href='dashboard';
     }, 1000);
   }, 1000);
 }
@@ -253,7 +253,7 @@ function setButtonLoading(btn, loading) {
 function requireAuth() {
   const session = DataStore.get('session');
   if (!session || !session.isLoggedIn) {
-    window.location.href = 'login.php';
+    window.location.href='login';
     return false;
   }
   return true;
@@ -274,6 +274,6 @@ function logout() {
   DataStore.remove('session');
   Toast.success('You have been logged out');
   setTimeout(() => {
-    window.location.href = 'index.php';
+    window.location.href='./';
   }, 500);
 }

@@ -6,7 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Check authentication
   if (!isAuthenticated()) {
-    window.location.href = 'login.php';
+    window.location.href='login';
     return;
   }
 

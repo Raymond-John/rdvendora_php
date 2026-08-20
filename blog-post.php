@@ -18,8 +18,8 @@ if (!$post) {
     $rdvPagePath = 'blog.php';
     $rdvActiveNav = 'blog.php';
     require __DIR__ . '/includes/public_layout_start.php';
-    echo '<section class="rdv-news-article"><nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / <a href="blog.php">News</a></nav>';
-    echo '<h1>Story not found</h1><p>This article is unpublished, was removed, or the link is incomplete. <a href="blog.php">Back to News</a>.</p></section>';
+    echo '<section class="rdv-news-article"><nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / <a href="blog">News</a></nav>';
+    echo '<h1>Story not found</h1><p>This article is unpublished, was removed, or the link is incomplete. <a href="blog">Back to News</a>.</p></section>';
     require __DIR__ . '/includes/public_layout_end.php';
     exit;
 }
@@ -45,7 +45,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <article class="rdv-news-article">
   <nav class="rdv-crumbs" aria-label="Breadcrumb">
-    <a href="index.php">Home</a> / <a href="blog.php">News</a> / <?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?>
+    <a href="./">Home</a> / <a href="blog">News</a> / <?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?>
   </nav>
   <a class="rdv-news-cat" href="<?= rdv_blog_h(rdv_blog_index_url(['cat' => $post['category']])) ?>"><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></a>
   <h1><?= rdv_blog_h($post['title']) ?></h1>
@@ -59,7 +59,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="rdv-news-share">
     <button type="button" id="rdv-copy-link">Copy link</button>
     <a href="https://twitter.com/intent/tweet?url=<?= rawurlencode($shareUrl) ?>&text=<?= rawurlencode($post['title']) ?>" rel="noopener noreferrer" target="_blank">Share on X</a>
-    <a href="https://www.facebook.com/sharer/sharer.php?u=<?= rawurlencode($shareUrl) ?>" rel="noopener noreferrer" target="_blank">Share on Facebook</a>
+    <a href="https://www.facebook.com/sharer/sharer?u=<?= rawurlencode($shareUrl) ?>" rel="noopener noreferrer" target="_blank">Share on Facebook</a>
   </div>
   <div class="rdv-news-hero">
     <?= rdv_blog_thumb_html($post) ?>

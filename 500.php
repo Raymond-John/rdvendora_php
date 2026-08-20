@@ -16,8 +16,8 @@
       <h1 class="error-title">Something went wrong</h1>
       <p class="error-text">The server could not complete this request. Try again shortly. If you were paying for an order, check your email or dashboard before paying again.</p>
       <p>
-        <a class="btn btn-primary" href="index.php">Home</a>
-        <a class="btn btn-outline" href="contact.php">Contact</a>
+        <a class="btn btn-primary" href="./">Home</a>
+        <a class="btn btn-outline" href="contact">Contact</a>
       </p>
     </div>
   </div>

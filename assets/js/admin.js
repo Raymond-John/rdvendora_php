@@ -1,7 +1,7 @@
 (function () {
     function logout() {
         if (confirm('Logout from admin panel?')) {
-            window.location.href = '../logout.php';
+            window.location.href='../logout';
         }
     }
     window.logout = logout;

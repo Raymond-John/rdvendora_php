@@ -1264,7 +1264,7 @@ $conn->close();
 
 <!-- HEADER -->
 <header>
-  <div class="logo"><a href="marketplace.php"><img class="rdv-brand-logo rdv-brand-logo--market" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a></div>
+  <div class="logo"><a href="marketplace"><img class="rdv-brand-logo rdv-brand-logo--market" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span></a></div>
   <div class="search-bar">
     <form method="get" action="" style="display:flex; flex:1; width:100%;">
       <input type="text" name="q" id="searchInput" placeholder="Search products, brands and categories…" value="<?= htmlspecialchars($search) ?>" />
@@ -1272,7 +1272,7 @@ $conn->close();
     </form>
   </div>
   <div class="header-actions">
-    <a href="marketplaceaddtocart.php">
+    <a href="marketplaceaddtocart">
       <div class="cart-badge">
         <i class="fas fa-shopping-cart"></i>
         <span class="badge" id="cartCount">0</span>
@@ -1284,7 +1284,7 @@ $conn->close();
 
 <!-- NAVIGATION -->
 <nav>
-  <a href="marketplace.php" class="<?= empty($selectedCategory) ? 'active' : '' ?>"><i class="fas fa-th"></i> All Categories</a>
+  <a href="marketplace" class="<?= empty($selectedCategory) ? 'active' : '' ?>"><i class="fas fa-th"></i> All Categories</a>
   <?php foreach ($allCategories as $cat): ?>
     <a href="?category=<?= urlencode($cat) ?>" class="<?= $selectedCategory === $cat ? 'active' : '' ?>"><i class="fas fa-tag"></i> <?= htmlspecialchars($cat) ?></a>
   <?php endforeach; ?>
@@ -1409,7 +1409,7 @@ if (!empty($banners)) {
 <!-- SHOP BY CATEGORY -->
 <div class="section-header">
   <h2>Shop by Category</h2>
-  <a href="marketplace.php">View all <i class="fas fa-chevron-right"></i></a>
+  <a href="marketplace">View all <i class="fas fa-chevron-right"></i></a>
 </div>
 <div class="categories-grid">
   <?php foreach ($allCategories as $cat): ?>
@@ -1467,7 +1467,7 @@ if (!empty($banners)) {
   <!-- SEARCH RESULTS -->
   <div class="section-header">
     <h2><i class="fas fa-search" style="color:var(--btn-bg);"></i> Search Results for "<?= htmlspecialchars($search) ?>"</h2>
-    <a href="marketplace.php">Clear search</a>
+    <a href="marketplace">Clear search</a>
   </div>
   <div class="products-wrapper">
     <div class="products-row">
@@ -1483,12 +1483,12 @@ if (!empty($banners)) {
             <div class="product-img">
               <?php if ($discount > 0): ?><span class="badge-sale">-<?= $discount ?>%</span><?php endif; ?>
               <button class="wishlist-btn" onclick="toggleWish(<?= $p['id'] ?>, event)"><i class="far fa-heart"></i></button>
-              <a href="marketplaceviewproduct.php?id=<?= $p['id'] ?>">
+              <a href="marketplaceviewproduct?id=<?= $p['id'] ?>">
                 <img src="<?= htmlspecialchars($p['image'] ?? 'https://placehold.co/300x300?text=No+Image') ?>" alt="<?= htmlspecialchars($p['name']) ?>" />
               </a>
             </div>
             <div class="product-info">
-              <div class="product-name"><a href="marketplaceviewproduct.php?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></a></div>
+              <div class="product-name"><a href="marketplaceviewproduct?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></a></div>
               <div>
                 <span class="product-price">₦<?= number_format($p['price'], 0) ?></span>
                 <?php if (isset($p['old_price']) && $p['old_price'] > 0): ?>
@@ -1513,7 +1513,7 @@ if (!empty($banners)) {
   <?php if (!empty($selectedCategory)): ?>
     <div class="section-header" style="margin-top:20px">
       <h2><i class="fas fa-filter" style="color:var(--btn-bg);"></i> Products in "<?= htmlspecialchars($selectedCategory) ?>"</h2>
-      <a href="marketplace.php">Clear filter <i class="fas fa-times"></i></a>
+      <a href="marketplace">Clear filter <i class="fas fa-times"></i></a>
     </div>
   <?php endif; ?>
 
@@ -1547,12 +1547,12 @@ if (!empty($banners)) {
             <div class="product-img">
               <?php if ($discount > 0): ?><span class="badge-sale">-<?= $discount ?>%</span><?php endif; ?>
               <button class="wishlist-btn" onclick="toggleWish(<?= $p['id'] ?>, event)"><i class="far fa-heart"></i></button>
-              <a href="marketplaceviewproduct.php?id=<?= $p['id'] ?>">
+              <a href="marketplaceviewproduct?id=<?= $p['id'] ?>">
                 <img src="<?= htmlspecialchars($p['image'] ?? 'https://placehold.co/300x300?text=No+Image') ?>" alt="<?= htmlspecialchars($p['name']) ?>" />
               </a>
             </div>
             <div class="product-info">
-              <div class="product-name"><a href="marketplaceviewproduct.php?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></a></div>
+              <div class="product-name"><a href="marketplaceviewproduct?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></a></div>
               <div>
                 <span class="product-price">₦<?= number_format($p['price'], 0) ?></span>
                 <?php if (isset($p['old_price']) && $p['old_price'] > 0): ?>
@@ -1577,7 +1577,7 @@ if (!empty($banners)) {
     <div style="padding:40px;text-align:center;color:var(--sidebar-text);">
       <i class="fas fa-box-open" style="font-size:48px;color:var(--btn-bg);"></i>
       <p style="margin-top:12px;">No products found in category "<strong><?= htmlspecialchars($selectedCategory) ?></strong>".</p>
-      <a href="marketplace.php" style="color:var(--btn-bg);text-decoration:underline;">Clear filter</a>
+      <a href="marketplace" style="color:var(--btn-bg);text-decoration:underline;">Clear filter</a>
     </div>
   <?php endif; ?>
 

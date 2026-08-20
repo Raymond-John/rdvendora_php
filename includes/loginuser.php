@@ -12,7 +12,7 @@ if (!isset($conn) && isset($connect)) {
     $conn = $connect;
 }
 if (!$conn) {
-    header('Location: ../login.php?error=' . urlencode('Database connection failed'));
+    header('Location: ../login?error=' . urlencode('Database connection failed'));
     exit;
 }
 
@@ -28,12 +28,12 @@ function rdv_users_columns(mysqli $conn): array {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../login.php');
+    header('Location: ../login');
     exit;
 }
 
 if (function_exists('rdv_csrf_verify') && !rdv_csrf_verify()) {
-    header('Location: ../login.php?error=' . urlencode('Please refresh the page and try again'));
+    header('Location: ../login?error=' . urlencode('Please refresh the page and try again'));
     exit;
 }
 
@@ -41,7 +41,7 @@ $email = trim((string) ($_POST['email'] ?? ''));
 $plain_password = (string) ($_POST['password'] ?? '');
 
 if ($email === '' || $plain_password === '') {
-    header('Location: ../login.php?error=' . urlencode('All fields are required'));
+    header('Location: ../login?error=' . urlencode('All fields are required'));
     exit;
 }
 
@@ -51,7 +51,7 @@ $passCol = !empty($cols['password']) ? 'password' : 'password_hash';
 $select = "SELECT id, email, `$nameCol` AS display_name, `$passCol` AS password_hash FROM users WHERE email = ? LIMIT 1";
 $stmt = $conn->prepare($select);
 if (!$stmt) {
-    header('Location: ../login.php?error=' . urlencode('Could not look up that account'));
+    header('Location: ../login?error=' . urlencode('Could not look up that account'));
     exit;
 }
 $stmt->bind_param('s', $email);
@@ -60,7 +60,7 @@ $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$user || empty($user['password_hash']) || !password_verify($plain_password, $user['password_hash'])) {
-    header('Location: ../login.php?error=' . urlencode('Email or password is incorrect'));
+    header('Location: ../login?error=' . urlencode('Email or password is incorrect'));
     exit;
 }
 
@@ -99,5 +99,5 @@ if ($storeStmt) {
     $storeStmt->close();
 }
 
-header('Location: ../' . ($hasStore ? 'dashboard.php' : 'create-store.php'));
+header('Location: ../' . ($hasStore ? 'dashboard' : 'create-store'));
 exit;

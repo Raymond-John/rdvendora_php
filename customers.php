@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php?error=Not logged in');
+    header('Location: login?error=Not logged in');
     exit();
 }
 
@@ -43,7 +43,7 @@ if (!$isAdmin) {
     $stmt->execute();
     $storeResult = $stmt->get_result();
     if ($storeResult->num_rows === 0) {
-        header("Location: create-store.php");
+        header("Location: create-store");
         exit();
     }
     $storeData = $storeResult->fetch_assoc();
@@ -59,7 +59,7 @@ if (!$isAdmin) {
         <body style="font-family: sans-serif; text-align: center; padding: 50px;">
             <h1>⛔ Store Disabled</h1>
             <p>Your store has been disabled by the administrator. Please contact support.</p>
-            <a href="logout.php">Logout</a>
+            <a href="logout">Logout</a>
         </body>
         </html>
         <?php
@@ -657,7 +657,7 @@ function getInitials($name) {
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="index.php" class="sidebar-brand">
+            <a href="./" class="sidebar-brand">
                 <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
             <button class="sidebar-toggle" id="sidebarToggle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg></button>
@@ -665,61 +665,61 @@ function getInitials($name) {
         <!-- ====== UPDATED SIDEBAR WITH ANALYTICS & COMMUNICATION ====== -->
         <nav class="sidebar-nav">
             <div class="sidebar-section-title">Main</div>
-            <a href="dashboard.php" class="sidebar-link">
+            <a href="dashboard" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 <span class="sidebar-link-text">Dashboard</span>
             </a>
-            <a href="analytics.php" class="sidebar-link">
+            <a href="analytics" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 <span class="sidebar-link-text">Analytics</span>
             </a>
-            <a href="products.php" class="sidebar-link">
+            <a href="products" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 <span class="sidebar-link-text">Products</span>
             </a>
-            <a href="orders.php" class="sidebar-link">
+            <a href="orders" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 <span class="sidebar-link-text">Orders</span>
             </a>
-            <a href="customers.php" class="sidebar-link active">
+            <a href="customers" class="sidebar-link active">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span class="sidebar-link-text">Customers</span>
             </a>
 
             <div class="sidebar-section-title">Store</div>
-            <a href="storefront.php" class="sidebar-link">
+            <a href="storefront" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 <span class="sidebar-link-text">Storefront</span>
             </a>
-            <a href="settings.php" class="sidebar-link">
+            <a href="settings" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <span class="sidebar-link-text">Store Settings</span>
             </a>
-            <a href="subscription.php" class="sidebar-link">
+            <a href="subscription" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 <span class="sidebar-link-text">Subscription</span>
             </a>
-            <a href="vendor-chat.php" class="sidebar-link">
+            <a href="vendor-chat" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span class="sidebar-link-text">Chat</span>
             </a>
-            <a href="vendor-communication.php" class="sidebar-link">
+            <a href="vendor-communication" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 <span class="sidebar-link-text">Communication</span>
             </a>
-            <a href="notifications.php" class="sidebar-link">
+            <a href="notifications" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="sidebar-link-text">Notifications</span>
             </a>
 
             <div class="sidebar-section-title">AI Tools</div>
-            <a href="ai-chat.php" class="sidebar-link">
+            <a href="ai-chat" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zM12 6v4M12 16h.01"/><line x1="12" y1="12" x2="12" y2="12"/></svg>
                 <span class="sidebar-link-text">AI Chat</span>
             </a>
 
             <div class="sidebar-section-title">Account</div>
-            <a href="profile.php" class="sidebar-link">
+            <a href="profile" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <span class="sidebar-link-text">Profile</span>
             </a>
@@ -738,7 +738,7 @@ function getInitials($name) {
                         <?php if ($_SESSION['store_name'] ?? false): ?>
                             🏪 <?= htmlspecialchars($_SESSION['store_name']) ?>
                         <?php else: ?>
-                            <a href="create-store.php" style="color: var(--primary);">Create Store</a>
+                            <a href="create-store" style="color: var(--primary);">Create Store</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -774,7 +774,7 @@ function getInitials($name) {
                         </div>
                         <div class="notification-list" id="notificationList"></div>
                         <div style="padding: 8px 16px; border-top: 1px solid var(--border-primary); text-align: center;">
-                            <a href="notifications.php" style="font-size: var(--text-xs); color: var(--primary);">View all →</a>
+                            <a href="notifications" style="font-size: var(--text-xs); color: var(--primary);">View all →</a>
                         </div>
                     </div>
                 </div>
@@ -789,8 +789,8 @@ function getInitials($name) {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="profile.php" class="dropdown-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
-                        <a href="settings.php" class="dropdown-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
+                        <a href="profile" class="dropdown-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+                        <a href="settings" class="dropdown-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
                         <div class="dropdown-divider"></div>
                         <a href="#" class="dropdown-item" onclick="handleLogout()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</a>
                     </div>
@@ -808,7 +808,7 @@ function getInitials($name) {
                 <div style="background: linear-gradient(135deg, #fee2e2 0%, #fef3c7 100%); border-left: 4px solid #dc2626; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;">
                     <h3>⚠️ Store Suspended</h3>
                     <p>Your store has no active subscription. Choose a plan to reactivate.</p>
-                    <a href="subscription.php" class="btn" style="background:#dc2626; color:white; margin-top:8px;">Reactivate Now →</a>
+                    <a href="subscription" class="btn" style="background:#dc2626; color:white; margin-top:8px;">Reactivate Now →</a>
                 </div>
             <?php endif; ?>
 
@@ -817,7 +817,7 @@ function getInitials($name) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <input type="text" id="customerSearch" placeholder="Search by name or email..." value="<?= htmlspecialchars($search) ?>">
                 </div>
-                <a href="customers.php" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary);">Reset</a>
+                <a href="customers" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary);">Reset</a>
             </div>
 
             <div class="table-container">
@@ -842,7 +842,7 @@ function getInitials($name) {
                                     <td style="font-weight:600;">₦ <?= number_format($c['total_spent'] ?? 0, 2) ?></td>
                                     <td><?= date('M d, Y', strtotime($c['first_order'])) ?></td>
                                     <td><?= date('M d, Y', strtotime($c['last_order'])) ?></td>
-                                    <td><a href="orders.php?search=<?= urlencode($c['user_email']) ?>" class="btn btn-sm" style="background: var(--primary); color: white;">View Orders</a></td>
+                                    <td><a href="orders?search=<?= urlencode($c['user_email']) ?>" class="btn btn-sm" style="background: var(--primary); color: white;">View Orders</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -1007,7 +1007,7 @@ function getInitials($name) {
 
         // Poll for new notifications every 30 seconds
         function fetchNewNotifications() {
-            fetch('ajax_get_notification_count.php')
+            fetch('ajax_get_notification_count')
                 .then(res => res.text())
                 .then(count => {
                     const newCount = parseInt(count);
@@ -1032,7 +1032,7 @@ function getInitials($name) {
             setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 300); }, 3500);
         }
 
-        function handleLogout() { if (confirm('Logout?')) window.location.href = 'logout.php'; }
+        function handleLogout() { if (confirm('Logout?')) window.location.href='logout'; }
 
         // ======================= SIDEBAR & MOBILE =======================
         const sidebar = document.getElementById('sidebar');

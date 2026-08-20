@@ -91,7 +91,7 @@ $todayLabel = date('l j F Y');
   <?php endif; ?>
 
   <nav class="rdv-news-sections" aria-label="News sections">
-    <a href="blog.php" class="<?= $category === '' && $q === '' ? 'is-on' : '' ?>">Latest</a>
+    <a href="blog" class="<?= $category === '' && $q === '' ? 'is-on' : '' ?>">Latest</a>
     <?php foreach (rdv_blog_categories() as $key => $label): ?>
       <a href="<?= rdv_blog_h(rdv_blog_index_url(['cat' => $key])) ?>" class="<?= $category === $key ? 'is-on' : '' ?>"><?= rdv_blog_h($label) ?></a>
     <?php endforeach; ?>
@@ -157,7 +157,7 @@ $todayLabel = date('l j F Y');
       <?php endif; ?>
     </div>
     <aside class="rdv-news-aside">
-      <form class="rdv-news-search" method="get" action="blog.php" role="search">
+      <form class="rdv-news-search" method="get" action="blog" role="search">
         <?php if ($category !== ''): ?><input type="hidden" name="cat" value="<?= rdv_blog_h($category) ?>"><?php endif; ?>
         <label class="rdv-sr-only" for="rdv-news-q">Search news</label>
         <input id="rdv-news-q" type="search" name="q" value="<?= rdv_blog_h($q) ?>" placeholder="Search news" maxlength="80">

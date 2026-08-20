@@ -55,7 +55,7 @@ if (!$invite) {
 // If user not logged in, store token and redirect to login
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['invite_token'] = $token;
-    header('Location: login.php?redirect=accept-invite&msg=Please login or register to accept the invitation.');
+    header('Location: login?redirect=accept-invite&msg=Please login or register to accept the invitation.');
     exit();
 }
 
@@ -73,7 +73,7 @@ $check->execute();
 if ($check->get_result()->num_rows > 0) {
     // Already a member – just mark invite accepted
     $conn->prepare("UPDATE team_invites SET status = 'accepted' WHERE id = ?")->bind_param("i", $invite['id'])->execute();
-    header('Location: dashboard.php?msg=You are already a team member.');
+    header('Location: dashboard?msg=You are already a team member.');
     exit();
 }
 $check->close();
@@ -93,7 +93,7 @@ if ($insert->execute()) {
         $update->close();
     }
     // ✅ Redirect to dashboard
-    header('Location: dashboard.php?msg=You have successfully joined the store team!');
+    header('Location: dashboard?msg=You have successfully joined the store team!');
 } else {
     die('Error adding you to the store team: ' . $insert->error);
 }

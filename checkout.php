@@ -34,7 +34,7 @@ if ($storeId > 0) {
 }
 
 if (!$store) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Store Not Found</h1><p>The store you are looking for does not exist.</p><a href="index.php">Go Home</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Store Not Found</h1><p>The store you are looking for does not exist.</p><a href="./">Go Home</a></div>');
 }
 
 // ----- Ensure missing colour columns exist (auto-fix) -----
@@ -609,7 +609,7 @@ $conn->close();
             <span><?= htmlspecialchars($store['store_name']) ?></span>
         </a>
         <div class="store-actions">
-            <a href="cart.php?store=<?= $store['id'] ?>" class="btn btn-outline">
+            <a href="cart?store=<?= $store['id'] ?>" class="btn btn-outline">
                 ← Back to Cart
             </a>
         </div>
@@ -872,7 +872,7 @@ $conn->close();
         btn.classList.add('loading');
 
         try {
-            const response = await fetch('process_order.php', {
+            const response = await fetch('process_order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -960,7 +960,7 @@ $conn->close();
     }
 
     function verifyPayment(gateway, transactionId, orderId) {
-        fetch('verify_payment.php', {
+        fetch('verify_payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -974,7 +974,7 @@ $conn->close();
         .then(data => {
             if (data.success) {
                 localStorage.removeItem(CART_KEY);
-                window.location.href = 'order_success.php?order_id=' + data.order_id;
+                window.location.href='order_success?order_id=' + data.order_id;
             } else {
                 showAlert('Verification error: ' + data.message, 'error');
                 const btn = document.getElementById('placeOrderBtn');

@@ -13,13 +13,13 @@ if (!$isAdmin) {
         $_SESSION['is_admin'] = true;
         $isAdmin = true;
     } else {
-        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
     }
 }
 
 // ---------- PERMISSION CHECK FOR CUSTOMERS PAGE ----------
 if (!adminHasPermission('customers', $conn)) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view customers.</p><a href="admin.php">Go to Dashboard</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view customers.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
 // Fetch all unique customers from orders table

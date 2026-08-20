@@ -6,7 +6,7 @@ require_once 'includes/public_site.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!rdv_csrf_verify() || !rdv_rate_limit('testimonial', 4, 600)) {
         $_SESSION['testimonial_error'] = 'Please refresh the page and try again.';
-        header('Location: index.php#testimonials');
+        header('Location: ./#testimonials');
         exit;
     }
     $name = trim($_POST['name']);
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $_SESSION['testimonial_error'] = implode(" ", $errors);
     }
-    header("Location: index.php#testimonials");
+    header("Location: ./#testimonials");
     exit();
 }
 ?>

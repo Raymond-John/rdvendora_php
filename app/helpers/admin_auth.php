@@ -145,12 +145,12 @@ function rdv_hydrate_admin_session($conn) {
 
 function rdv_require_admin_page($conn, $pageName = 'dashboard') {
     if (!rdv_hydrate_admin_session($conn) || !rdv_admin_flag_is_set()) {
-        header('Location: admin_login.php');
+        header('Location: admin_login');
         exit;
     }
     if (!adminHasPermission($pageName, $conn)) {
         http_response_code(403);
-        echo '<div style="text-align:center;padding:3rem;font-family:sans-serif"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="admin.php">Dashboard</a></div>';
+        echo '<div style="text-align:center;padding:3rem;font-family:sans-serif"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="admin">Dashboard</a></div>';
         exit;
     }
 }

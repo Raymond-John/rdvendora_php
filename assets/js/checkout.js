@@ -39,7 +39,7 @@ function renderOrderSummary() {
   const itemsContainer = document.getElementById('orderItems');
 
   if (cart.length === 0) {
-    itemsContainer.innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem">Your cart is empty. <a href="storefront.php" style="color:var(--primary)">Go shopping</a></p>';
+    itemsContainer.innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem">Your cart is empty. <a href="storefront" style="color:var(--primary)">Go shopping</a></p>';
     updateTotals(0, 0, 0);
     return;
   }
@@ -196,7 +196,7 @@ function placeOrder() {
         <p style="color:var(--text-secondary);margin-bottom:0.5rem">Thank you for your purchase, ${fullName}.</p>
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:2rem">Order #ORD-${Date.now().toString().slice(-6)}</p>
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:2rem">A confirmation email has been sent to ${email}.</p>
-        <a href="storefront.php" class="btn btn-primary btn-lg">Continue Shopping</a>
+        <a href="storefront" class="btn btn-primary btn-lg">Continue Shopping</a>
       </div>
     `;
   }, 2000);

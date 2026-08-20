@@ -8,7 +8,7 @@ if (!$conn) die('Database connection failed.');
 $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($order_id <= 0) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Invalid Order</h1><p>No order ID provided.</p><a href="marketplace.php">Go to Marketplace</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Invalid Order</h1><p>No order ID provided.</p><a href="marketplace">Go to Marketplace</a></div>');
 }
 
 // Fetch order details
@@ -19,7 +19,7 @@ $order = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$order) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Order Not Found</h1><p>The order you are looking for does not exist.</p><a href="marketplace.php">Go to Marketplace</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Order Not Found</h1><p>The order you are looking for does not exist.</p><a href="marketplace">Go to Marketplace</a></div>');
 }
 
 // Fetch order items with store names
@@ -280,10 +280,10 @@ foreach ($items as $item) {
 <body>
 <nav class="navbar">
     <div class="container nav-container">
-        <a href="marketplace.php" class="logo">
+        <a href="marketplace" class="logo">
             <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
         </a>
-        <a href="cart.php" class="cart-link">
+        <a href="cart" class="cart-link">
             <i class="fas fa-shopping-cart"></i> Cart <span id="cartCount" class="cart-count">0</span>
         </a>
     </div>
@@ -363,7 +363,7 @@ foreach ($items as $item) {
         </div>
 
         <div style="text-align: center; margin-top: 2rem;">
-            <a href="marketplace.php" class="continue-btn"><i class="fas fa-shopping-bag"></i> Continue Shopping</a>
+            <a href="marketplace" class="continue-btn"><i class="fas fa-shopping-bag"></i> Continue Shopping</a>
         </div>
     </div>
 </div>

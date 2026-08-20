@@ -23,7 +23,7 @@ $maintenanceMode = '0';
 if ($maintenanceMode == '1') {
     $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
     if (!$isAdmin) {
-        header('Location: maintenance.php');
+        header('Location: maintenance');
         exit;
     }
 }
@@ -94,8 +94,8 @@ require __DIR__ . '/includes/public_layout_start.php';
         <h1>Launch an online store that can actually take orders</h1>
         <p class="lead">RD Vendora gives independent sellers a storefront, catalogue, orders, and checkout through Paystack or Flutterwave — without stitching five tools together.</p>
         <div class="mk-actions">
-          <a href="register.php" class="btn btn-primary btn-lg">Create your store</a>
-          <a href="marketplace.php" class="btn btn-outline-white btn-lg">Browse the marketplace</a>
+          <a href="register" class="btn btn-primary btn-lg">Create your store</a>
+          <a href="marketplace" class="btn btn-outline-white btn-lg">Browse the marketplace</a>
           </div>
         <div class="mk-proof">
           <div class="mk-proof-item"><strong>Store dashboard</strong><span>Products, orders, and customers</span></div>
@@ -188,7 +188,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="container">
     <h2>Shop the marketplace</h2>
     <p>See live stores and products from sellers already on RD Vendora.</p>
-    <a href="marketplace.php" class="btn btn-primary btn-lg">Visit marketplace</a>
+    <a href="marketplace" class="btn btn-primary btn-lg">Visit marketplace</a>
     </div>
   </section>
 
@@ -201,7 +201,7 @@ require __DIR__ . '/includes/public_layout_start.php';
       </div>
     <div class="pricing-grid">
         <?php if (empty($activePlans)): ?>
-        <div class="pricing-card" style="grid-column:1/-1;text-align:center;padding:2rem;">No active plans are listed right now. <a href="contact.php">Contact us</a> for access.</div>
+        <div class="pricing-card" style="grid-column:1/-1;text-align:center;padding:2rem;">No active plans are listed right now. <a href="contact">Contact us</a> for access.</div>
         <?php else: ?>
           <?php 
           $planCount = count($activePlans);
@@ -228,11 +228,11 @@ require __DIR__ . '/includes/public_layout_start.php';
               <div class="pricing-feature included"><?= htmlspecialchars((string) $feature) ?></div>
             <?php endforeach; endif; ?>
             </div>
-          <a href="register.php" class="btn <?= $isPopular ? 'btn-primary' : 'btn-outline' ?> w-full" style="justify-content:center;">Get started</a>
+          <a href="register" class="btn <?= $isPopular ? 'btn-primary' : 'btn-outline' ?> w-full" style="justify-content:center;">Get started</a>
           </div>
         <?php endforeach; endif; ?>
       </div>
-    <p class="text-center" style="margin-top:1.5rem;"><a href="pricing.php">Compare plans in detail →</a></p>
+    <p class="text-center" style="margin-top:1.5rem;"><a href="pricing">Compare plans in detail →</a></p>
     </div>
   </section>
 
@@ -278,8 +278,8 @@ require __DIR__ . '/includes/public_layout_start.php';
     <h2>Ready to open your store?</h2>
     <p>Create an account, add products, and share your shop link. Talk to us if you need a hand getting started.</p>
     <div class="mk-actions" style="justify-content:center;">
-      <a href="register.php" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Get started</a>
-      <a href="contact.php" class="btn btn-outline-white btn-lg">Contact</a>
+      <a href="register" class="btn btn-white btn-lg" style="background:#fff;color:#12305f;">Get started</a>
+      <a href="contact" class="btn btn-outline-white btn-lg">Contact</a>
           </div>
         </div>
       </div>
@@ -288,7 +288,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="mk-review-dialog">
     <button type="button" id="closeModalBtn" class="modal-close" style="position:absolute;top:12px;right:16px;font-size:1.5rem;background:none;border:0;cursor:pointer;" aria-label="Close">&times;</button>
     <h3 id="review-title" style="margin-bottom:1rem;">Share your experience</h3>
-      <form action="submit-testimonial.php" method="POST">
+      <form action="submit-testimonial" method="POST">
       <?= rdv_csrf_field() ?>
       <div class="form-group"><label>Your name</label><input class="form-input" type="text" name="name" required maxlength="100"></div>
       <div class="form-group"><label>Email</label><input class="form-input" type="email" name="email" required maxlength="100"></div>

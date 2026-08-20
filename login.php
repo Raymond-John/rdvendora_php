@@ -7,7 +7,7 @@ if (!isset($conn) && isset($connect)) {
 }
 
 if (!empty($_SESSION['user_id'])) {
-    header('Location: dashboard.php');
+    header('Location: dashboard');
     exit;
 }
 
@@ -41,7 +41,7 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <div class="auth-alert success"><?= htmlspecialchars($successMsg) ?></div>
         <?php endif; ?>
 
-        <form id="login-form" method="POST" action="includes/loginuser.php">
+        <form id="login-form" method="POST" action="includes/loginuser">
           <?= rdv_csrf_field() ?>
           <?php if (!empty($_GET['next']) && preg_match('/^[a-z0-9_\\-]+\\.php$/i', (string) $_GET['next'])): ?>
             <input type="hidden" name="next" value="<?= htmlspecialchars((string) $_GET['next'], ENT_QUOTES, 'UTF-8') ?>">
@@ -64,7 +64,7 @@ require __DIR__ . '/includes/auth_layout_start.php';
               <input type="checkbox" id="login-remember" name="remember">
               <span style="font-size:14px;color:var(--text-secondary);">Remember me</span>
             </label>
-            <a href="forgot-password.php" class="auth-forgot-link">Forgot password?</a>
+            <a href="forgot-password" class="auth-forgot-link">Forgot password?</a>
           </div>
           <button type="submit" class="btn btn-primary w-full" style="justify-content:center;" id="login-btn">Log in</button>
         </form>
@@ -74,6 +74,6 @@ require __DIR__ . '/includes/auth_layout_start.php';
         require __DIR__ . '/includes/auth_google_button.php';
         ?>
         <div class="auth-footer">
-          Don't have an account? <a href="register.php">Sign up</a>
+          Don't have an account? <a href="register">Sign up</a>
         </div>
 <?php require __DIR__ . '/includes/auth_layout_end.php'; ?>

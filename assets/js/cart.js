@@ -24,7 +24,7 @@ function renderCart() {
         </div>
         <h3 style="font-size:1.25rem;font-weight:600;margin-bottom:0.5rem">Your cart is empty</h3>
         <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1.5rem">Looks like you haven't added any products yet.</p>
-        <a href="storefront.php" class="btn btn-primary">Start Shopping</a>
+        <a href="storefront" class="btn btn-primary">Start Shopping</a>
       </div>
     `;
     return;
@@ -73,7 +73,7 @@ function renderCart() {
         <span>Total</span>
         <span>$${total.toFixed(2)}</span>
       </div>
-      <a href="checkout.php" class="btn btn-primary btn-full btn-lg" style="margin-top:1rem;display:flex">
+      <a href="checkout" class="btn btn-primary btn-full btn-lg" style="margin-top:1rem;display:flex">
         Proceed to Checkout
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>

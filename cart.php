@@ -44,7 +44,7 @@ if ($storeId > 0) {
 }
 
 if (!$store) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Store Not Found</h1><p>The store you are looking for does not exist.</p><a href="marketplace.php">← Back to Marketplace</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Store Not Found</h1><p>The store you are looking for does not exist.</p><a href="marketplace">← Back to Marketplace</a></div>');
 }
 
 // ----- Ensure missing colour columns exist (run once) -----
@@ -735,7 +735,7 @@ $conn->close();
                     <span>Total (excl. shipping)</span>
                     <span>₦${total.toLocaleString()}</span>
                 </div>
-                <a href="checkout.php?store=${STORE_ID}" class="checkout-btn">Proceed to Checkout →</a>
+                <a href="checkout?store=${STORE_ID}" class="checkout-btn">Proceed to Checkout →</a>
             </div>
         `;
 

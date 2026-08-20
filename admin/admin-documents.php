@@ -14,13 +14,13 @@ if (!$isAdmin) {
         $_SESSION['is_admin'] = true;
         $isAdmin = true;
     } else {
-        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
     }
 }
 
 // Permission check
 if (!adminHasPermission('stores', $conn)) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to manage documents.</p><a href="admin.php">Go to Dashboard</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to manage documents.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
 // Handle approve/reject actions
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $action_type = 'error';
         }
         // Redirect to refresh
-        header("Location: admin-documents.php?message=" . urlencode($action_message) . "&type=" . $action_type);
+        header("Location: admin-documents?message=" . urlencode($action_message) . "&type=" . $action_type);
         exit();
     }
 
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $action_type = 'error';
         }
         $stmt->close();
-        header("Location: admin-documents.php?message=" . urlencode($action_message) . "&type=" . $action_type);
+        header("Location: admin-documents?message=" . urlencode($action_message) . "&type=" . $action_type);
         exit();
     }
 }

@@ -112,7 +112,7 @@
     wrap.setAttribute('role', 'dialog');
     wrap.setAttribute('aria-labelledby', 'rdv-cookie-title');
     wrap.innerHTML = '<h2 id="rdv-cookie-title">Cookies on RD Vendora</h2>' +
-      '<p>We use necessary cookies to run the site (for example sign-in sessions). Optional cookies are used only if you choose them: analytics (Google Analytics, to understand which public pages are used) and advertising (Google AdSense). Read the <a href="cookies.php">Cookie Policy</a> and <a href="privacy.php">Privacy Policy</a>.</p>' +
+      '<p>We use necessary cookies to run the site (for example sign-in sessions). Optional cookies are used only if you choose them: analytics (Google Analytics, to understand which public pages are used) and advertising (Google AdSense). Read the <a href="cookies">Cookie Policy</a> and <a href="privacy">Privacy Policy</a>.</p>' +
       '<div class="rdv-cookie-actions">' +
       '<button type="button" class="btn btn-primary" data-act="accept">Accept optional cookies</button>' +
       '<button type="button" class="btn btn-outline" data-act="reject">Necessary only</button>' +
@@ -201,10 +201,10 @@
     var nav = qs('#navbar');
     if (nav && nav.getAttribute('data-rdv-chrome') === '1') return;
     qsa('#navbar-nav').forEach(function (el) {
-      if (el.querySelector('a[href="blog.php"]')) return;
-      var about = el.querySelector('a[href="about.php"]');
+      if (el.querySelector('a[href="blog"]')) return;
+      var about = el.querySelector('a[href="about"]');
       var link = document.createElement('a');
-      link.href = 'blog.php';
+      link.href='blog';
       link.className = 'nav-link';
       link.textContent = 'News';
       if (about) el.insertBefore(link, about);

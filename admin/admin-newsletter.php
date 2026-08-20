@@ -10,10 +10,10 @@ if (!$conn) {
 
 $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
 if (!$isAdmin) {
-    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><a href="admin.php">Dashboard</a></div>');
+    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><a href="admin">Dashboard</a></div>');
 }
 if (!adminHasPermission('newsletter', $conn) && !adminHasPermission('contacts', $conn)) {
-    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><p>You do not have permission to manage the newsletter.</p><a href="admin.php">Dashboard</a></div>');
+    die('<div style="text-align:center;padding:3rem"><h1>Access Denied</h1><p>You do not have permission to manage the newsletter.</p><a href="admin">Dashboard</a></div>');
 }
 
 rdv_ensure_newsletter_table($conn);
@@ -97,7 +97,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         <?php endforeach; ?>
       </select>
       <button type="submit">Filter</button>
-      <a class="btn ghost" href="admin-newsletter.php?export=csv">Export CSV</a>
+      <a class="btn ghost" href="admin-newsletter?export=csv">Export CSV</a>
     </form>
     <table>
       <thead>

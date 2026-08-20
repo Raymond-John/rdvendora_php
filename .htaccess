@@ -27,22 +27,24 @@ ServerSignature Off
     # Block private application folders
     RewriteRule ^(app|storage|vendor|archive|config|database)(/|$) - [F,L]
 
-    RewriteRule ^login-customer\.php$ login.php [R=301,L,QSA]
-    RewriteRule ^register-customer\.php$ register.php [R=301,L,QSA]
+    # Legacy customer auth aliases
+    RewriteRule ^login-customer/?$ login [R=301,L,QSA]
+    RewriteRule ^register-customer/?$ register [R=301,L,QSA]
+    RewriteRule ^login-customer\.php$ login [R=301,L,QSA]
+    RewriteRule ^register-customer\.php$ register [R=301,L,QSA]
 
+    # Sitemap + favicon
     RewriteRule ^sitemap\.xml$ sitemap.xml.php [L]
-
-    # Old admin URLs (root) → admin/ folder
-    RewriteRule ^admin\.php$ admin/admin.php [R=301,L,QSA]
-    RewriteRule ^admin_login\.php$ admin/admin_login.php [R=301,L,QSA]
-    RewriteRule ^admin_register\.php$ admin/admin_register.php [R=301,L,QSA]
-    RewriteRule ^adminsettings\.php$ admin/adminsettings.php [R=301,L,QSA]
-    RewriteRule ^admin-([a-z0-9-]+)\.php$ admin/admin-$1.php [R=301,L,QSA]
-
-    # Browser default icon request
     RewriteRule ^favicon\.ico$ assets/brand-logo.png [L]
 
-    # Canonical HTTPS apex on live (do not send www or http to Google OAuth)
+    # Old admin URLs at site root → /admin/...
+    RewriteRule ^admin\.php$ admin/admin [R=301,L,QSA]
+    RewriteRule ^admin_login\.php$ admin/admin_login [R=301,L,QSA]
+    RewriteRule ^admin_register\.php$ admin/admin_register [R=301,L,QSA]
+    RewriteRule ^adminsettings\.php$ admin/adminsettings [R=301,L,QSA]
+    RewriteRule ^admin-([a-z0-9-]+)\.php$ admin/admin-$1 [R=301,L,QSA]
+
+    # Canonical HTTPS apex on live
     RewriteCond %{HTTP_HOST} ^(www\.)?rdvendora\.com$ [NC]
     RewriteCond %{HTTP:X-Forwarded-Proto} !=https
     RewriteCond %{HTTPS} !=on
@@ -50,22 +52,49 @@ ServerSignature Off
     RewriteCond %{HTTP_HOST} ^www\.rdvendora\.com$ [NC]
     RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
 
-    # ----- Path storefronts: https://rdvendora.com/{store-slug} -----
-    # Skip real files and directories
+    # ----- Clean URLs: hide .php from the browser -----
+    # Relative redirects (no leading /) keep XAMPP subfolders + Hostinger root working.
+    # Keep POST/PUT/PATCH to *.php intact (forms, webhooks, OAuth callbacks)
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
+    RewriteCond %{THE_REQUEST} \s[^?\s]*index\.php[\s?] [NC]
+    RewriteRule ^index\.php$ ./ [R=301,L]
+
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
+    RewriteCond %{THE_REQUEST} \s[^?\s]*admin/([^\s?]+)\.php[\s?] [NC]
+    RewriteRule ^admin/.+\.php$ admin/%1 [R=301,L,QSA]
+
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
+    RewriteCond %{THE_REQUEST} \s[^?\s]*([^\s?]*)\.php[\s?] [NC]
+    RewriteCond %1 !sitemap\.xml$ [NC]
+    RewriteRule ^(.+)\.php$ $1 [R=301,L,QSA]
+
+    # Serve existing files/directories as-is (assets, uploads, etc.)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
+    # /admin → admin/admin.php ; /admin/page → admin/page.php
+    RewriteRule ^admin/?$ admin/admin.php [L,QSA]
+    RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f
+    RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
+
+    # /page → page.php when that script exists
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ $1.php [L,QSA]
+
+    # ----- Store path URLs (only when no matching .php page) -----
     # /{slug}/product/{id}-{name}
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?slug=$1&id=$2 [L,QSA]
 
     # /{slug}/category/{category}
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/category/(.+)/?$ storefront.php?slug=$1&cat=$2 [L,QSA]
 
-    # /{slug} → storefront (PHP rejects reserved/unknown slugs)
+    # /{slug} → storefront (PHP validates reserved + DB)
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/?$ storefront.php?slug=$1 [L,QSA]
 
-    # Legacy optional subdomain support (redirect handled in PHP to path URLs)
+    # Optional legacy store subdomains
     RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
     RewriteCond %1 !^www$ [NC]
     RewriteCond %{HTTP:X-Forwarded-Proto} !=https
@@ -76,23 +105,11 @@ ServerSignature Off
     RewriteCond %1 !^www$ [NC]
     RewriteCond %{REQUEST_URI} ^/?$
     RewriteRule ^$ storefront.php [L,QSA]
-
-    RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
-    RewriteCond %1 !^www$ [NC]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?id=$1 [L,QSA]
-
-    RewriteCond %{HTTP_HOST} ^([a-z0-9]([a-z0-9-]*[a-z0-9])?)\.rdvendora\.com$ [NC]
-    RewriteCond %1 !^www$ [NC]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^category/(.+)/?$ storefront.php?cat=$1 [L,QSA]
 </IfModule>
 
-ErrorDocument 404 /404.php
-ErrorDocument 403 /403.php
-ErrorDocument 500 /500.php
+ErrorDocument 404 /404
+ErrorDocument 403 /403
+ErrorDocument 500 /500
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
@@ -110,5 +127,3 @@ ErrorDocument 500 /500.php
     ExpiresByType image/webp "access plus 30 days"
     ExpiresByType video/mp4 "access plus 30 days"
 </IfModule>
-
-# 404.html remains at the web root; Hostinger serves it from the domain root.

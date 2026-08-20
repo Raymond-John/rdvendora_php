@@ -11,25 +11,25 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     // Check empty fields
     if (empty($fullname) || empty($email) || empty($password) || empty($confirm)) {
-        header('location: ../register.php?error=All fields are required');
+        header('Location: ../register?error=All fields are required');
         exit();
     }
    
     // Check password length
     if (strlen($password) < 6) {
-        header('location: ../register.php?error=Password too short');
+        header('Location: ../register?error=Password too short');
         exit();
     }
 
     // Check password match
     if ($password !== $confirm) {
-        header('location: ../register.php?error=Password Mismatch');
+        header('Location: ../register?error=Password Mismatch');
         exit();
     }
 
     // Validate email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header('location: ../register.php?error=Email is invalid');
+        header('Location: ../register?error=Email is invalid');
         exit();
     }
 
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $result = $checkEmail->get_result();
     if ($result->num_rows > 0) {
         $checkEmail->close();
-        header('location: ../register.php?error=Email Already Exists');
+        header('Location: ../register?error=Email Already Exists');
         exit();
     }
     $checkEmail->close();
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $stmt->bind_param('sss', $fullname, $email, $hashedPassword);
     if (!$stmt->execute()) {
         $stmt->close();
-        header('location: ../register.php?error=Registration failed');
+        header('Location: ../register?error=Registration failed');
         exit();
     }
     $userId = $stmt->insert_id;
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $_SESSION['email']     = $email;
 
     // Redirect to store creation page
-    header('location: ../create-store.php?success=User registered successfully');
+    header('Location: ../create-store?success=User registered successfully');
     exit();
 }
 ?>

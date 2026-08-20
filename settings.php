@@ -3,7 +3,7 @@ session_start();
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php?error=Not logged in');
+    header('Location: login?error=Not logged in');
     exit();
 }
 
@@ -19,7 +19,7 @@ $stmt = $conn->prepare("SELECT id FROM stores WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 if ($stmt->get_result()->num_rows === 0) {
-    header("Location: create-store.php");
+    header("Location: create-store");
     exit();
 }
 $stmt->close();
@@ -555,7 +555,7 @@ $stmt = $conn->prepare("SELECT id FROM stores WHERE user_id = ?");
 $stmt->bind_param("i", $_SESSION['user_id']);
 $stmt->execute();
 if ($stmt->get_result()->num_rows === 0) {
-    header("Location: create-store.php");
+    header("Location: create-store");
     exit();
 }
 $stmt->close();
@@ -570,7 +570,7 @@ if (!isStoreActive($conn, $_SESSION['user_id'])) {
     <body style="font-family: sans-serif; text-align: center; padding: 50px;">
         <h1>⛔ Store Disabled</h1>
         <p>Your store has been disabled by the administrator. Please contact support for more information.</p>
-        <a href="logout.php">Logout</a>
+        <a href="logout">Logout</a>
     </body>
     </html>
     <?php
@@ -1032,7 +1032,7 @@ $conn->close();
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="index.php" class="sidebar-brand">
+            <a href="./" class="sidebar-brand">
                 <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
@@ -1043,28 +1043,28 @@ $conn->close();
         </div>
         <nav class="sidebar-nav">
             <div class="sidebar-section-title">Main</div>
-            <a href="dashboard.php" class="sidebar-link">
+            <a href="dashboard" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
                     <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
                 </svg>
                 <span class="sidebar-link-text">Dashboard</span>
             </a>
-            <a href="products.php" class="sidebar-link">
+            <a href="products" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                     <line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
                 </svg>
                 <span class="sidebar-link-text">Products</span>
             </a>
-            <a href="orders.php" class="sidebar-link">
+            <a href="orders" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
                 <span class="sidebar-link-text">Orders</span>
             </a>
-            <a href="customers.php" class="sidebar-link">
+            <a href="customers" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
@@ -1079,21 +1079,21 @@ $conn->close();
                 </svg>
                 <span class="sidebar-link-text">Storefront</span>
             </a>
-            <a href="settings.php" class="sidebar-link active">
+            <a href="settings" class="sidebar-link active">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
                 <span class="sidebar-link-text">Store Settings</span>
             </a>
-            <a href="subscription.php" class="sidebar-link">
+            <a href="subscription" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
                 <span class="sidebar-link-text">Subscription</span>
             </a>
-            <a href="vendor-chat.php" class="sidebar-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="sidebar-link-text">Chat</span></a>
+            <a href="vendor-chat" class="sidebar-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="sidebar-link-text">Chat</span></a>
             <div class="sidebar-section-title">Account</div>
-            <a href="profile.php" class="sidebar-link">
+            <a href="profile" class="sidebar-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
@@ -1116,7 +1116,7 @@ $conn->close();
                         <?php if ($storeName): ?>
                             🏪 <?= htmlspecialchars($storeName) ?>
                         <?php else: ?>
-                            <a href="create-store.php" style="color: var(--primary);">Create Store</a>
+                            <a href="create-store" style="color: var(--primary);">Create Store</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -1165,7 +1165,7 @@ $conn->close();
                             <p style="color: #7f1d1d; margin-top: 4px;">Your store has been suspended because there is no active subscription. Please choose a plan to reactivate your store.</p>
                         </div>
                     </div>
-                    <a href="subscription.php" class="btn" style="background: #dc2626; color: white; padding: 10px 24px; border-radius: 40px; text-decoration: none; font-weight: 600;">Reactivate Now →</a>
+                    <a href="subscription" class="btn" style="background: #dc2626; color: white; padding: 10px 24px; border-radius: 40px; text-decoration: none; font-weight: 600;">Reactivate Now →</a>
                 </div>
             <?php else: ?>
                 <!-- Info for free users: show upgrade notice -->
@@ -1593,7 +1593,7 @@ $conn->close();
                             <div style="font-size: 48px; margin-bottom: 16px;">🚀</div>
                             <h3 style="margin-bottom: 8px;">Upgrade Your Plan</h3>
                             <p style="margin-bottom: 24px; color: var(--text-muted);">Get full control over your store’s design and advanced features.</p>
-                            <a href="subscription.php" class="btn btn-primary">View Plans →</a>
+                            <a href="subscription" class="btn btn-primary">View Plans →</a>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -1888,7 +1888,7 @@ $conn->close();
         };
         
         function handleLogout() { 
-            if(confirm('Logout?')) window.location.href='logout.php'; 
+            if(confirm('Logout?')) window.location.href='logout'; 
         }
         
         // Dropdown toggle
@@ -1929,7 +1929,7 @@ $conn->close();
                     const slug = input.value.trim().toLowerCase();
                     status.style.color = 'var(--text-muted)';
                     status.textContent = 'Checking…';
-                    fetch('check-store-slug.php?slug=' + encodeURIComponent(slug), { credentials: 'same-origin' })
+                    fetch('check-store-slug?slug=' + encodeURIComponent(slug), { credentials: 'same-origin' })
                         .then(r => r.json())
                         .then(data => {
                             status.textContent = data.message || '';

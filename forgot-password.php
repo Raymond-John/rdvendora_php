@@ -205,6 +205,6 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">Send reset link</button>
         </form>
         <div class="auth-footer">
-          <a href="login.php">Back to login</a>
+          <a href="login">Back to login</a>
         </div>
 <?php require __DIR__ . '/includes/auth_layout_end.php'; ?>

@@ -210,6 +210,67 @@ if (!function_exists('rdv_app_base_url')) {
     }
 }
 
+if (!function_exists('rdv_url')) {
+    /**
+     * Build a clean public URL (no .php) from a page path.
+     * Accepts: marketplace.php, marketplace, admin/admin-stores.php, ../login.php?x=1
+     */
+    function rdv_url($path = '', $query = []) {
+        $path = trim((string) $path);
+        if ($path === '' || $path === '/' || $path === '#' ) {
+            return $path === '#' ? '#' : (rdv_app_base_url() . '/');
+        }
+        if (preg_match('#^(https?:)?//#i', $path) || str_starts_with($path, 'mailto:') || str_starts_with($path, 'tel:') || str_starts_with($path, 'javascript:')) {
+            return $path;
+        }
+
+        $fragment = '';
+        if (str_contains($path, '#')) {
+            [$path, $fragment] = explode('#', $path, 2);
+            $fragment = '#' . $fragment;
+        }
+
+        $qs = '';
+        if (str_contains($path, '?')) {
+            [$path, $qs] = explode('?', $path, 2);
+        }
+
+        $path = str_replace('\\', '/', $path);
+        $path = preg_replace('#^\./#', '', $path);
+        while (str_starts_with($path, '../')) {
+            $path = substr($path, 3);
+        }
+        $path = ltrim($path, '/');
+
+        if (preg_match('/\.php$/i', $path)) {
+            $path = substr($path, 0, -4);
+        }
+
+        if ($path === '' || strtolower($path) === 'index') {
+            $url = rdv_app_base_url() . '/';
+        } else {
+            $url = rdv_app_base_url() . '/' . $path;
+        }
+
+        if (is_array($query) && $query !== []) {
+            $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($query);
+        } elseif ($qs !== '') {
+            $url .= '?' . $qs;
+        }
+
+        return $url . $fragment;
+    }
+}
+
+if (!function_exists('rdv_redirect')) {
+    function rdv_redirect($path, $code = 302) {
+        if (!headers_sent()) {
+            header('Location: ' . rdv_url($path), true, (int) $code);
+        }
+        exit;
+    }
+}
+
 if (!function_exists('rdv_parse_store_host')) {
     /**
      * @return array{type:string,host:string,slug:?string,base:string}

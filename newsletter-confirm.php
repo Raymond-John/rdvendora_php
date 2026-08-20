@@ -43,10 +43,10 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Newsletter</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Newsletter</nav>
     <h1><?= $ok ? 'Subscription confirmed' : 'We could not confirm this subscription' ?></h1>
     <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
-    <p><a href="index.php" class="btn btn-primary">Back to home</a></p>
+    <p><a href="./" class="btn btn-primary">Back to home</a></p>
   </div>
 </section>
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

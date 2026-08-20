@@ -17,9 +17,9 @@
       <h1 class="error-title">Page not found</h1>
       <p class="error-text">That address is not a public RD Vendora page.</p>
       <p>
-        <a class="btn btn-primary" href="index.php">Home</a>
-        <a class="btn btn-outline" href="sitemap.php">Sitemap</a>
-        <a class="btn btn-ghost" href="contact.php">Contact</a>
+        <a class="btn btn-primary" href="./">Home</a>
+        <a class="btn btn-outline" href="sitemap">Sitemap</a>
+        <a class="btn btn-ghost" href="contact">Contact</a>
       </p>
     </div>
   </div>

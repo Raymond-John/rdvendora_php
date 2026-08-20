@@ -7,7 +7,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Disclaimer</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Disclaimer</nav>
     <h1>Disclaimer</h1>
     <p class="rdv-updated">Last updated 17 August 2026.</p>
 
@@ -27,7 +27,7 @@ require __DIR__ . '/includes/public_layout_start.php';
     <p>Pages may link to other websites. We are not responsible for their content.</p>
 
     <h2>Related documents</h2>
-    <p><a href="terms.php">Terms and Conditions</a> · <a href="privacy.php">Privacy Policy</a> · <a href="community-guidelines.php">Community Guidelines</a></p>
+    <p><a href="terms">Terms and Conditions</a> · <a href="privacy">Privacy Policy</a> · <a href="community-guidelines">Community Guidelines</a></p>
   </div>
 </section>
 <?php require __DIR__ . '/includes/public_layout_end.php'; ?>

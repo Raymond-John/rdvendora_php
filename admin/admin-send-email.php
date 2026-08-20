@@ -12,12 +12,12 @@ if (!$isAdmin) {
         $_SESSION['is_admin'] = true;
         $isAdmin = true;
     } else {
-        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../index.php">Go Home</a></div>');
+        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
     }
 }
 
 if (!adminHasPermission('send_email', $conn)) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to send emails.</p><a href="admin.php">Go to Dashboard</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to send emails.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
 $emails = $conn->query("SELECT DISTINCT user_email, user_name FROM orders WHERE user_email IS NOT NULL AND user_email != '' ORDER BY user_name ASC");

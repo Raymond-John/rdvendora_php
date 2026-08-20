@@ -7,7 +7,7 @@ require __DIR__ . '/includes/public_layout_start.php';
 ?>
 <section class="section">
   <div class="container rdv-legal">
-    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="index.php">Home</a> / Community Guidelines</nav>
+    <nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / Community Guidelines</nav>
     <h1>Community Guidelines</h1>
     <p class="rdv-updated">Last updated 17 August 2026. These rules apply to stores, products, images, chats, testimonials, documents, and other material you submit.</p>
 
@@ -24,7 +24,7 @@ require __DIR__ . '/includes/public_layout_start.php';
     <p>Do not flood the marketplace, contact form, or newsletter with automated junk. Do not ask visitors to click advertisements. Do not post fake reviews of your own store.</p>
 
     <h2>Moderation</h2>
-    <p>RD Vendora administrators may hide or remove content, suspend stores, or refuse documents that fail review. If you see abuse, use in-product reporting where available or the <a href="contact.php">contact form</a> with a link or order reference. We may not discuss every enforcement decision in public.</p>
+    <p>RD Vendora administrators may hide or remove content, suspend stores, or refuse documents that fail review. If you see abuse, use in-product reporting where available or the <a href="contact">contact form</a> with a link or order reference. We may not discuss every enforcement decision in public.</p>
 
     <h2>Appeals</h2>
     <p>If you believe a moderation action was a mistake, write to us through the contact form from the email on the account and include relevant order or store names.</p>

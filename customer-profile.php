@@ -10,7 +10,7 @@ if (!$conn) die('Database connection failed.');
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -27,7 +27,7 @@ $stmt->close();
 if (!$user) {
     // User not found – log out
     session_destroy();
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -694,12 +694,12 @@ function getStatusIcon($status) {
 <div class="top-header">
     <div class="header-container">
         <div class="logo">
-            <a href="marketplace.php">
+            <a href="marketplace">
                 <img class="rdv-brand-logo" src="assets/brand-logo.png" alt=""><span class="rdv-brand-name">RD Vendora</span>
             </a>
         </div>
         <div class="header-right">
-            <a href="marketplaceaddtocart.php" class="cart-link">
+            <a href="marketplaceaddtocart" class="cart-link">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
             </a>
@@ -713,7 +713,7 @@ function getStatusIcon($status) {
                 </div>
                 <span>
                     <?= htmlspecialchars($user['fullname'] ?? 'User') ?>
-                    <a href="logout.php" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="logout" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </span>
             </div>
         </div>
@@ -789,7 +789,7 @@ function getStatusIcon($status) {
                 <i class="fas fa-shopping-bag"></i>
                 <h3>No orders yet</h3>
                 <p>Start shopping and your orders will appear here.</p>
-                <a href="marketplace.php" class="btn-primary-sm" style="margin-top:1rem; padding:0.5rem 1.8rem;">
+                <a href="marketplace" class="btn-primary-sm" style="margin-top:1rem; padding:0.5rem 1.8rem;">
                     <i class="fas fa-store"></i> Start Shopping
                 </a>
             </div>
@@ -1121,7 +1121,7 @@ function getStatusIcon($status) {
 
     function setDefaultAddress(id) {
         if (!confirm('Set this as your default shipping address?')) return;
-        fetch('set_default_address.php', {
+        fetch('set_default_address', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'address_id=' + id
@@ -1166,7 +1166,7 @@ function getStatusIcon($status) {
     // ========== VIEW ORDER DETAILS ==========
     function viewOrderDetails(orderId) {
         showToast(`📄 Viewing details for order #${orderId}`);
-        // window.location.href = 'order-details.php?id=' + orderId;
+        // window.location.href='order-details?id=' + orderId;
     }
 
     // Keyboard shortcuts

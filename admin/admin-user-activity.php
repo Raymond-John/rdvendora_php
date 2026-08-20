@@ -15,7 +15,7 @@ if (!adminHasPermission('dashboard', $conn) && !adminHasPermission('users', $con
 } else {
     rdv_hydrate_admin_session($conn);
     if (!rdv_admin_flag_is_set()) {
-        header('Location: admin_login.php');
+        header('Location: admin_login');
         exit;
     }
 }
@@ -326,7 +326,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         </div>
         <div class="filter-group">
             <button type="submit" class="btn">Filter</button>
-            <a class="btn ghost" href="admin-user-activity.php">Reset</a>
+            <a class="btn ghost" href="admin-user-activity">Reset</a>
             <a class="btn ghost" href="<?= htmlspecialchars($base_url . $page_join . 'export=csv') ?>">Export CSV</a>
         </div>
     </form>

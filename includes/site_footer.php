@@ -8,7 +8,7 @@ $year = (int) date('Y');
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.php" class="footer-logo">
+          <a href="<?= htmlspecialchars(rdv_url('index'), ENT_QUOTES, 'UTF-8') ?>" class="footer-logo">
             <?= rdv_brand_logo('', 'rdv-brand-logo--footer') ?>
           </a>
           <p class="footer-brand-desc">The complete multi-vendor eCommerce platform. Build, manage, and scale your online business with powerful tools.</p>
@@ -16,29 +16,29 @@ $year = (int) date('Y');
         <div class="footer-column">
           <h4>Product</h4>
           <div class="footer-links">
-            <a href="features.php">Features</a>
-            <a href="pricing.php">Pricing</a>
-            <a href="marketplace.php">Marketplace</a>
-            <a href="blog.php">News</a>
-            <a href="faq.php">FAQ</a>
+            <a href="<?= htmlspecialchars(rdv_url('features'), ENT_QUOTES, 'UTF-8') ?>">Features</a>
+            <a href="<?= htmlspecialchars(rdv_url('pricing'), ENT_QUOTES, 'UTF-8') ?>">Pricing</a>
+            <a href="<?= htmlspecialchars(rdv_url('marketplace'), ENT_QUOTES, 'UTF-8') ?>">Marketplace</a>
+            <a href="<?= htmlspecialchars(rdv_url('blog'), ENT_QUOTES, 'UTF-8') ?>">News</a>
+            <a href="<?= htmlspecialchars(rdv_url('faq'), ENT_QUOTES, 'UTF-8') ?>">FAQ</a>
           </div>
         </div>
         <div class="footer-column">
           <h4>Company</h4>
           <div class="footer-links">
-            <a href="about.php">About</a>
-            <a href="contact.php">Contact</a>
-            <a href="sitemap.php">Sitemap</a>
+            <a href="<?= htmlspecialchars(rdv_url('about'), ENT_QUOTES, 'UTF-8') ?>">About</a>
+            <a href="<?= htmlspecialchars(rdv_url('contact'), ENT_QUOTES, 'UTF-8') ?>">Contact</a>
+            <a href="<?= htmlspecialchars(rdv_url('sitemap'), ENT_QUOTES, 'UTF-8') ?>">Sitemap</a>
           </div>
         </div>
         <div class="footer-column">
           <h4>Legal</h4>
           <div class="footer-links">
-            <a href="privacy.php">Privacy</a>
-            <a href="terms.php">Terms</a>
-            <a href="cookies.php">Cookies</a>
-            <a href="disclaimer.php">Disclaimer</a>
-            <a href="community-guidelines.php">Community Guidelines</a>
+            <a href="<?= htmlspecialchars(rdv_url('privacy'), ENT_QUOTES, 'UTF-8') ?>">Privacy</a>
+            <a href="<?= htmlspecialchars(rdv_url('terms'), ENT_QUOTES, 'UTF-8') ?>">Terms</a>
+            <a href="<?= htmlspecialchars(rdv_url('cookies'), ENT_QUOTES, 'UTF-8') ?>">Cookies</a>
+            <a href="<?= htmlspecialchars(rdv_url('disclaimer'), ENT_QUOTES, 'UTF-8') ?>">Disclaimer</a>
+            <a href="<?= htmlspecialchars(rdv_url('community-guidelines'), ENT_QUOTES, 'UTF-8') ?>">Community Guidelines</a>
           </div>
         </div>
         <div class="rdv-footer-newsletter">
@@ -48,8 +48,7 @@ $year = (int) date('Y');
         </div>
       </div>
       <div class="footer-bottom">
-        <p class="footer-copyright">&copy; <?= $year ?> RD Vendora. All rights reserved. Designed By RD NEXA TECH</p>
+        <p>&copy; <?= $year ?> RD Vendora. All rights reserved.</p>
       </div>
     </div>
   </footer>
-  <div id="rdv-cookie-root"></div>

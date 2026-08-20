@@ -29,18 +29,9 @@ if (!function_exists('rdv_store_url_mode')) {
         if (in_array($mode, ['path', 'subdomain', 'query'], true)) {
             return $mode;
         }
-        // Legacy env
-        $flag = strtolower(trim((string) rdv_env('STORE_SUBDOMAINS', '')));
-        if ($flag === '1' || $flag === 'true' || $flag === 'on' || $flag === 'yes') {
-            return 'subdomain';
-        }
-        if ($flag === '0' || $flag === 'false' || $flag === 'off' || $flag === 'no') {
-            // Prefer path on production even when subdomains disabled
-            $env = strtolower((string) rdv_env('APP_ENV', 'local'));
-            return $env === 'production' ? 'path' : 'query';
-        }
-        $env = strtolower((string) rdv_env('APP_ENV', 'local'));
-        return $env === 'production' ? 'path' : 'path';
+        // Default: path URLs on the main domain (Hostinger-friendly).
+        // Use STORE_URL_MODE=subdomain only when wildcard DNS + SSL are ready.
+        return 'path';
     }
 }
 

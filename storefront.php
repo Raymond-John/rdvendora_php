@@ -414,7 +414,7 @@ function filterUrl($cat, $storeId, $search) {
             <h4><?= htmlspecialchars($store['store_name']) ?></h4>
         </a>
         <div class="search-container">
-            <form class="search-form" method="get" action="<?= htmlspecialchars($onPath || $onSubdomain ? rdv_store_url($store) : 'storefront.php', ENT_QUOTES, 'UTF-8') ?>">
+            <form class="search-form" method="get" action="<?= htmlspecialchars($onPath || $onSubdomain ? rdv_store_url($store) : rdv_url('storefront'), ENT_QUOTES, 'UTF-8') ?>">
                 <?php if (!$onPath && !$onSubdomain): ?>
                 <input type="hidden" name="store" value="<?= (int) $store['id'] ?>">
                 <?php endif; ?>
@@ -571,7 +571,7 @@ function filterUrl($cat, $storeId, $search) {
             <ul class="footer-links">
                 <li><a href="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>">Home</a></li>
                 <li><a href="<?= htmlspecialchars(rdv_store_filter_url($store, 'all', ''), ENT_QUOTES, 'UTF-8') ?>">All Products</a></li>
-                <li><a href="<?= htmlspecialchars(rtrim(APP_URL, '/') . '/marketplace.php', ENT_QUOTES, 'UTF-8') ?>">← Back to Marketplace</a></li>
+                <li><a href="<?= htmlspecialchars(function_exists('rdv_url') ? rdv_url('marketplace') : (rtrim(APP_URL, '/') . '/marketplace'), ENT_QUOTES, 'UTF-8') ?>">← Back to Marketplace</a></li>
             </ul>
         </div>
         <div>

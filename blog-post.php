@@ -59,7 +59,7 @@ require __DIR__ . '/includes/public_layout_start.php';
   <div class="rdv-news-share">
     <button type="button" id="rdv-copy-link">Copy link</button>
     <a href="https://twitter.com/intent/tweet?url=<?= rawurlencode($shareUrl) ?>&text=<?= rawurlencode($post['title']) ?>" rel="noopener noreferrer" target="_blank">Share on X</a>
-    <a href="https://www.facebook.com/sharer/sharer?u=<?= rawurlencode($shareUrl) ?>" rel="noopener noreferrer" target="_blank">Share on Facebook</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=<?= rawurlencode($shareUrl) ?>" rel="noopener noreferrer" target="_blank">Share on Facebook</a>
   </div>
   <div class="rdv-news-hero">
     <?= rdv_blog_thumb_html($post) ?>

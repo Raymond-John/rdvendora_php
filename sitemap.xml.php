@@ -5,19 +5,20 @@ require_once __DIR__ . '/includes/public_site.php';
 header('Content-Type: application/xml; charset=UTF-8');
 
 $pages = [
-    ['index.php', '1.0', 'weekly', date('Y-m-d')],
-    ['about.php', '0.8', 'monthly', date('Y-m-d')],
-    ['features.php', '0.8', 'monthly', date('Y-m-d')],
-    ['pricing.php', '0.8', 'monthly', date('Y-m-d')],
-    ['contact.php', '0.7', 'monthly', date('Y-m-d')],
-    ['faq.php', '0.7', 'monthly', date('Y-m-d')],
-    ['blog.php', '0.8', 'daily', date('Y-m-d')],
-    ['privacy.php', '0.4', 'yearly', date('Y-m-d')],
-    ['terms.php', '0.4', 'yearly', date('Y-m-d')],
-    ['cookies.php', '0.4', 'yearly', date('Y-m-d')],
-    ['disclaimer.php', '0.3', 'yearly', date('Y-m-d')],
-    ['community-guidelines.php', '0.5', 'yearly', date('Y-m-d')],
-    ['sitemap.php', '0.3', 'monthly', date('Y-m-d')],
+    ['index', '1.0', 'weekly', date('Y-m-d')],
+    ['about', '0.8', 'monthly', date('Y-m-d')],
+    ['features', '0.8', 'monthly', date('Y-m-d')],
+    ['pricing', '0.8', 'monthly', date('Y-m-d')],
+    ['contact', '0.7', 'monthly', date('Y-m-d')],
+    ['faq', '0.7', 'monthly', date('Y-m-d')],
+    ['blog', '0.8', 'daily', date('Y-m-d')],
+    ['privacy', '0.4', 'yearly', date('Y-m-d')],
+    ['terms', '0.4', 'yearly', date('Y-m-d')],
+    ['cookies', '0.4', 'yearly', date('Y-m-d')],
+    ['disclaimer', '0.3', 'yearly', date('Y-m-d')],
+    ['community-guidelines', '0.5', 'yearly', date('Y-m-d')],
+    ['sitemap', '0.3', 'monthly', date('Y-m-d')],
+    ['marketplace', '0.9', 'daily', date('Y-m-d')],
 ];
 
 $conn = $conn ?? $connect ?? null;

@@ -16,7 +16,7 @@ if (!$oauth['configured']) {
 
 $host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
 if (($host === 'rdvendora.com' || $host === 'www.rdvendora.com') && function_exists('rdv_request_is_https') && !rdv_request_is_https()) {
-    header('Location: https://rdvendora.com/oauth2callback.php' . (!empty($_SERVER['QUERY_STRING']) ? ('?' . $_SERVER['QUERY_STRING']) : ''), true, 302);
+    header('Location: https://rdvendora.com/oauth2callback' . (!empty($_SERVER['QUERY_STRING']) ? ('?' . $_SERVER['QUERY_STRING']) : ''), true, 302);
     exit;
 }
 
@@ -205,5 +205,5 @@ if ($storeStmt) {
     $storeStmt->close();
 }
 
-header('Location: ' . ($hasStore ? 'dashboard.php' : 'create-store.php'));
+header('Location: ' . ($hasStore ? 'dashboard' : 'create-store'));
 exit;

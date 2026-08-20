@@ -118,7 +118,7 @@ require __DIR__ . '/includes/public_layout_start.php';
         <h3>Who we serve</h3>
         <p>Sellers who need a storefront, buyers who want to purchase from those stores, and the operators who moderate the platform. Start from <a href="register">create an account</a> or <a href="contact">contact us</a>.</p>
       </article>
-    </div>
+      </div>
     </div>
   </section>
 

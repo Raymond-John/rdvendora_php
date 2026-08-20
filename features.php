@@ -22,7 +22,7 @@ $features = [
 ?>
 
 <section class="mk-hero mk-hero--compact mk-page-hero">
-  <div class="container">
+    <div class="container">
     <div class="mk-kicker">Features</div>
     <h1>The tools a working shop needs</h1>
     <p class="lead">RD Vendora is built around storefronts, products, orders, and supported checkout — not a wall of features we do not ship.</p>
@@ -48,7 +48,7 @@ $features = [
     </div>
   </section>
 
-<div class="container">
+    <div class="container">
   <div class="mk-cta-band">
     <h2>See it on your own store</h2>
     <p>Create an account and add a product. If you already sell, compare plans next.</p>

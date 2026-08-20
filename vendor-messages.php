@@ -149,19 +149,9 @@ $stmt->close();
 </head>
 <body>
 <!-- Sidebar (same as your dashboard) – copy your existing sidebar HTML -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">RD Vendora</div>
-    <nav class="sidebar-nav">
-        <a href="dashboard" class="sidebar-link">📊 Dashboard</a>
-        <a href="products" class="sidebar-link">📦 Products</a>
-        <a href="orders" class="sidebar-link">🛒 Orders</a>
-        <a href="customers" class="sidebar-link">👥 Customers</a>
-        <a href="settings" class="sidebar-link">⚙️ Settings</a>
-        <a href="subscription" class="sidebar-link">💳 Subscription</a>
-        <a href="vendor-messages" class="sidebar-link active">💬 Messages</a>
-        <a href="#" class="sidebar-link" onclick="logout()">🚪 Logout</a>
-    </nav>
-</aside>
+
+    <?php include __DIR__ . '/includes/vendor_sidebar.php'; ?>
+
 
 <div class="main-content">
     <header class="topbar">

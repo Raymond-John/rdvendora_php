@@ -51,7 +51,8 @@ $categoryFilter = isset($_GET['category']) ? trim($_GET['category']) : '';
 // ----- Build products query (only active stores & active products, and only visible stores) -----
 $sql = "SELECT p.*, 
                s.id AS store_pk,
-               s.store_name, 
+               s.store_name,
+               s.store_slug,
                COALESCE(s.brand_color, '#2563eb') as brand_color, 
                s.logo_path 
         FROM products p 
@@ -106,6 +107,7 @@ if (!empty($visibleStores)) {
         SELECT 
             s.id AS store_pk,
             s.store_name,
+            s.store_slug,
             s.brand_color,
             s.logo_path,
             COALESCE(sub.plan, 'Launch') AS plan,
@@ -1075,7 +1077,7 @@ $conn->close();
                 <ul class="store-list">
                     <li><a href="marketplace.php" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
                     <?php foreach ($stores as $store): ?>
-                        <li><a href="storefront.php?store=<?= $store['store_pk'] ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
+                        <li><a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
                             <span class="store-badge">
                                 <?php if (!empty($store['logo_path'])): ?>
                                     <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">
@@ -1108,7 +1110,7 @@ $conn->close();
                             <div class="product-info">
                                 <div class="store-name">
                                     <?php if (!empty($product['logo_path'])): ?><img src="<?= htmlspecialchars($product['logo_path']) ?>" style="width: 14px; height: 14px; border-radius: 2px;"><?php else: ?><i class="fas fa-store"></i><?php endif; ?>
-                                    <a href="storefront.php?store=<?= $product['store_pk'] ?>" style="color: inherit;"><?= htmlspecialchars($product['store_name']) ?></a>
+                                    <a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$product['store_pk'], 'store_slug' => (string)($product['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" style="color: inherit;"><?= htmlspecialchars($product['store_name']) ?></a>
                                 </div>
                                 <a href="product-details.php?id=<?= $product['id'] ?>&store=<?= $product['store_pk'] ?>" style="text-decoration: none; color: inherit;"><h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3></a>
                                 <div class="price-section"><span class="current-price">₦ <?= number_format($product['price'], 2) ?></span></div>
@@ -1144,7 +1146,7 @@ $conn->close();
         <ul class="store-list">
             <li><a href="marketplace.php" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
             <?php foreach ($stores as $store): ?>
-                <li><a href="storefront.php?store=<?= $store['store_pk'] ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
+                <li><a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
                     <span class="store-badge">
                         <?php if (!empty($store['logo_path'])): ?>
                             <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">

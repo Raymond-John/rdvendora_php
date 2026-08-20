@@ -1146,7 +1146,7 @@ $conn->close();
         <ul class="store-list">
             <li><a href="marketplace.php" class="<?= $storeFilter == 0 ? 'active' : '' ?>"><i class="fas fa-store"></i> All Stores</a></li>
             <?php foreach ($stores as $store): ?>
-                <li><a href="storefront.php?store=<?= $store['store_pk'] ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
+                <li><a href="<?= htmlspecialchars(rdv_store_url(['id' => (int)$store['store_pk'], 'store_slug' => (string)($store['store_slug'] ?? '')]), ENT_QUOTES, 'UTF-8') ?>" class="<?= $storeFilter == $store['store_pk'] ? 'active' : '' ?>">
                     <span class="store-badge">
                         <?php if (!empty($store['logo_path'])): ?>
                             <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="">

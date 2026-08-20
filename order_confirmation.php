@@ -265,7 +265,7 @@ $conn->close();
         </div>
 
         <div class="footer-buttons no-print">
-            <a href="storefront.php?store=<?= $order['store_id'] ?>" class="btn btn-secondary">← Continue Shopping</a>
+            <a href="<?= htmlspecialchars(($store ? rdv_store_url($store) : (rtrim(APP_URL,'/') . '/marketplace.php')), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary">← Continue Shopping</a>
             <button onclick="window.print();" class="btn btn-primary">📄 Download Receipt (PDF)</button>
         </div>
         <p style="text-align: center; font-size: 0.75rem; color: #9ca3af; margin-top: 2rem;">

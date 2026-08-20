@@ -259,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
             break;
         case 'send_expiry_email':
             // Send expired subscription email
-            $infoStmt = $conn->prepare("SELECT s.user_id, s.store_name, u.email, u.fullname FROM stores s JOIN users u ON s.user_id = u.id WHERE s.id = ?");
+            $infoStmt = $conn->prepare("SELECT s.user_id, s.store_name, u.email, u.full_name AS name FROM stores s JOIN users u ON s.user_id = u.id WHERE s.id = ?");
             $infoStmt->bind_param("i", $store_id);
             $infoStmt->execute();
             $storeInfo = $infoStmt->get_result()->fetch_assoc();

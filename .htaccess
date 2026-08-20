@@ -1,5 +1,6 @@
 Options -Indexes
 ServerSignature Off
+DirectorySlash Off
 
 <FilesMatch "^\.">
     Require all denied
@@ -24,8 +25,12 @@ ServerSignature Off
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block private application folders
-    RewriteRule ^(app|storage|vendor|archive|config|database)(/|$) - [F,L]
+    # Exact /vendor → public vendor chat URL (avoid /vendor/ directory + relative redirects)
+    RewriteRule ^vendor/?$ vendor-chat [R=302,L,QSA]
+
+    # Block private application folders / composer package files
+    RewriteRule ^(app|storage|archive|config|database)(/|$) - [F,L]
+    RewriteRule ^vendor/.+ - [F,L]
 
     # Legacy customer auth aliases
     RewriteRule ^login-customer/?$ login [R=301,L,QSA]
@@ -53,9 +58,6 @@ ServerSignature Off
     RewriteRule ^ https://rdvendora.com%{REQUEST_URI} [L,R=301]
 
     # ----- Clean URLs: hide .php from the browser -----
-    # Capture full URI path from THE_REQUEST so redirects work under
-    # Hostinger (site root) and XAMPP subfolders alike.
-    # Keep POST/PUT/PATCH to *.php intact (forms, webhooks, OAuth callbacks)
     RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
     RewriteCond %{THE_REQUEST} \s/+((?:[^?\s]*?/)?)index\.php[\s?] [NC]
     RewriteRule ^index\.php$ /%1 [R=301,L,NE]
@@ -65,7 +67,8 @@ ServerSignature Off
     RewriteCond %1 !sitemap\.xml$ [NC]
     RewriteRule ^.+\.php$ /%1 [R=301,L,QSA,NE]
 
-    # Admin clean routes BEFORE the directory short-circuit (admin/ is a real folder)
+    # Admin clean routes MUST run before treating /admin as a real directory
+    # (Options -Indexes otherwise returns a raw 403 on /admin/)
     RewriteRule ^admin/?$ admin/admin.php [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f [OR]
@@ -73,6 +76,8 @@ ServerSignature Off
     RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
 
     # Serve existing files/directories as-is (assets, uploads, etc.)
+    # Skip admin/vendor dirs so they never directory-list/403
+    RewriteCond %{REQUEST_URI} !/(admin|vendor)/?$ [NC]
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
@@ -85,13 +90,8 @@ ServerSignature Off
     RewriteRule ^blog/([a-z0-9-]+)/?$ blog-post.php?slug=$1 [L,QSA]
 
     # ----- Store path URLs (only when no matching .php page) -----
-    # /{slug}/product/{id}-{name}
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?slug=$1&id=$2 [L,QSA]
-
-    # /{slug}/category/{category}
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/category/(.+)/?$ storefront.php?slug=$1&cat=$2 [L,QSA]
-
-    # /{slug} → storefront (PHP validates reserved + DB)
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/?$ storefront.php?slug=$1 [L,QSA]
 
     # Optional legacy store subdomains
@@ -107,9 +107,9 @@ ServerSignature Off
     RewriteRule ^$ storefront.php [L,QSA]
 </IfModule>
 
-ErrorDocument 404 /404
-ErrorDocument 403 /403
-ErrorDocument 500 /500
+ErrorDocument 404 /404.php
+ErrorDocument 403 /403.php
+ErrorDocument 500 /500.php
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

@@ -1,13 +1,13 @@
 <?php
-session_start();
+require_once 'includes/connection.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login?error=Not logged in');
+    $login = function_exists('rdv_url') ? rdv_url('login?error=Not logged in') : 'login?error=Not logged in';
+    header('Location: ' . $login);
     exit();
 }
 
-require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
 require_once 'includes/notification_helper.php';  // <-- ADDED
 

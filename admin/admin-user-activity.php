@@ -15,7 +15,7 @@ if (!adminHasPermission('dashboard', $conn) && !adminHasPermission('users', $con
 } else {
     rdv_hydrate_admin_session($conn);
     if (!rdv_admin_flag_is_set()) {
-        header('Location: admin_login');
+        header('Location: ' . (function_exists('rdv_url') ? rdv_url('admin/admin_login') : 'admin_login'));
         exit;
     }
 }

@@ -76,19 +76,6 @@ DirectorySlash Off
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
 
-    # Marketplace nested routes (before file pass-through / generic .php / store catch-all)
-    RewriteRule ^marketplace/cart/?$ marketplaceaddtocart.php [END,QSA]
-    RewriteRule ^marketplace/checkout/?$ marketplacecheckout.php [END,QSA]
-    RewriteRule ^marketplace/product/([0-9]+)/?$ marketplaceviewproduct.php?id=$1 [END,QSA]
-
-    # Legacy marketplace aliases → clean paths (external redirect only)
-    RewriteCond %{THE_REQUEST} \s/+((?:[^?\s]*?/)?)marketplaceaddtocart(?:\.php)?[\s?] [NC]
-    RewriteRule ^marketplaceaddtocart(?:\.php)?$ /%1marketplace/cart [R=301,L,QSA,NE]
-    RewriteCond %{THE_REQUEST} \s/+((?:[^?\s]*?/)?)marketplacecheckout(?:\.php)?[\s?] [NC]
-    RewriteRule ^marketplacecheckout(?:\.php)?$ /%1marketplace/checkout [R=301,L,QSA,NE]
-    RewriteCond %{THE_REQUEST} \s/+((?:[^?\s]*?/)?)marketplaceviewproduct(?:\.php)?\?id=([0-9]+)[\s&] [NC]
-    RewriteRule ^marketplaceviewproduct(?:\.php)?$ /%1marketplace/product/%2? [R=301,L,NE]
-
     # Serve existing files/directories as-is (assets, uploads, etc.)
     # Skip admin/vendor dirs so they never directory-list/403
     RewriteCond %{REQUEST_URI} !/(admin|vendor)/?$ [NC]

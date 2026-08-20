@@ -1243,13 +1243,27 @@ $revenue = $total_revenue;
                 }
                 if ($dashStoreUrl !== ''):
                 ?>
-                <div class="animate-fade-in-up" style="margin-bottom:1.25rem;padding:1rem 1.25rem;border:1px solid var(--border-primary);border-radius:12px;background:var(--bg-secondary);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.75rem;">
+                <div class="animate-fade-in-up" id="my-store-url" style="margin-bottom:1.25rem;padding:1rem 1.25rem;border:1px solid var(--border-primary);border-radius:12px;background:var(--bg-secondary);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.75rem;">
                     <div>
-                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.25rem;">Your Store URL</div>
-                        <a href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;"><?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?></a>
+                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.25rem;">My Store URL</div>
+                        <a id="dashStoreUrlLink" href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;"><?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?></a>
                     </div>
-                    <a href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Visit Store</a>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+                        <button type="button" class="btn btn-outline btn-sm" id="dashCopyStoreUrl">Copy URL</button>
+                        <a href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Open Store</a>
+                        <a href="settings.php#my-store-url" class="btn btn-ghost btn-sm">Edit Store URL</a>
+                    </div>
                 </div>
+                <script>
+                (function(){
+                    var btn = document.getElementById('dashCopyStoreUrl');
+                    var link = document.getElementById('dashStoreUrlLink');
+                    if (btn && link) btn.addEventListener('click', async function(){
+                        try { await navigator.clipboard.writeText(link.href); btn.textContent='Copied!'; setTimeout(function(){btn.textContent='Copy URL';},1500); }
+                        catch(e){ prompt('Copy this store URL:', link.href); }
+                    });
+                })();
+                </script>
                 <?php endif; ?>
                 <div class="quick-actions">
                     <a href="products.php" class="quick-action-card animate-fade-in-up delay-100"><div class="quick-action-icon" style="background:var(--primary-light);color:var(--primary);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Add Product</div><div class="quick-action-desc">Create new product</div></div></a>

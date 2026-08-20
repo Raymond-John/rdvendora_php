@@ -261,6 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $theme = $_POST['theme'] ?? $store['theme'];
             $logoPath = $store['logo_path'];
             $heroPath = $store['hero_background'];
+            $newSlug = isset($_POST['store_slug']) ? strtolower(trim((string) $_POST['store_slug'])) : (string) ($store['store_slug'] ?? '');
             
             if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
                 $newLogo = uploadLogo($_FILES['logo'], $user_id);
@@ -270,51 +271,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newHero = uploadHeroBackground($_FILES['hero_background'], $user_id);
                 if ($newHero) $heroPath = $newHero;
             }
-            
-            $stmt = $conn->prepare("UPDATE stores SET 
-                store_name=?, description=?, currency=?, language=?, 
-                brand_color=?, nav_color=?, body_bg_color=?, footer_bg_color=?,
-                card_bg_color=?, card_border_color=?, button_bg_color=?, 
-                button_text_color=?, div_bg_color=?, div_border_color=?, 
-                theme=?, logo_path=?, hero_background=? 
-                WHERE user_id = ?");
-            
-            $stmt->bind_param("sssssssssssssssssi", 
-                $store_name, $description, $currency, $language, 
-                $brand_color, $nav_color, $body_bg_color, $footer_bg_color,
-                $card_bg_color, $card_border_color, $button_bg_color, 
-                $button_text_color, $div_bg_color, $div_border_color, 
-                $theme, $logoPath, $heroPath, $user_id
-            );
-            
-            if ($stmt->execute()) {
-                $message = "Store settings updated!";
-                $messageType = "success";
-                
-                // Update the store array with new values
-                $store['store_name'] = $store_name;
-                $store['description'] = $description;
-                $store['currency'] = $currency;
-                $store['language'] = $language;
-                $store['brand_color'] = $brand_color;
-                $store['nav_color'] = $nav_color;
-                $store['body_bg_color'] = $body_bg_color;
-                $store['footer_bg_color'] = $footer_bg_color;
-                $store['card_bg_color'] = $card_bg_color;
-                $store['card_border_color'] = $card_border_color;
-                $store['button_bg_color'] = $button_bg_color;
-                $store['button_text_color'] = $button_text_color;
-                $store['div_bg_color'] = $div_bg_color;
-                $store['div_border_color'] = $div_border_color;
-                $store['theme'] = $theme;
-                $store['logo_path'] = $logoPath;
-                $store['hero_background'] = $heroPath;
-                $storeName = $store_name;
+
+            $slugCheck = rdv_store_slug_availability($conn, $newSlug, (int) ($store['id'] ?? 0));
+            if (!$slugCheck['ok']) {
+                $message = $slugCheck['message'];
+                $messageType = 'error';
             } else {
-                $message = "Failed to update store: " . $stmt->error;
-                $messageType = "error";
+                $newSlug = $slugCheck['slug'];
+                $stmt = $conn->prepare("UPDATE stores SET 
+                    store_name=?, store_slug=?, description=?, currency=?, language=?, 
+                    brand_color=?, nav_color=?, body_bg_color=?, footer_bg_color=?,
+                    card_bg_color=?, card_border_color=?, button_bg_color=?, 
+                    button_text_color=?, div_bg_color=?, div_border_color=?, 
+                    theme=?, logo_path=?, hero_background=? 
+                    WHERE user_id = ?");
+                
+                $stmt->bind_param("ssssssssssssssssssi", 
+                    $store_name, $newSlug, $description, $currency, $language, 
+                    $brand_color, $nav_color, $body_bg_color, $footer_bg_color,
+                    $card_bg_color, $card_border_color, $button_bg_color, 
+                    $button_text_color, $div_bg_color, $div_border_color, 
+                    $theme, $logoPath, $heroPath, $user_id
+                );
+                
+                if ($stmt->execute()) {
+                    $message = "Store settings updated!";
+                    $messageType = "success";
+                    
+                    $store['store_name'] = $store_name;
+                    $store['store_slug'] = $newSlug;
+                    $store['description'] = $description;
+                    $store['currency'] = $currency;
+                    $store['language'] = $language;
+                    $store['brand_color'] = $brand_color;
+                    $store['nav_color'] = $nav_color;
+                    $store['body_bg_color'] = $body_bg_color;
+                    $store['footer_bg_color'] = $footer_bg_color;
+                    $store['card_bg_color'] = $card_bg_color;
+                    $store['card_border_color'] = $card_border_color;
+                    $store['button_bg_color'] = $button_bg_color;
+                    $store['button_text_color'] = $button_text_color;
+                    $store['div_bg_color'] = $div_bg_color;
+                    $store['div_border_color'] = $div_border_color;
+                    $store['theme'] = $theme;
+                    $store['logo_path'] = $logoPath;
+                    $store['hero_background'] = $heroPath;
+                    $storeName = $store_name;
+                    $_SESSION['store_slug'] = $newSlug;
+                    $_SESSION['store_name'] = $store_name;
+                } else {
+                    $message = "Failed to update store. Please try again.";
+                    $messageType = "error";
+                }
+                $stmt->close();
             }
-            $stmt->close();
         }
         
         // Color & Appearance updates – only for paid users
@@ -1181,14 +1191,29 @@ $conn->close();
                             </div>
                             <?php
                             $settingsStoreUrl = rdv_store_url($store);
+                            $settingsSlug = (string) ($store['store_slug'] ?? '');
                             ?>
-                            <div class="form-group">
-                                <label class="form-label">Store URL</label>
-                                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;">
-                                    <a href="<?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;"><?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?></a>
-                                    <a href="<?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Visit Store</a>
+                            <div class="form-group" id="my-store-url">
+                                <label class="form-label">My Store URL</label>
+                                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+                                    <a id="storePublicUrlLink" href="<?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;"><?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?></a>
                                 </div>
-                                <p style="font-size:0.8125rem;color:var(--text-muted);margin-top:0.5rem;">Your public address uses the slug <strong><?= htmlspecialchars((string) ($store['store_slug'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong>. Changing the store name does not change this URL.</p>
+                                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+                                    <button type="button" class="btn btn-outline btn-sm" id="copyStoreUrlBtn">Copy URL</button>
+                                    <a href="<?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-primary btn-sm" id="openStoreUrlBtn">Open Store</a>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="editStoreSlugBtn" <?= (!$hasSubscription) ? 'disabled' : '' ?>>Edit Store URL</button>
+                                </div>
+                                <div id="storeSlugEditor" style="display:none;margin-top:0.5rem;">
+                                    <label class="form-label" for="storeSlugInput">Store URL slug</label>
+                                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.35rem;">
+                                        <span style="color:var(--text-muted);font-size:0.875rem;"><?= htmlspecialchars(rtrim((string)(defined('APP_URL')?APP_URL:'https://rdvendora.com'), '/') . '/', ENT_QUOTES, 'UTF-8') ?></span>
+                                        <input type="text" name="store_slug" id="storeSlugInput" class="form-input" value="<?= htmlspecialchars($settingsSlug, ENT_QUOTES, 'UTF-8') ?>" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" autocomplete="off" style="max-width:280px;" <?= (!$hasSubscription) ? 'disabled' : '' ?>>
+                                    </div>
+                                    <p id="storeSlugStatus" style="font-size:0.8125rem;margin-top:0.5rem;color:var(--text-muted);">Only letters, numbers and hyphens are allowed.</p>
+                                </div>
+                                <?php if (!$hasSubscription): ?>
+                                <input type="hidden" name="store_slug" value="<?= htmlspecialchars($settingsSlug, ENT_QUOTES, 'UTF-8') ?>">
+                                <?php endif; ?>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Description</label>
@@ -1872,6 +1897,60 @@ $conn->close();
             if (userDD && !userDD.contains(e.target)) userDD.classList.remove('open');
             else if (userDD && e.target.closest('.dropdown-trigger')) userDD.classList.toggle('open');
         });
+
+        (function initStoreUrlTools() {
+            const copyBtn = document.getElementById('copyStoreUrlBtn');
+            const editBtn = document.getElementById('editStoreSlugBtn');
+            const editor = document.getElementById('storeSlugEditor');
+            const input = document.getElementById('storeSlugInput');
+            const status = document.getElementById('storeSlugStatus');
+            const link = document.getElementById('storePublicUrlLink');
+            const openBtn = document.getElementById('openStoreUrlBtn');
+            let timer = null;
+            if (copyBtn && link) {
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(link.href);
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyBtn.textContent = 'Copy URL'; }, 1500);
+                    } catch (e) {
+                        prompt('Copy this store URL:', link.href);
+                    }
+                });
+            }
+            if (editBtn && editor) {
+                editBtn.addEventListener('click', () => {
+                    editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+                    if (editor.style.display === 'block' && input) input.focus();
+                });
+            }
+            if (input && status) {
+                const check = () => {
+                    const slug = input.value.trim().toLowerCase();
+                    status.style.color = 'var(--text-muted)';
+                    status.textContent = 'Checking…';
+                    fetch('check-store-slug.php?slug=' + encodeURIComponent(slug), { credentials: 'same-origin' })
+                        .then(r => r.json())
+                        .then(data => {
+                            status.textContent = data.message || '';
+                            status.style.color = data.ok ? '#059669' : '#dc2626';
+                            if (data.ok && data.url && link) {
+                                link.href = data.url;
+                                link.textContent = data.url;
+                                if (openBtn) openBtn.href = data.url;
+                            }
+                        })
+                        .catch(() => {
+                            status.textContent = 'Could not validate store URL';
+                            status.style.color = '#dc2626';
+                        });
+                };
+                input.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(check, 350);
+                });
+            }
+        })();
     </script>
 </body>
 </html>

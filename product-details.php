@@ -10,6 +10,7 @@ if (!$conn) die('Database connection failed.');
 $resolved = rdv_resolve_public_store($conn, true);
 $store = $resolved['store'];
 $onSubdomain = !empty($resolved['on_subdomain']);
+$onPath = !empty($resolved['on_path']);
 $productId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if (!$store && !empty($_GET['store']) && !empty($_SESSION['user_id'])) {
@@ -20,18 +21,17 @@ if (!$store && !empty($_GET['store']) && !empty($_SESSION['user_id'])) {
 }
 
 if (!$store) {
-    rdv_store_not_found_page();
+    rdv_store_not_found_page('Sorry, we couldn\'t find a store with this address.');
 }
 
 $storeId = (int) $store['id'];
 $storeHome = rdv_store_url($store);
 
-// Redirect legacy product URLs on main domain to store subdomain product path
-if (!$onSubdomain && rdv_store_subdomains_enabled() && $productId > 0) {
+// Redirect legacy product-details.php?id=&store= → /{slug}/product/{id}-{name}
+if (!$onPath && !$onSubdomain && rdv_store_url_mode() !== 'query' && $productId > 0) {
     $status = strtolower((string) ($store['status'] ?? ''));
     $active = (int) ($store['active'] ?? 0);
     if ($status === 'active' && $active === 1) {
-        // Load name for pretty path after we fetch product — redirect after fetch below
         $rdvLegacyProductRedirect = true;
     }
 }

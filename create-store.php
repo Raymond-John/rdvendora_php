@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="store-preview">
                         <h4>Your Store URL Preview</h4>
                         <div class="subdomain-display">
-                            <span class="name" id="subdomainName">yourstore</span><span class="domain">.<?= htmlspecialchars(rdv_store_base_domain(), ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="name" id="subdomainName">yourstore</span><span class="domain">.<?= htmlspecialchars(parse_url(rdv_app_base_url(), PHP_URL_HOST) ?: 'rdvendora.com', ENT_QUOTES, 'UTF-8') ?> → path preview below</span>
                         </div>
                     </div>
                 </div>

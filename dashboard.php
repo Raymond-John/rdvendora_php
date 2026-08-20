@@ -1073,7 +1073,7 @@ $revenue = $total_revenue;
                 <span class="sidebar-link-text">Customers</span>
             </a>
             <div class="sidebar-section-title">Store</div>
-            <a href="storefront.php" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>">
+            <a href="<?= htmlspecialchars((!empty($_SESSION['store_slug']) ? rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']]) : 'storefront.php'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>"<?= (!empty($_SESSION['store_slug']) && !($isSuspended || $storeRestricted)) ? ' target="_blank" rel="noopener"' : '' ?>>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 <span class="sidebar-link-text">Storefront</span>
             </a>
@@ -1230,10 +1230,31 @@ $revenue = $total_revenue;
             <?php if (!$storeRestricted): ?>
                 <!-- Full dashboard content -->
                 <div class="page-header animate-fade-in-up"><h1 class="page-title">Dashboard</h1><p class="page-subtitle">Welcome back! Here's what's happening with your store.</p></div>
+                <?php
+                $dashStoreUrl = '';
+                if (!empty($_SESSION['store_slug'])) {
+                    $dashStoreUrl = rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']]);
+                } elseif (!empty($_SESSION['store_id'])) {
+                    $dashRow = rdv_fetch_store_by_id($conn, (int) $_SESSION['store_id'], false);
+                    if ($dashRow) {
+                        $dashStoreUrl = rdv_store_url($dashRow);
+                        $_SESSION['store_slug'] = $dashRow['store_slug'] ?? '';
+                    }
+                }
+                if ($dashStoreUrl !== ''):
+                ?>
+                <div class="animate-fade-in-up" style="margin-bottom:1.25rem;padding:1rem 1.25rem;border:1px solid var(--border-primary);border-radius:12px;background:var(--bg-secondary);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.75rem;">
+                    <div>
+                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.25rem;">Your Store URL</div>
+                        <a href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;"><?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?></a>
+                    </div>
+                    <a href="<?= htmlspecialchars($dashStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Visit Store</a>
+                </div>
+                <?php endif; ?>
                 <div class="quick-actions">
                     <a href="products.php" class="quick-action-card animate-fade-in-up delay-100"><div class="quick-action-icon" style="background:var(--primary-light);color:var(--primary);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Add Product</div><div class="quick-action-desc">Create new product</div></div></a>
                     <div class="quick-action-card animate-fade-in-up delay-200" onclick="openInviteModal()"><div class="quick-action-icon" style="background:var(--success-light);color:var(--success-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Invite Team</div><div class="quick-action-desc">Add staff members</div></div></div>
-                    <a href="storefront.php" class="quick-action-card animate-fade-in-up delay-300"><div class="quick-action-icon" style="background:var(--warning-light);color:var(--warning-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="quick-action-info"><div class="quick-action-title">View Store</div><div class="quick-action-desc">See your storefront</div></div></a>
+                    <a href="<?= htmlspecialchars($dashStoreUrl !== '' ? $dashStoreUrl : 'storefront.php', ENT_QUOTES, 'UTF-8') ?>" class="quick-action-card animate-fade-in-up delay-300"<?= $dashStoreUrl !== '' ? ' target="_blank" rel="noopener"' : '' ?>><div class="quick-action-icon" style="background:var(--warning-light);color:var(--warning-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="quick-action-info"><div class="quick-action-title">View Store</div><div class="quick-action-desc">See your storefront</div></div></a>
                     <div class="quick-action-card animate-fade-in-up delay-400" onclick="showToast('info','Coming Soon','Reports feature will be available soon.')"><div class="quick-action-icon" style="background:var(--info-light);color:var(--info-dark);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="quick-action-info"><div class="quick-action-title">Reports</div><div class="quick-action-desc">View analytics</div></div></div>
                 </div>
 

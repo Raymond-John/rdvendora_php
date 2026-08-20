@@ -24,9 +24,13 @@ if (!$store) {
 
 $storeId = (int) $store['id'];
 
-// Legacy main-domain links → permanent redirect to subdomain (production)
-if (!$onSubdomain && ($resolved['via'] === 'id' || $resolved['via'] === 'slug') && rdv_store_subdomains_enabled()) {
-    rdv_redirect_legacy_storefront($store);
+// Legacy / dashboard links on main domain → store subdomain when enabled
+if (!$onSubdomain && rdv_store_subdomains_enabled() && in_array($resolved['via'], ['id', 'slug', 'session', 'owner_preview'], true)) {
+    $status = strtolower((string) ($store['status'] ?? ''));
+    $active = (int) ($store['active'] ?? 0);
+    if ($status === 'active' && $active === 1 && rdv_is_valid_store_slug($store['store_slug'] ?? '')) {
+        rdv_redirect_legacy_storefront($store);
+    }
 }
 
 $storeCanonical = rdv_store_url($store);
@@ -166,6 +170,10 @@ $categoryIcons = [
 
 // Helper to build filter URL keeping current search
 function filterUrl($cat, $storeId, $search) {
+    global $store;
+    if (function_exists('rdv_store_filter_url') && is_array($store)) {
+        return rdv_store_filter_url($store, $cat, $search);
+    }
     $url = "?store=$storeId&cat=" . urlencode($cat);
     if (!empty($search)) $url .= "&q=" . urlencode($search);
     return $url;
@@ -178,6 +186,12 @@ function filterUrl($cat, $storeId, $search) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <?php require __DIR__ . '/includes/adsense_head.php'; ?>
     <title><?= htmlspecialchars($store['store_name']) ?> – Official Store</title>
+    <link rel="canonical" href="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($store['store_name'] . ' – Official Store', ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="<?= htmlspecialchars($store['store_name'] . ' – Official Store', ENT_QUOTES, 'UTF-8') ?>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* ========== DYNAMIC STYLES ========== */
@@ -375,7 +389,7 @@ function filterUrl($cat, $storeId, $search) {
 <nav class="navbar">
     <div class="nav-container">
         <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
-        <a href="?store=<?= $store['id'] ?>" class="logo">
+        <a href="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>" class="logo">
             <?php if (!empty($store['logo_path'])): ?>
                 <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?> logo">
             <?php else: ?>
@@ -384,8 +398,13 @@ function filterUrl($cat, $storeId, $search) {
             <h4><?= htmlspecialchars($store['store_name']) ?></h4>
         </a>
         <div class="search-container">
-            <form class="search-form" method="get" action="">
-                <input type="hidden" name="store" value="<?= $store['id'] ?>">
+            <form class="search-form" method="get" action="<?= htmlspecialchars($onSubdomain ? '/' : 'storefront.php', ENT_QUOTES, 'UTF-8') ?>">
+                <?php if (!$onSubdomain): ?>
+                <input type="hidden" name="store" value="<?= (int) $store['id'] ?>">
+                <?php endif; ?>
+                <?php if ($currentCategory !== 'all'): ?>
+                <input type="hidden" name="cat" value="<?= htmlspecialchars($currentCategory, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
                 <input class="search-input" type="text" name="q" placeholder="Search products..." value="<?= htmlspecialchars($search) ?>">
                 <button class="search-btn" type="submit">🔍</button>
             </form>
@@ -482,7 +501,7 @@ function filterUrl($cat, $storeId, $search) {
                     $rating = 4 + round(rand(0, 10) / 10, 1);
                 ?>
                     <div class="product-card" data-id="<?= $product['id'] ?>" data-name="<?= htmlspecialchars($product['name']) ?>" data-price="<?= $product['price'] ?>" data-image="<?= htmlspecialchars($product['image'] ?? 'https://placehold.co/400x400') ?>">
-                        <a href="product-details.php?id=<?= $product['id'] ?>&store=<?= $store['id'] ?>">
+                        <a href="<?= htmlspecialchars(rdv_store_product_url($store, $product['id'], $product['name']), ENT_QUOTES, 'UTF-8') ?>">
                             <div class="product-image">
                                 <div class="product-badges">
                                     <span class="badge badge-stock">In Stock</span>
@@ -495,7 +514,7 @@ function filterUrl($cat, $storeId, $search) {
                         </a>
                         <div class="product-info">
                             <div class="product-brand"><?= htmlspecialchars($product['category']) ?></div>
-                            <a href="product-details.php?id=<?= $product['id'] ?>&store=<?= $store['id'] ?>">
+                            <a href="<?= htmlspecialchars(rdv_store_product_url($store, $product['id'], $product['name']), ENT_QUOTES, 'UTF-8') ?>">
                                 <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
                             </a>
                             <div class="product-specs">
@@ -534,9 +553,9 @@ function filterUrl($cat, $storeId, $search) {
         <div>
             <h4>Quick Links</h4>
             <ul class="footer-links">
-                <li><a href="?store=<?= $store['id'] ?>">Home</a></li>
-                <li><a href="<?= filterUrl('all', $store['id'], '') ?>">All Products</a></li>
-                <li><a href="marketplace.php">← Back to Marketplace</a></li>
+                <li><a href="<?= htmlspecialchars($storeCanonical, ENT_QUOTES, 'UTF-8') ?>">Home</a></li>
+                <li><a href="<?= htmlspecialchars(rdv_store_filter_url($store, 'all', ''), ENT_QUOTES, 'UTF-8') ?>">All Products</a></li>
+                <li><a href="<?= htmlspecialchars(rtrim(APP_URL, '/') . '/marketplace.php', ENT_QUOTES, 'UTF-8') ?>">← Back to Marketplace</a></li>
             </ul>
         </div>
         <div>

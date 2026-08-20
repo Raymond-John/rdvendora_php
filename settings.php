@@ -1062,7 +1062,7 @@ $conn->close();
                 <span class="sidebar-link-text">Customers</span>
             </a>
             <div class="sidebar-section-title">Store</div>
-            <a href="storefront.php?store=<?= $user_id ?>" class="sidebar-link">
+            <a href="<?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link" target="_blank" rel="noopener">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                     <polyline points="9 22 9 12 15 12 15 22" />
@@ -1178,6 +1178,17 @@ $conn->close();
                             <div class="form-group">
                                 <label class="form-label">Store Name</label>
                                 <input type="text" name="store_name" class="form-input" value="<?= htmlspecialchars($store['store_name'] ?? '') ?>" required <?= (!$hasSubscription) ? 'disabled' : '' ?>>
+                            </div>
+                            <?php
+                            $settingsStoreUrl = rdv_store_url($store);
+                            ?>
+                            <div class="form-group">
+                                <label class="form-label">Store URL</label>
+                                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;">
+                                    <a href="<?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;word-break:break-all;"><?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?></a>
+                                    <a href="<?= htmlspecialchars($settingsStoreUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Visit Store</a>
+                                </div>
+                                <p style="font-size:0.8125rem;color:var(--text-muted);margin-top:0.5rem;">Your public address uses the slug <strong><?= htmlspecialchars((string) ($store['store_slug'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong>. Changing the store name does not change this URL.</p>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Description</label>

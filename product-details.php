@@ -5,31 +5,33 @@ require_once 'includes/connection.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// ----- Get store by ID (stores.id) and product ID -----
-$storeId = isset($_GET['store']) ? (int)$_GET['store'] : 0;
-$productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$resolved = rdv_resolve_public_store($conn, true);
+$store = $resolved['store'];
+$onSubdomain = !empty($resolved['on_subdomain']);
+$productId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-// If store not provided but user logged in, attempt to get their own store
-if ($storeId == 0 && isset($_SESSION['user_id'])) {
-    $stmt = $conn->prepare("SELECT id FROM stores WHERE user_id = ?");
-    $stmt->bind_param("i", $_SESSION['user_id']);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($row = $res->fetch_assoc()) $storeId = $row['id'];
-    $stmt->close();
-}
-
-$store = null;
-if ($storeId > 0) {
-    $stmt = $conn->prepare("SELECT * FROM stores WHERE id = ?");
-    $stmt->bind_param("i", $storeId);
-    $stmt->execute();
-    $store = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+if (!$store && !empty($_GET['store']) && !empty($_SESSION['user_id'])) {
+    $preview = rdv_fetch_store_by_id($conn, (int) $_GET['store'], false);
+    if ($preview && (int) $preview['user_id'] === (int) $_SESSION['user_id']) {
+        $store = $preview;
+    }
 }
 
 if (!$store) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Store Not Found</h1><p>The store you are looking for does not exist.</p><a href="marketplace.php">← Back to Marketplace</a></div>');
+    rdv_store_not_found_page();
+}
+
+$storeId = (int) $store['id'];
+$storeHome = rdv_store_url($store);
+
+// Redirect legacy product URLs on main domain to store subdomain product path
+if (!$onSubdomain && rdv_store_subdomains_enabled() && $productId > 0) {
+    $status = strtolower((string) ($store['status'] ?? ''));
+    $active = (int) ($store['active'] ?? 0);
+    if ($status === 'active' && $active === 1) {
+        // Load name for pretty path after we fetch product — redirect after fetch below
+        $rdvLegacyProductRedirect = true;
+    }
 }
 
 // ----- Ensure missing colour columns exist (run once) -----
@@ -79,8 +81,18 @@ if ($productId > 0) {
 }
 
 if (!$product) {
-    die('<div style="text-align:center; padding:3rem;"><h1>Product Not Found</h1><p>The product you are looking for does not exist in this store.</p><a href="storefront.php?store=' . $store['id'] . '">Back to Store</a></div>');
+    die('<div style="text-align:center; padding:3rem;"><h1>Product Not Found</h1><p>The product you are looking for does not exist in this store.</p><a href="' . htmlspecialchars($storeHome, ENT_QUOTES, 'UTF-8') . '">Back to Store</a></div>');
 }
+
+if (!empty($rdvLegacyProductRedirect)) {
+    $target = rdv_store_product_url($store, $product['id'], $product['name']);
+    if (!headers_sent()) {
+        header('Location: ' . $target, true, 301);
+        exit;
+    }
+}
+
+$productCanonical = rdv_store_product_url($store, $product['id'], $product['name']);
 
 // ----- Dynamic colors -----
 $brandColor       = $store['brand_color']       ?? '#1a56db';
@@ -131,6 +143,10 @@ $reviewCount = rand(10, 200);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?= htmlspecialchars($product['name']) ?> - <?= htmlspecialchars($store['store_name']) ?></title>
+    <link rel="canonical" href="<?= htmlspecialchars($productCanonical, ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($productCanonical, ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($product['name'] . ' - ' . $store['store_name'], ENT_QUOTES, 'UTF-8') ?>">
+    <meta property="og:type" content="product">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -222,7 +238,7 @@ $reviewCount = rand(10, 200);
 <body>
 <nav class="navbar">
     <div class="nav-container">
-        <a href="storefront.php?store=<?= $store['id'] ?>" class="logo">
+        <a href="<?= htmlspecialchars($storeHome, ENT_QUOTES, 'UTF-8') ?>" class="logo">
             <?php if (!empty($store['logo_path'])): ?>
                 <img src="<?= htmlspecialchars($store['logo_path']) ?>" alt="<?= htmlspecialchars($store['store_name']) ?> logo">
             <?php else: ?>
@@ -240,9 +256,9 @@ $reviewCount = rand(10, 200);
 
 <div class="container">
     <div class="breadcrumb">
-        <a href="storefront.php?store=<?= $store['id'] ?>">Store</a>
+        <a href="<?= htmlspecialchars($storeHome, ENT_QUOTES, 'UTF-8') ?>">Store</a>
         <span class="breadcrumb-separator">/</span>
-        <a href="storefront.php?store=<?= $store['id'] ?>&cat=<?= urlencode($product['category']) ?>"><?= htmlspecialchars($product['category']) ?></a>
+        <a href="<?= htmlspecialchars(rdv_store_category_url($store, $product['category']), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($product['category']) ?></a>
         <span class="breadcrumb-separator">/</span>
         <span><?= htmlspecialchars($product['name']) ?></span>
     </div>

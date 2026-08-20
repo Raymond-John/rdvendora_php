@@ -718,7 +718,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                                     <span class="badge badge-expired">⚠️ Expired</span>
                                 <?php endif; ?>
                             </h3>
-                            <div class="store-slug"><?= htmlspecialchars($store['store_slug'] ?? 'store') ?>.RD Vendora.com</div>
+                            <div class="store-slug"><a href="<?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener"><?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?></a></div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -733,6 +733,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                         <!-- Expired banner REMOVED as requested -->
                     </div>
                     <div class="card-actions">
+                        <a class="btn-sm btn-approve" href="<?= htmlspecialchars(rdv_store_url($store), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener">Visit Store</a>
                         <?php if ($status === 'pending'): ?>
                             <form method="POST" style="display: inline;"><input type="hidden" name="store_id" value="<?= $store['id'] ?>"><input type="hidden" name="action" value="approve"><button type="submit" class="btn-sm btn-approve" onclick="return confirm('Approve this store?')">✓ Approve</button></form>
                         <?php elseif ($status === 'active'): ?>
@@ -853,6 +854,7 @@ $adminFooterScripts = <<<JS
             '<div><strong>Store Name:</strong> ' + escapeHtml(store.store_name) + '</div>' +
             '<div><strong>Owner:</strong> ' + escapeHtml(store.owner_name || 'Unknown') + ' (' + escapeHtml(store.owner_email || '') + ')</div>' +
             '<div><strong>Subdomain:</strong> ' + escapeHtml(store.store_slug || 'store') + '.rdvendora.com</div>' +
+            '<div><strong>Store URL:</strong> <a href="https://' + escapeHtml(store.store_slug || 'store') + '.rdvendora.com" target="_blank" rel="noopener">https://' + escapeHtml(store.store_slug || 'store') + '.rdvendora.com</a></div>' +
             '<div><strong>Status:</strong> ' + statusBadge + '</div>' +
             '<div><strong>Subscription Plan:</strong> ' + (store.subscription_plan ? escapeHtml(store.subscription_plan) : 'No active plan') + '</div>' +
             '<div><strong>Expiry Date:</strong> ' + (store.subscription_end_date ? new Date(store.subscription_end_date).toLocaleDateString() : '—') + '</div>' +

@@ -35,27 +35,6 @@ if ($existingStore) {
 
 $error = '';
 
-function slugify($string) {
-    $string = strtolower($string);
-    $string = preg_replace('/[^a-z0-9-]/', '-', $string);
-    $string = preg_replace('/-+/', '-', $string);
-    return trim($string, '-');
-}
-
-function getUniqueStoreSlug($conn, $base_slug) {
-    $slug = $base_slug;
-    $counter = 1;
-    while (true) {
-        $stmt = $conn->prepare("SELECT id FROM stores WHERE store_slug = ?");
-        $stmt->bind_param("s", $slug);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows === 0) return $slug;
-        $slug = $base_slug . '-' . $counter;
-        $counter++;
-    }
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $store_name = trim($_POST['store_name'] ?? '');
     $category = trim($_POST['category'] ?? ''); // not stored here, but kept for possible later use
@@ -65,11 +44,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (strlen($store_name) < 2 || strlen($store_name) > 100) {
         $error = 'Store name must be between 2 and 100 characters.';
     } else {
-        $base_slug = slugify($store_name);
-        $store_slug = getUniqueStoreSlug($conn, $base_slug);
+        $base_slug = rdv_slugify_store_name($store_name);
+        if ($base_slug === '' || rdv_is_reserved_store_slug($base_slug)) {
+            // unique helper will prefix away from reserved names
+        }
+        $store_slug = rdv_unique_store_slug($conn, $base_slug);
+        if (!rdv_is_valid_store_slug($store_slug)) {
+            $error = 'Could not generate a valid store URL. Please try a different store name.';
+        }
 
         $logo_path = null;
-        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        if ($error === '' && isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
             $upload_dir = 'uploads/logos/';
             if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
             $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
@@ -102,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: dashboard.php');
                 exit;
             } else {
-                $error = 'Database error: ' . $stmt->error;
+                $error = 'Could not create your store. Please try again.';
             }
             $stmt->close();
         }
@@ -196,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="store-preview">
                         <h4>Your Store URL Preview</h4>
                         <div class="subdomain-display">
-                            <span class="name" id="subdomainName">yourstore</span><span class="domain">.RD Vendora.com</span>
+                            <span class="name" id="subdomainName">yourstore</span><span class="domain">.<?= htmlspecialchars(rdv_store_base_domain(), ENT_QUOTES, 'UTF-8') ?></span>
                         </div>
                     </div>
                 </div>
@@ -254,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h4>Store Summary</h4>
                         <div style="display:flex;flex-direction:column;gap:0.75rem">
                             <div><span style="color:var(--text-muted)">Store Name</span> <strong id="summaryName">-</strong></div>
-                            <div><span style="color:var(--text-muted)">URL</span> <strong id="summaryUrl">yourstore.RD Vendora.com</strong></div>
+                            <div><span style="color:var(--text-muted)">URL</span> <strong id="summaryUrl">yourstore.<?= htmlspecialchars(rdv_store_base_domain(), ENT_QUOTES, 'UTF-8') ?></strong></div>
                             <div><span style="color:var(--text-muted)">Category</span> <strong id="summaryCategory">-</strong></div>
                         </div>
                     </div>
@@ -291,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!sub) sub = 'yourstore';
             document.getElementById('subdomainName').innerText = sub;
             document.getElementById('summaryName').innerText = name || '-';
-            document.getElementById('summaryUrl').innerText = sub + '.RD Vendora.com';
+            document.getElementById('summaryUrl').innerText = sub + '.<?= htmlspecialchars(rdv_store_base_domain(), ENT_QUOTES, 'UTF-8') ?>';
         }
 
         function selectCategory(el) {

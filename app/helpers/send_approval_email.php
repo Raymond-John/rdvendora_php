@@ -40,20 +40,31 @@ function sendStoreApprovalEmail($user_id, $store_name = '') {
     $email = $user['email'];
     $name  = $user['fullname'] ?: 'Store Owner';
 
-    // If store_name not provided, fetch it
-    if (empty($store_name)) {
-        $stmt = $conn->prepare("SELECT store_name FROM stores WHERE user_id = ? ORDER BY id DESC LIMIT 1");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $store = $stmt->get_result()->fetch_assoc();
-        $store_name = $store['store_name'] ?? 'your store';
-        $stmt->close();
+    // Fetch store row for URL + name
+    $stmt = $conn->prepare('SELECT id, store_slug, store_name FROM stores WHERE user_id = ? ORDER BY id DESC LIMIT 1');
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $storeRow = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    if ($storeRow) {
+        if ($store_name === '') {
+            $store_name = $storeRow['store_name'] ?? 'your store';
+        }
+    } else {
+        $store_name = $store_name !== '' ? $store_name : 'your store';
     }
 
     // ---------- Build URLs ----------
-    $base_url = (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'];
-    $store_url = $base_url . "/storefront.php";
-    $login_url = $base_url . "/login.php";
+    $base_url = rtrim((string) (defined('APP_URL') ? APP_URL : ''), '/');
+    if ($base_url === '') {
+        $base_url = 'https://rdvendora.com';
+    }
+    if ($storeRow && function_exists('rdv_store_url')) {
+        $store_url = rdv_store_url($storeRow);
+    } else {
+        $store_url = $base_url . '/storefront.php';
+    }
+    $login_url = $base_url . '/login.php';
     $year = date('Y');
 
     // ---------- HTML email body with Royal Blue & Gold theme ----------

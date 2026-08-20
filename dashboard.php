@@ -52,7 +52,7 @@ $conn->query("CREATE TABLE IF NOT EXISTS team_invites (
 )");
 
 // ---------- Get the NEWEST store for this user ----------
-$stmt = $conn->prepare("SELECT id, store_name, status FROM stores WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+$stmt = $conn->prepare("SELECT id, store_name, status, store_slug FROM stores WHERE user_id = ? ORDER BY id DESC LIMIT 1");
 $stmt->bind_param("i", $_SESSION['user_id']);
 $stmt->execute();
 $storeResult = $stmt->get_result();
@@ -63,6 +63,7 @@ if ($storeResult->num_rows === 0) {
 $storeData = $storeResult->fetch_assoc();
 $_SESSION['store_id'] = $storeData['id'];
 $_SESSION['store_name'] = $storeData['store_name'];
+$_SESSION['store_slug'] = trim((string) ($storeData['store_slug'] ?? ''));
 $storeStatus = $storeData['status'];
 $stmt->close();
 
@@ -216,22 +217,30 @@ $teamMembers = [];
 $pendingInvites = [];
 if (!$storeRestricted) {
     $teamQuery = $conn->prepare("
-        SELECT u.id, u.fullname, u.email, ss.role, ss.created_at
+        SELECT u.id, u.full_name AS name, u.email, ss.role, ss.created_at
         FROM store_staff ss
         JOIN users u ON ss.user_id = u.id
         WHERE ss.store_id = ?
         ORDER BY ss.created_at DESC
     ");
-    $teamQuery->bind_param("i", $_SESSION['store_id']);
-    $teamQuery->execute();
-    $teamMembers = $teamQuery->get_result()->fetch_all(MYSQLI_ASSOC);
-    $teamQuery->close();
+    if ($teamQuery) {
+        $teamQuery->bind_param("i", $_SESSION['store_id']);
+        if ($teamQuery->execute()) {
+            $teamMembers = $teamQuery->get_result()->fetch_all(MYSQLI_ASSOC);
+        }
+        $teamQuery->close();
+    } else {
+        error_log('dashboard team query prepare failed: ' . $conn->error);
+    }
 
     $invitesQuery = $conn->prepare("SELECT id, email, role, created_at FROM team_invites WHERE store_id = ? AND status = 'pending' ORDER BY created_at DESC");
-    $invitesQuery->bind_param("i", $_SESSION['store_id']);
-    $invitesQuery->execute();
-    $pendingInvites = $invitesQuery->get_result()->fetch_all(MYSQLI_ASSOC);
-    $invitesQuery->close();
+    if ($invitesQuery) {
+        $invitesQuery->bind_param("i", $_SESSION['store_id']);
+        if ($invitesQuery->execute()) {
+            $pendingInvites = $invitesQuery->get_result()->fetch_all(MYSQLI_ASSOC);
+        }
+        $invitesQuery->close();
+    }
 }
 
 // ---------- Dashboard Metrics (only if not restricted) ----------
@@ -1073,7 +1082,7 @@ $revenue = $total_revenue;
                 <span class="sidebar-link-text">Customers</span>
             </a>
             <div class="sidebar-section-title">Store</div>
-            <a href="<?= htmlspecialchars((!empty($_SESSION['store_slug']) ? rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']]) : 'storefront'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>"<?= (!empty($_SESSION['store_slug']) && !($isSuspended || $storeRestricted)) ? ' target="_blank" rel="noopener"' : '' ?>>
+            <a href="<?= htmlspecialchars((!empty($_SESSION['store_slug']) && function_exists('rdv_store_url') ? rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']]) : 'storefront'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link <?= ($isSuspended || $storeRestricted) ? 'disabled' : '' ?>"<?= (!empty($_SESSION['store_slug']) && function_exists('rdv_store_url') && !($isSuspended || $storeRestricted)) ? ' target="_blank" rel="noopener"' : '' ?>>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 <span class="sidebar-link-text">Storefront</span>
             </a>
@@ -1232,13 +1241,15 @@ $revenue = $total_revenue;
                 <div class="page-header animate-fade-in-up"><h1 class="page-title">Dashboard</h1><p class="page-subtitle">Welcome back! Here's what's happening with your store.</p></div>
                 <?php
                 $dashStoreUrl = '';
-                if (!empty($_SESSION['store_slug'])) {
-                    $dashStoreUrl = rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']]);
-                } elseif (!empty($_SESSION['store_id'])) {
-                    $dashRow = rdv_fetch_store_by_id($conn, (int) $_SESSION['store_id'], false);
-                    if ($dashRow) {
-                        $dashStoreUrl = rdv_store_url($dashRow);
-                        $_SESSION['store_slug'] = $dashRow['store_slug'] ?? '';
+                if (function_exists('rdv_store_url')) {
+                    if (!empty($_SESSION['store_slug'])) {
+                        $dashStoreUrl = rdv_store_url(['id' => (int) ($_SESSION['store_id'] ?? 0), 'store_slug' => (string) $_SESSION['store_slug']]);
+                    } elseif (!empty($_SESSION['store_id']) && function_exists('rdv_fetch_store_by_id')) {
+                        $dashRow = rdv_fetch_store_by_id($conn, (int) $_SESSION['store_id'], false);
+                        if ($dashRow) {
+                            $dashStoreUrl = rdv_store_url($dashRow);
+                            $_SESSION['store_slug'] = $dashRow['store_slug'] ?? '';
+                        }
                     }
                 }
                 if ($dashStoreUrl !== ''):

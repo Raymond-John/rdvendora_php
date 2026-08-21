@@ -382,8 +382,10 @@ if (!function_exists('rdv_ensure_rbac_tables')) {
         } catch (Throwable $e) {
             // Index may already exist.
         }
-        $conn->query("INSERT IGNORE INTO roles (name, description) VALUES ('super_admin', 'Full system access')");
-        $conn->query("INSERT IGNORE INTO roles (name, description) VALUES ('staff', 'Limited admin access')");
+        $hasSuper = $conn->query("SELECT id FROM roles WHERE name = 'super_admin' LIMIT 1");
+        if (!$hasSuper || $hasSuper->num_rows === 0) {
+            $conn->query("INSERT IGNORE INTO roles (name, description) VALUES ('super_admin', 'Full system access')");
+        }
     }
 }
 

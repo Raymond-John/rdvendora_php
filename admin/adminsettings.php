@@ -281,8 +281,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $delStmt = $conn->prepare("DELETE FROM roles WHERE id = ?");
                 $delStmt->bind_param("i", $delId);
                 if ($delStmt->execute() && $delStmt->affected_rows > 0) {
-                    $message = "Role deleted. Admins who had it now need a new role assigned.";
-                    $messageType = "success";
+                    $next = function_exists('rdv_url')
+                        ? rdv_url('admin/adminsettings', ['notice' => 'role_deleted'])
+                        : 'adminsettings?notice=role_deleted';
+                    header('Location: ' . $next);
+                    exit;
                 } else {
                     $message = "Could not delete this role. Assign its admins another role, then try again.";
                     $messageType = "error";
@@ -445,6 +448,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
+    }
+}
+
+if ($message === '' && isset($_GET['notice'])) {
+    if ($_GET['notice'] === 'role_deleted') {
+        $message = 'Role deleted. Admins who had it now need a new role assigned.';
+        $messageType = 'success';
     }
 }
 

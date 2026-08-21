@@ -204,7 +204,14 @@ if (!function_exists('rdv_asset')) {
         $web = rdv_web_relative($path);
         $fs = rdv_fs_path($web);
         $version = is_file($fs) ? (string) filemtime($fs) : (string) time();
-        return $prefix . $web . '?v=' . rawurlencode($version);
+        // Nested public URLs such as /blog/{slug} must not resolve assets to /blog/assets/...
+        if (function_exists('rdv_url')) {
+            return rdv_url($web, ['v' => $version]);
+        }
+        if ($prefix !== '') {
+            return $prefix . $web . '?v=' . rawurlencode($version);
+        }
+        return '/' . $web . '?v=' . rawurlencode($version);
     }
 }
 

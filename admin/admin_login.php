@@ -49,6 +49,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/../includes/log_activity.php';
             logUserActivity((int) $user['id'], 'admin_login', 'admin_login.php', 'Signed in to the admin panel');
 
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+            if (strpos((string) $ip, ',') !== false) {
+                $ip = trim(explode(',', (string) $ip)[0]);
+            }
+            $_SESSION['admin_login_alert'] = [
+                'name' => (string) ($_SESSION['fullname'] ?? $email),
+                'time' => date('j F Y, g:ia'),
+                'ip' => (string) $ip,
+            ];
+            try {
+                require_once __DIR__ . '/../includes/email_functions.php';
+                if (function_exists('sendLoginNotification')) {
+                    sendLoginNotification((string) $user['email'], (string) ($_SESSION['fullname'] ?? $email), 'admin');
+                }
+            } catch (Throwable $e) {
+                error_log('Admin login alert email failed: ' . $e->getMessage());
+            }
+
             $target = getFirstAllowedPage($conn);
             if ($target) {
                 header("Location: $target");

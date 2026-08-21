@@ -168,12 +168,26 @@ function sendWelcomeEmail($email, $fullname) {
 // ============================================================
 //  LOGIN NOTIFICATION – Premium Styled
 // ============================================================
-function sendLoginNotification($email, $fullname) {
+function sendLoginNotification($email, $fullname, $context = 'account') {
     $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+    if (strpos((string) $ip, ',') !== false) {
+        $ip = trim(explode(',', (string) $ip)[0]);
+    }
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown browser';
     $time = date('Y-m-d H:i:s');
-    $reset_link = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/reset-password.php';
+    $isAdmin = ($context === 'admin');
+    $place = $isAdmin ? 'RD Vendora admin dashboard' : 'RD Vendora account';
+    if (function_exists('rdv_url')) {
+        $reset_link = rdv_url('reset-password');
+    } else {
+        $reset_link = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'rdvendora.com') . '/reset-password';
+    }
     $year = date('Y');
+    $safeName = htmlspecialchars((string) $fullname, ENT_QUOTES, 'UTF-8');
+    $safeIp = htmlspecialchars((string) $ip, ENT_QUOTES, 'UTF-8');
+    $safeAgent = htmlspecialchars((string) $userAgent, ENT_QUOTES, 'UTF-8');
+    $safeTime = htmlspecialchars($time, ENT_QUOTES, 'UTF-8');
+    $safeReset = htmlspecialchars($reset_link, ENT_QUOTES, 'UTF-8');
 
     $htmlBody = '
 <!DOCTYPE html>
@@ -207,9 +221,9 @@ function sendLoginNotification($email, $fullname) {
                                         <tr>
                                             <td style="text-align:center; padding-bottom:10px;">
                                                 <span style="font-size:48px;">🔐</span>
-                                                <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 4px 0;">Hello, ' . $fullname . '</h1>
+                                                <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:6px 0 4px 0;">Hello, ' . $safeName . '</h1>
                                                 <p style="font-size:16px; color:#64748B; margin:0; line-height:1.6;">
-                                                    We noticed a new login to your <strong style="color:#1A56DB;">RD Vendora</strong> account.
+                                                    We noticed a new login to your <strong style="color:#1A56DB;">' . htmlspecialchars($place, ENT_QUOTES, 'UTF-8') . '</strong>.
                                                 </p>
                                             </td>
                                         </tr>
@@ -220,17 +234,17 @@ function sendLoginNotification($email, $fullname) {
                                                 <table width="100%" border="0" cellpadding="0" cellspacing="0">
                                                     <tr>
                                                         <td style="padding:4px 0; font-size:15px; color:#1E293B;">
-                                                            <strong>🕒 Time:</strong> ' . $time . '
+                                                            <strong>🕒 Time:</strong> ' . $safeTime . '
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <td style="padding:4px 0; font-size:15px; color:#1E293B;">
-                                                            <strong>🌐 IP Address:</strong> ' . $ip . '
+                                                            <strong>🌐 IP Address:</strong> ' . $safeIp . '
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <td style="padding:4px 0; font-size:15px; color:#1E293B;">
-                                                            <strong>💻 Browser:</strong> ' . htmlspecialchars($userAgent) . '
+                                                            <strong>💻 Browser:</strong> ' . $safeAgent . '
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -239,7 +253,7 @@ function sendLoginNotification($email, $fullname) {
                                     </table>
                                     <p style="font-size:15px; color:#64748B; margin:0 0 12px 0; line-height:1.6;">
                                         If this was you, you can safely ignore this email.<br>
-                                        If you did not log in, please <a href="' . $reset_link . '" style="color:#1A56DB; font-weight:600; text-decoration:none;">reset your password</a> immediately and contact support.
+                                        If you did not log in, please <a href="' . $safeReset . '" style="color:#1A56DB; font-weight:600; text-decoration:none;">reset your password</a> immediately and contact support.
                                     </p>
                                     <p style="font-size:15px; color:#1A56DB; font-weight:500; margin:20px 0 0 0;">– RD Vendora Security Team</p>
                                     <!-- FOOTER -->
@@ -266,9 +280,13 @@ function sendLoginNotification($email, $fullname) {
 </body>
 </html>';
 
-    $plainText = "Hello $fullname,\n\nWe noticed a new login to your RD Vendora account.\n\nTime: $time\nIP Address: $ip\nBrowser: $userAgent\n\nIf this was you, ignore this email. If not, reset your password immediately at: $reset_link\n\n– RD Vendora Security Team";
+    $plainText = "Hello $fullname,\n\nWe noticed a new login to your $place.\n\nTime: $time\nIP Address: $ip\nBrowser: $userAgent\n\nIf this was you, ignore this email. If not, reset your password immediately at: $reset_link\n\n– RD Vendora Security Team";
 
-    return sendEmail($email, "Security Alert: New login to your RD Vendora account", $htmlBody, $plainText);
+    $subject = $isAdmin
+        ? 'Security Alert: New admin login to RD Vendora'
+        : 'Security Alert: New login to your RD Vendora account';
+
+    return sendEmail($email, $subject, $htmlBody, $plainText);
 }
 
 // ============================================================

@@ -51,6 +51,25 @@ $adminRoleLabel = htmlspecialchars($adminRoleLabel, ENT_QUOTES, 'UTF-8');
             </div>
         </div>
     </header>
+<?php
+$adminLoginAlert = $_SESSION['admin_login_alert'] ?? null;
+if (is_array($adminLoginAlert)) {
+    unset($_SESSION['admin_login_alert']);
+    $alertName = htmlspecialchars((string) ($adminLoginAlert['name'] ?? 'Admin'), ENT_QUOTES, 'UTF-8');
+    $alertTime = htmlspecialchars((string) ($adminLoginAlert['time'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $alertIp = htmlspecialchars((string) ($adminLoginAlert['ip'] ?? ''), ENT_QUOTES, 'UTF-8');
+    echo '<div class="admin-login-alert" id="adminLoginAlert" role="status">'
+        . '<div class="admin-login-alert__icon" aria-hidden="true">🔐</div>'
+        . '<div><strong>Login alert</strong>'
+        . '<p>Welcome back, ' . $alertName . '. You signed in to the admin dashboard'
+        . ($alertTime !== '' ? ' at ' . $alertTime : '')
+        . ($alertIp !== '' ? ' from ' . $alertIp : '')
+        . '. A security email was sent to your account.</p></div>'
+        . '<button type="button" class="admin-login-alert__close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>'
+        . '</div>';
+    echo '<script>setTimeout(function(){var el=document.getElementById("adminLoginAlert");if(el)el.remove();},12000);</script>';
+}
+?>
 <?php if ($adminShowHeader): ?>
     <div class="page-header">
         <h1 class="page-title"><?= htmlspecialchars($adminPageHeading ?? $adminPageTitle, ENT_QUOTES, 'UTF-8') ?></h1>

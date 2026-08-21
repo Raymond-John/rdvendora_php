@@ -29,6 +29,8 @@ if (!$post) {
 $related = rdv_blog_related($conn, $post, 3);
 $bodyHtml = rdv_blog_prepare_body($post['body']);
 $toc = rdv_blog_toc($bodyHtml);
+$hasHeroImage = trim((string) ($post['image_url'] ?? '')) !== '';
+$stepCount = preg_match_all('/class="rdv-step-title"/', $bodyHtml);
 $shareUrl = rdv_canonical_url(rdv_blog_url($post['slug']));
 $rdvPageTitle = $post['title'] . ' | RD Vendora News';
 $rdvPageDescription = rdv_blog_excerpt($post, 36);
@@ -55,7 +57,12 @@ require __DIR__ . '/includes/public_layout_start.php';
         <span aria-hidden="true">/</span>
         <span><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></span>
       </nav>
-      <a class="rdv-news-cat" href="<?= rdv_blog_h(rdv_blog_index_url(['cat' => $post['category']])) ?>"><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></a>
+      <div class="rdv-article-pills">
+        <a class="rdv-news-cat" href="<?= rdv_blog_h(rdv_blog_index_url(['cat' => $post['category']])) ?>"><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></a>
+        <span class="rdv-article-pill">Complete guide</span>
+        <span class="rdv-article-pill"><?= (int) rdv_blog_reading_minutes($post) ?> min read</span>
+        <?php if ($stepCount > 0): ?><span class="rdv-article-pill"><?= (int) $stepCount ?> steps</span><?php endif; ?>
+      </div>
       <h1><?= rdv_blog_h($post['title']) ?></h1>
       <p class="rdv-news-standfirst"><?= rdv_blog_h(rdv_blog_excerpt($post, 48)) ?></p>
       <div class="rdv-article-byline">
@@ -78,9 +85,11 @@ require __DIR__ . '/includes/public_layout_start.php';
   </header>
 
   <div class="rdv-article-inner">
-    <div class="rdv-article-hero-media">
-      <?= rdv_blog_thumb_html($post) ?>
-    </div>
+    <?php if ($hasHeroImage): ?>
+      <div class="rdv-article-hero-media">
+        <?= rdv_blog_thumb_html($post) ?>
+      </div>
+    <?php endif; ?>
 
     <div class="rdv-article-layout">
       <div class="rdv-article-main">

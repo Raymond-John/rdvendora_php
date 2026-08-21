@@ -340,8 +340,12 @@ if (!function_exists('rdv_blog_prepare_body')) {
     function rdv_blog_prepare_body($html) {
         $html = rdv_blog_sanitize_html($html);
         $used = [];
-        $out = preg_replace_callback('#<(h2|h3)>(.*?)</\1>#is', function ($m) use (&$used) {
-            $id = rdv_blog_slugify(strip_tags($m[2]));
+        $inFaq = false;
+        $html = preg_replace_callback('#<(h2|h3)>(.*?)</\1>#is', function ($m) use (&$used, &$inFaq) {
+            $tag = strtolower($m[1]);
+            $inner = $m[2];
+            $text = trim(preg_replace('/\s+/', ' ', strip_tags($inner)));
+            $id = rdv_blog_slugify($text);
             if ($id === '') {
                 $id = 'section';
             }
@@ -352,9 +356,65 @@ if (!function_exists('rdv_blog_prepare_body')) {
                 $n++;
             }
             $used[$id] = true;
-            return '<' . $m[1] . ' id="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '">' . $m[2] . '</' . $m[1] . '>';
+            $classes = [];
+            if ($tag === 'h2') {
+                $inFaq = (bool) preg_match('/frequently asked questions/i', $text);
+                if (preg_match('/^(\d+)\.\s+(.+)$/u', $text, $nm)) {
+                    $classes[] = 'rdv-step-title';
+                    $inner = '<span class="rdv-step-num">' . (int) $nm[1] . '</span><span class="rdv-step-label">' . htmlspecialchars($nm[2], ENT_QUOTES, 'UTF-8') . '</span>';
+                } elseif (preg_match('/common mistakes/i', $text)) {
+                    $classes[] = 'rdv-mistakes-title';
+                } elseif (preg_match('/how rd vendora can help/i', $text)) {
+                    $classes[] = 'rdv-help-title';
+                } elseif (preg_match('/^conclusion$/i', $text)) {
+                    $classes[] = 'rdv-conclusion-title';
+                } elseif ($inFaq) {
+                    $classes[] = 'rdv-faq-title';
+                }
+            } elseif ($inFaq) {
+                $classes[] = 'rdv-faq-q';
+            }
+            $classAttr = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
+            return '<' . $tag . ' id="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '"' . $classAttr . '>' . $inner . '</' . $tag . '>';
         }, $html);
-        return is_string($out) ? $out : $html;
+        if (!is_string($html)) {
+            return '';
+        }
+
+        $faq = preg_replace(
+            '#(<h3\b[^>]*class="rdv-faq-q"[^>]*>.*?</h3>)\s*(<p>.*?</p>)#is',
+            '<div class="rdv-faq-item">$1$2</div>',
+            $html
+        );
+        if (is_string($faq)) {
+            $html = $faq;
+        }
+
+        $chunks = preg_split('#(?=<h2\b)#i', $html, -1, PREG_SPLIT_NO_EMPTY);
+        if (!$chunks) {
+            return $html;
+        }
+        $out = '';
+        foreach ($chunks as $chunk) {
+            if (!preg_match('#^<h2\b#i', $chunk)) {
+                $out .= '<div class="rdv-guide-lead">' . $chunk . '</div>';
+                continue;
+            }
+            $mod = 'topic';
+            if (strpos($chunk, 'rdv-step-title') !== false) {
+                $mod = 'step';
+            } elseif (strpos($chunk, 'rdv-faq-title') !== false) {
+                $mod = 'faq';
+            } elseif (strpos($chunk, 'rdv-mistakes-title') !== false) {
+                $mod = 'mistakes';
+            } elseif (strpos($chunk, 'rdv-help-title') !== false) {
+                $mod = 'help';
+            } elseif (strpos($chunk, 'rdv-conclusion-title') !== false) {
+                $mod = 'end';
+            }
+            $out .= '<section class="rdv-guide-block rdv-guide-block--' . $mod . '">' . $chunk . '</section>';
+        }
+        return $out;
     }
 }
 
@@ -366,6 +426,7 @@ if (!function_exists('rdv_blog_toc')) {
         }
         foreach ($matches as $row) {
             $text = trim(preg_replace('/\s+/', ' ', strip_tags($row[2])));
+            $text = preg_replace('/^\d+\s+/', '', $text);
             if ($text === '') {
                 continue;
             }

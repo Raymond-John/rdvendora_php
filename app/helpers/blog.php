@@ -268,26 +268,110 @@ if (!function_exists('rdv_blog_unique_slug')) {
     }
 }
 
+if (!function_exists('rdv_blog_media_url')) {
+    function rdv_blog_media_url($src) {
+        $src = trim((string) $src);
+        if ($src === '') {
+            return '';
+        }
+        if (preg_match('#^(https?:)?//#i', $src) || (isset($src[0]) && $src[0] === '/')) {
+            return $src;
+        }
+        return function_exists('rdv_url') ? rdv_url($src) : $src;
+    }
+}
+
 if (!function_exists('rdv_blog_sanitize_html')) {
     function rdv_blog_sanitize_html($html) {
         $html = (string) $html;
-        $html = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $html);
-        $html = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $html);
-        $allowed = '<p><br><br/><h2><h3><h4><ul><ol><li><strong><b><em><i><a><blockquote><hr><span>';
+        if ($html === '') {
+            return '';
+        }
+        $clean = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $html);
+        if (is_string($clean)) {
+            $html = $clean;
+        }
+        $clean = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $html);
+        if (is_string($clean)) {
+            $html = $clean;
+        }
+        $allowed = '<p><br><br/><h2><h3><h4><ul><ol><li><strong><b><em><i><a><blockquote><hr><span><img><figure><figcaption><table><thead><tbody><tr><th><td><pre><code>';
         $html = strip_tags($html, $allowed);
-        $html = preg_replace_callback('/<a\s+[^>]*href\s*=\s*(["\'])(.*?)\1[^>]*>/i', static function ($m) {
+        $clean = preg_replace_callback('/<a\s+[^>]*href\s*=\s*(["\'])(.*?)\1[^>]*>/i', static function ($m) {
             $href = trim($m[2]);
             $ok = preg_match('#^(https?:)?//#i', $href)
                 || preg_match('#^mailto:#i', $href)
-                || preg_match('#^[a-z0-9][a-z0-9._/?&=#%-]*\.php#i', $href)
+                || preg_match('#^[a-z0-9][a-z0-9._/?&=#%-]*(\.php)?$#i', $href)
                 || preg_match('#^/[a-z0-9]#i', $href);
             if (!$ok) {
                 return '<a>';
             }
             return '<a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '" rel="noopener noreferrer">';
         }, $html);
-        $html = preg_replace('/\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
-        return $html;
+        if (is_string($clean)) {
+            $html = $clean;
+        }
+        $clean = preg_replace_callback('/<img\s+[^>]*>/i', static function ($m) {
+            $tag = $m[0];
+            if (!preg_match('/\ssrc\s*=\s*(["\'])(.*?)\1/i', $tag, $sm)) {
+                return '';
+            }
+            $src = trim($sm[2]);
+            $ok = preg_match('#^(https?:)?//#i', $src)
+                || preg_match('#^/?uploads/#i', $src);
+            if (!$ok) {
+                return '';
+            }
+            $alt = '';
+            if (preg_match('/\salt\s*=\s*(["\'])(.*?)\1/i', $tag, $am)) {
+                $alt = $am[2];
+            }
+            return '<img src="' . htmlspecialchars(rdv_blog_media_url($src), ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '">';
+        }, $html);
+        if (is_string($clean)) {
+            $html = $clean;
+        }
+        $clean = preg_replace('/\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
+        return is_string($clean) ? $clean : $html;
+    }
+}
+
+if (!function_exists('rdv_blog_prepare_body')) {
+    function rdv_blog_prepare_body($html) {
+        $html = rdv_blog_sanitize_html($html);
+        $used = [];
+        $out = preg_replace_callback('#<(h2|h3)>(.*?)</\1>#is', function ($m) use (&$used) {
+            $id = rdv_blog_slugify(strip_tags($m[2]));
+            if ($id === '') {
+                $id = 'section';
+            }
+            $base = $id;
+            $n = 2;
+            while (isset($used[$id])) {
+                $id = $base . '-' . $n;
+                $n++;
+            }
+            $used[$id] = true;
+            return '<' . $m[1] . ' id="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '">' . $m[2] . '</' . $m[1] . '>';
+        }, $html);
+        return is_string($out) ? $out : $html;
+    }
+}
+
+if (!function_exists('rdv_blog_toc')) {
+    function rdv_blog_toc($html) {
+        $toc = [];
+        if (!preg_match_all('#<h2[^>]*id="([^"]+)"[^>]*>(.*?)</h2>#is', (string) $html, $matches, PREG_SET_ORDER)) {
+            return $toc;
+        }
+        foreach ($matches as $row) {
+            $text = trim(preg_replace('/\s+/', ' ', strip_tags($row[2])));
+            if ($text === '') {
+                continue;
+            }
+            $toc[] = ['id' => $row[1], 'text' => $text];
+        }
+        return $toc;
     }
 }
 
@@ -677,7 +761,7 @@ if (!function_exists('rdv_blog_thumb_html')) {
     function rdv_blog_thumb_html($post, $showLabel = true) {
         $cat = rdv_blog_h($post['category'] ?? 'platform');
         $label = rdv_blog_h(rdv_blog_category_label($post['category'] ?? ''));
-        $img = trim((string) ($post['image_url'] ?? ''));
+        $img = rdv_blog_media_url($post['image_url'] ?? '');
         $html = '<span class="rdv-news-thumb" data-cat="' . $cat . '">';
         if ($img !== '') {
             $html .= '<img src="' . rdv_blog_h($img) . '" alt="">';

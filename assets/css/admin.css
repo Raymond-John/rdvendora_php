@@ -514,6 +514,7 @@ body.admin-app {
     padding: 1.5rem;
 }
 .settings-card h3, .content-card h3 { margin-bottom: 1rem; font-size: 1.05rem; }
+.settings-card--wide { grid-column: 1 / -1; }
 .form-group { margin-bottom: 1rem; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
 .admin-app .btn, .admin-app button.btn {
@@ -603,42 +604,142 @@ body.admin-app {
 @media (max-width: 768px) {
     .settings-container, .content-card { margin: 1rem; }
 }
-.role-item, .admin-item {
+.role-item, .admin-item { display: none; }
+.access-studio { padding: 1.75rem !important; }
+.access-head { margin-bottom: 1.25rem; }
+.access-kicker {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+.access-studio h3 { margin: 0 0 0.4rem !important; font-size: 1.25rem; letter-spacing: -0.03em; }
+.access-lead { margin: 0; max-width: 42rem; color: var(--text-secondary); font-size: 0.92rem; line-height: 1.55; }
+.access-create {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr auto;
+    gap: 0.85rem;
+    align-items: end;
+    margin: 0 0 1.25rem;
+    padding: 1rem 1.1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 14px;
+}
+.access-create--admin { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 1rem; padding: 0; background: transparent; border: 0; }
+.access-create .form-group { margin: 0; }
+.access-create .btn { height: 44px; white-space: nowrap; }
+.access-stack { display: grid; gap: 1rem; }
+.access-card {
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    padding: 1.1rem 1.2rem 1rem;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+.access-card--create { background: linear-gradient(180deg, var(--bg-secondary), var(--bg-tertiary)); }
+.access-card--locked { background: var(--bg-tertiary); }
+.access-card__head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px solid var(--border-primary);
+    margin-bottom: 1rem;
 }
-.role-info, .admin-info { display: flex; flex-direction: column; gap: 0.2rem; }
-.role-info small, .admin-info small { color: var(--text-muted); font-size: 0.8rem; }
-.perm-panel, .new-admin-form {
-    margin: 0 0 1.25rem;
-    padding: 1rem;
-    background: var(--bg-tertiary, #f8fafc);
-    border: 1px solid var(--border-primary);
+.access-card__head h4 { margin: 0 0 0.2rem; font-size: 1.02rem; }
+.access-card__head p { margin: 0; color: var(--text-muted); font-size: 0.82rem; }
+.access-card__meta { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.access-person { display: flex; align-items: center; gap: 0.8rem; }
+.access-avatar {
+    width: 40px; height: 40px;
     border-radius: 12px;
+    display: grid; place-items: center;
+    background: #071530;
+    color: #f2d789;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
 }
-.perm-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.55rem 0.75rem;
-    margin: 0.75rem 0 1rem;
+.access-you {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 0.68rem;
+    font-weight: 700;
+    vertical-align: middle;
 }
-.perm-check {
-    display: flex;
+.access-role-field { max-width: 280px; }
+.access-note {
+    margin: 0 0 0.9rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    background: var(--warning-light);
+    color: #92400e;
+    font-size: 0.82rem;
+}
+.access-group { margin-bottom: 0.85rem; }
+.access-group__title {
+    margin: 0 0 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.access-pills { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.access-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 0.88rem;
-    font-weight: 500;
+    gap: 0.4rem;
+    padding: 0.42rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
     cursor: pointer;
+    user-select: none;
 }
-.perm-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.settings-help { color: var(--text-muted); font-size: 0.82rem; margin: 0.35rem 0 0.75rem; line-height: 1.45; }
+.access-pill input { accent-color: #6366f1; margin: 0; }
+.access-pill.is-on {
+    border-color: #c7d2fe;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+.access-pill.is-locked {
+    cursor: default;
+    opacity: 0.9;
+    background: var(--bg-secondary);
+}
+.access-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border-primary);
+}
+.access-studio .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
 .btn-secondary { background: #e2e8f0 !important; color: #0f172a !important; }
-.btn-danger { background: #b91c1c !important; }
-.btn-sm { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
+.btn-danger { background: #b91c1c !important; color: #fff !important; }
+.btn-sm { padding: 0.4rem 0.75rem !important; font-size: 0.8rem; }
 .badge-primary { background: #071530; color: #fff; }
 .badge-secondary { background: #e2e8f0; color: #0f172a; }
+@media (max-width: 900px) {
+    .access-create, .access-create--admin { grid-template-columns: 1fr; }
+    .access-card__head { flex-direction: column; }
+}
 

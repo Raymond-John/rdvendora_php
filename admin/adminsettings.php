@@ -527,6 +527,79 @@ $adminPageHeading = 'Settings';
 $adminPageSubtitle = 'Platform configuration';
 $adminSearchPlaceholder = 'Search platform...';
 $adminShowHeader = true;
+
+$adminPageGroups = [
+    'Platform' => ['dashboard', 'users', 'stores', 'customers'],
+    'Content' => ['testimonials', 'contacts', 'newsletter', 'blog', 'about'],
+    'Commerce' => ['pricing', 'orders', 'transport', 'marketplace_design'],
+    'System' => ['chat', 'send_email', 'settings'],
+];
+if (!function_exists('rdv_pretty_role_name')) {
+    function rdv_pretty_role_name($name) {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return 'No role';
+        }
+        return ucwords(str_replace(['_', '-'], ' ', $name));
+    }
+}
+if (!function_exists('rdv_admin_initials')) {
+    function rdv_admin_initials($name, $email = '') {
+        $name = trim((string) $name);
+        if ($name === '') {
+            $name = (string) $email;
+        }
+        $parts = preg_split('/\s+/', $name);
+        $initials = strtoupper(substr($parts[0] ?? 'A', 0, 1));
+        if (isset($parts[1]) && $parts[1] !== '') {
+            $initials .= strtoupper(substr($parts[1], 0, 1));
+        }
+        return $initials;
+    }
+}
+if (!function_exists('rdv_render_access_pills')) {
+    function rdv_render_access_pills(array $adminPages, array $groups, $namePrefix, array $checked = [], $locked = false) {
+        $used = [];
+        foreach ($groups as $group => $keys) {
+            echo '<div class="access-group">';
+            echo '<p class="access-group__title">' . htmlspecialchars($group, ENT_QUOTES, 'UTF-8') . '</p>';
+            echo '<div class="access-pills">';
+            foreach ($keys as $pageKey) {
+                if (!isset($adminPages[$pageKey])) {
+                    continue;
+                }
+                $used[$pageKey] = true;
+                $on = $locked || !empty($checked[$pageKey]);
+                $id = $namePrefix . $pageKey;
+                echo '<label class="access-pill' . ($on ? ' is-on' : '') . ($locked ? ' is-locked' : '') . '">';
+                if ($locked) {
+                    echo '<input type="checkbox" checked disabled>';
+                } else {
+                    echo '<input type="checkbox" name="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '" value="1"' . ($on ? ' checked' : '') . '>';
+                }
+                echo '<span>' . htmlspecialchars($adminPages[$pageKey], ENT_QUOTES, 'UTF-8') . '</span></label>';
+            }
+            echo '</div></div>';
+        }
+        $leftover = array_diff_key($adminPages, $used);
+        if ($leftover) {
+            echo '<div class="access-group"><p class="access-group__title">Other</p><div class="access-pills">';
+            foreach ($leftover as $pageKey => $pageLabel) {
+                $on = $locked || !empty($checked[$pageKey]);
+                $id = $namePrefix . $pageKey;
+                echo '<label class="access-pill' . ($on ? ' is-on' : '') . ($locked ? ' is-locked' : '') . '">';
+                if ($locked) {
+                    echo '<input type="checkbox" checked disabled>';
+                } else {
+                    echo '<input type="checkbox" name="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '" value="1"' . ($on ? ' checked' : '') . '>';
+                }
+                echo '<span>' . htmlspecialchars($pageLabel, ENT_QUOTES, 'UTF-8') . '</span></label>';
+            }
+            echo '</div></div>';
+        }
+    }
+}
+
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>
     <div class="settings-container">
@@ -657,140 +730,179 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         </div>
 
         <?php if ($isSuperAdmin): ?>
-        <div class="settings-card">
-            <h3>Role management</h3>
+        <section class="settings-card settings-card--wide access-studio">
+            <div class="access-head">
+                <div>
+                    <p class="access-kicker">Access control</p>
+                    <h3>Roles</h3>
+                    <p class="access-lead">Create a role, then choose which dashboard pages it can open. Super Admin always keeps every page.</p>
+                </div>
+            </div>
             <?php if ($message && (stripos($message, 'Role') !== false || stripos($message, 'permission') !== false)): ?>
                 <div class="message <?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
             <?php endif; ?>
-            <form method="POST" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-primary);">
-                <h4>Add role</h4>
-                <div class="form-group"><label>Role name</label><input type="text" name="role_name" required placeholder="e.g. Content Manager"></div>
-                <div class="form-group"><label>Description</label><input type="text" name="role_description" placeholder="Short description"></div>
+
+            <form method="POST" class="access-create">
+                <div class="form-group">
+                    <label for="role_name">Role name</label>
+                    <input id="role_name" type="text" name="role_name" required placeholder="Content manager">
+                </div>
+                <div class="form-group">
+                    <label for="role_description">Description</label>
+                    <input id="role_description" type="text" name="role_description" placeholder="What this role can do">
+                </div>
                 <button type="submit" name="add_role" class="btn">Create role</button>
             </form>
 
-            <h4>Roles and page access</h4>
-            <p class="settings-help">Tick the pages this role can open, then save. Super admin always has every page.</p>
+            <div class="access-stack">
             <?php foreach ($roles as $role):
                 $isSuperRole = ($role['name'] === 'super_admin');
+                $roleDesc = trim((string) ($role['description'] ?? ''));
                 ?>
-                <div class="role-item">
-                    <div class="role-info">
-                        <strong><?= htmlspecialchars((string) $role['name']) ?></strong>
-                        <small><?= htmlspecialchars((string) ($role['description'] ?? '')) ?></small>
-                        <?php if ($isSuperRole): ?>
-                            <span class="badge badge-primary">Super Admin</span>
-                        <?php endif; ?>
-                    </div>
+                <article class="access-card<?= $isSuperRole ? ' access-card--locked' : '' ?>">
+                    <header class="access-card__head">
+                        <div>
+                            <h4><?= htmlspecialchars(rdv_pretty_role_name($role['name'])) ?></h4>
+                            <p><?= htmlspecialchars($roleDesc !== '' ? $roleDesc : ($isSuperRole ? 'Full access to every page' : 'Limited dashboard access')) ?></p>
+                        </div>
+                        <div class="access-card__meta">
+                            <?php if ($isSuperRole): ?>
+                                <span class="badge badge-primary">Protected</span>
+                            <?php else: ?>
+                                <span class="badge badge-secondary"><?= htmlspecialchars(rdv_pretty_role_name($role['name'])) ?></span>
+                                <button type="submit" form="delete-role-<?= (int) $role['id'] ?>" name="delete_role" class="btn btn-danger btn-sm">Delete</button>
+                            <?php endif; ?>
+                        </div>
+                    </header>
                     <?php if (!$isSuperRole): ?>
-                    <form method="POST" onsubmit="return confirm('Delete this role?')">
+                    <form id="delete-role-<?= (int) $role['id'] ?>" method="POST" onsubmit="return confirm('Delete this role?')">
                         <input type="hidden" name="del_role_id" value="<?= (int) $role['id'] ?>">
-                        <button type="submit" name="delete_role" class="btn btn-danger btn-sm">Delete</button>
                     </form>
+                    <form method="POST">
+                        <input type="hidden" name="role_id" value="<?= (int) $role['id'] ?>">
+                        <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'perm_', $role['permissions'] ?? []); ?>
+                        <div class="access-card__foot">
+                            <button type="submit" name="update_role_permissions" class="btn">Save role access</button>
+                        </div>
+                    </form>
+                    <?php else: ?>
+                        <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'perm_', [], true); ?>
                     <?php endif; ?>
-                </div>
-                <?php if (!$isSuperRole): ?>
-                <form method="POST" class="perm-panel">
-                    <input type="hidden" name="role_id" value="<?= (int) $role['id'] ?>">
-                    <div class="perm-grid">
-                        <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
-                            <label class="perm-check">
-                                <input type="checkbox" name="perm_<?= htmlspecialchars($pageKey) ?>" value="1" <?= !empty($role['permissions'][$pageKey]) ? 'checked' : '' ?>>
-                                <?= htmlspecialchars($pageLabel) ?>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="submit" name="update_role_permissions" class="btn">Save role pages</button>
-                </form>
-                <?php endif; ?>
+                </article>
             <?php endforeach; ?>
-        </div>
+            </div>
+        </section>
 
-        <div class="settings-card">
-            <h3>Admin accounts</h3>
+        <section class="settings-card settings-card--wide access-studio">
+            <div class="access-head">
+                <div>
+                    <p class="access-kicker">Team</p>
+                    <h3>Administrators</h3>
+                    <p class="access-lead">Invite an admin, assign a role, and turn individual pages on or off for that person.</p>
+                </div>
+            </div>
             <?php if ($message && (stripos($message, 'Admin') !== false || stripos($message, 'account') !== false || stripos($message, 'access') !== false || stripos($message, 'deleted') !== false)): ?>
                 <div class="message <?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
             <?php endif; ?>
-            <form method="POST" class="new-admin-form">
-                <h4>Add admin</h4>
-                <div class="form-group"><label>Full name</label><input type="text" name="admin_fullname" required></div>
-                <div class="form-group"><label>Email</label><input type="email" name="admin_email_new" required></div>
-                <div class="form-group"><label>Password (min 6 chars)</label><input type="password" name="admin_password_new" required></div>
-                <div class="form-group"><label>Role</label>
-                    <select name="admin_role" required>
-                        <option value="">Select a role</option>
-                        <?php foreach ($roles as $role): ?>
-                            <?php if ($role['name'] === 'super_admin') continue; ?>
-                            <option value="<?= (int) $role['id'] ?>"><?= htmlspecialchars((string) $role['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <p class="settings-help">Choose the pages this person can open. Untick a page to keep it blocked.</p>
-                <div class="perm-grid">
-                    <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
-                        <label class="perm-check">
-                            <input type="checkbox" name="new_perm_<?= htmlspecialchars($pageKey) ?>" value="1">
-                            <?= htmlspecialchars($pageLabel) ?>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
-                <button type="submit" name="add_admin" class="btn">Create admin</button>
-            </form>
 
-            <h4>Existing administrators</h4>
-            <?php foreach ($admins as $admin):
-                $isSelf = ((int) $admin['id'] === (int) ($_SESSION['user_id'] ?? 0));
-                $isSuperAccount = (($admin['role_name'] ?? '') === 'super_admin');
-                ?>
-                <div class="admin-item">
-                    <div class="admin-info">
-                        <strong><?= htmlspecialchars((string) ($admin['fullname'] ?? $admin['email'])) ?></strong>
-                        <small><?= htmlspecialchars((string) $admin['email']) ?> · Joined <?= !empty($admin['created_at']) ? date('M d, Y', strtotime((string) $admin['created_at'])) : '—' ?></small>
-                        <?php if ($isSuperAccount): ?>
-                            <span class="badge badge-primary">Super Admin</span>
-                        <?php else: ?>
-                            <span class="badge badge-secondary"><?= htmlspecialchars((string) ($admin['role_name'] ?? 'No role')) ?></span>
-                        <?php endif; ?>
+            <form method="POST" class="access-card access-card--create">
+                <header class="access-card__head">
+                    <div>
+                        <h4>New administrator</h4>
+                        <p>They will only see the pages you turn on below.</p>
                     </div>
-                    <?php if (!$isSelf): ?>
-                    <form method="POST" onsubmit="return confirm('Delete this admin?')">
-                        <input type="hidden" name="del_admin_id" value="<?= (int) $admin['id'] ?>">
-                        <button type="submit" name="delete_admin" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                    <?php endif; ?>
-                </div>
-                <?php if (!$isSelf): ?>
-                <form method="POST" class="perm-panel">
-                    <input type="hidden" name="admin_id" value="<?= (int) $admin['id'] ?>">
-                    <?php if ($isSuperAccount): ?>
-                    <p class="settings-help">This account currently has full access. Assign a limited role and tick pages, then save to restrict them.</p>
-                    <?php endif; ?>
+                </header>
+                <div class="access-create access-create--admin">
                     <div class="form-group">
-                        <label>Role</label>
-                        <select name="admin_role">
+                        <label for="admin_fullname">Full name</label>
+                        <input id="admin_fullname" type="text" name="admin_fullname" required placeholder="Jane Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin_email_new">Email</label>
+                        <input id="admin_email_new" type="email" name="admin_email_new" required placeholder="jane@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin_password_new">Password</label>
+                        <input id="admin_password_new" type="password" name="admin_password_new" required minlength="6" placeholder="Min. 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin_role_new">Role</label>
+                        <select id="admin_role_new" name="admin_role" required>
+                            <option value="">Select a role</option>
                             <?php foreach ($roles as $role): ?>
                                 <?php if ($role['name'] === 'super_admin') continue; ?>
-                                <option value="<?= (int) $role['id'] ?>" <?= ((int) $admin['role_id'] === (int) $role['id']) ? 'selected' : '' ?>><?= htmlspecialchars((string) $role['name']) ?></option>
+                                <option value="<?= (int) $role['id'] ?>"><?= htmlspecialchars(rdv_pretty_role_name($role['name'])) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <p class="settings-help">Tick pages to allow. Untick to remove access, then save.</p>
-                    <div class="perm-grid">
-                        <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
-                            <label class="perm-check">
-                                <input type="checkbox" name="perm_<?= htmlspecialchars($pageKey) ?>" value="1" <?= !empty($admin['permissions'][$pageKey]) ? 'checked' : '' ?>>
-                                <?= htmlspecialchars($pageLabel) ?>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="perm-actions">
-                        <button type="submit" name="update_admin_permissions" class="btn">Save page access</button>
-                        <button type="submit" name="update_admin_role" class="btn btn-secondary">Save role only</button>
-                    </div>
-                </form>
-                <?php endif; ?>
+                </div>
+                <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'new_perm_'); ?>
+                <div class="access-card__foot">
+                    <button type="submit" name="add_admin" class="btn">Create administrator</button>
+                </div>
+            </form>
+
+            <div class="access-stack">
+            <?php foreach ($admins as $admin):
+                $isSelf = ((int) $admin['id'] === (int) ($_SESSION['user_id'] ?? 0));
+                $isSuperAccount = (($admin['role_name'] ?? '') === 'super_admin');
+                $displayName = (string) ($admin['fullname'] ?? $admin['email']);
+                ?>
+                <article class="access-card<?= $isSuperAccount ? ' access-card--locked' : '' ?>">
+                    <header class="access-card__head">
+                        <div class="access-person">
+                            <span class="access-avatar" aria-hidden="true"><?= htmlspecialchars(rdv_admin_initials($displayName, $admin['email'] ?? '')) ?></span>
+                            <div>
+                                <h4><?= htmlspecialchars($displayName) ?><?php if ($isSelf): ?> <span class="access-you">You</span><?php endif; ?></h4>
+                                <p><?= htmlspecialchars((string) $admin['email']) ?> · Joined <?= !empty($admin['created_at']) ? date('M j, Y', strtotime((string) $admin['created_at'])) : '—' ?></p>
+                            </div>
+                        </div>
+                        <div class="access-card__meta">
+                            <span class="badge <?= $isSuperAccount ? 'badge-primary' : 'badge-secondary' ?>"><?= htmlspecialchars(rdv_pretty_role_name($admin['role_name'] ?? 'No role')) ?></span>
+                            <?php if (!$isSelf): ?>
+                                <button type="submit" form="delete-admin-<?= (int) $admin['id'] ?>" name="delete_admin" class="btn btn-danger btn-sm">Remove</button>
+                            <?php endif; ?>
+                        </div>
+                    </header>
+                    <?php if (!$isSelf): ?>
+                    <form id="delete-admin-<?= (int) $admin['id'] ?>" method="POST" onsubmit="return confirm('Remove this administrator?')">
+                        <input type="hidden" name="del_admin_id" value="<?= (int) $admin['id'] ?>">
+                    </form>
+                    <form method="POST">
+                        <input type="hidden" name="admin_id" value="<?= (int) $admin['id'] ?>">
+                        <?php if ($isSuperAccount): ?>
+                            <p class="access-note">This account currently has full access. Assign a limited role and save page access to restrict it.</p>
+                        <?php endif; ?>
+                        <div class="form-group access-role-field">
+                            <label for="admin_role_<?= (int) $admin['id'] ?>">Assigned role</label>
+                            <select id="admin_role_<?= (int) $admin['id'] ?>" name="admin_role">
+                                <?php foreach ($roles as $role): ?>
+                                    <?php if ($role['name'] === 'super_admin') continue; ?>
+                                    <option value="<?= (int) $role['id'] ?>" <?= ((int) $admin['role_id'] === (int) $role['id']) ? 'selected' : '' ?>><?= htmlspecialchars(rdv_pretty_role_name($role['name'])) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'perm_', $admin['permissions'] ?? []); ?>
+                        <div class="access-card__foot">
+                            <button type="submit" name="update_admin_permissions" class="btn">Save page access</button>
+                            <button type="submit" name="update_admin_role" class="btn btn-secondary">Save role only</button>
+                        </div>
+                    </form>
+                    <?php else: ?>
+                        <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'perm_', [], true); ?>
+                    <?php endif; ?>
+                </article>
             <?php endforeach; ?>
-        </div>
+            </div>
+        </section>
         <?php endif; ?>
     </div>
+<script>
+document.querySelectorAll('.access-pill input[type="checkbox"]').forEach(function (input) {
+    input.addEventListener('change', function () {
+        var pill = this.closest('.access-pill');
+        if (pill) pill.classList.toggle('is-on', this.checked);
+    });
+});
+</script>
 <?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>

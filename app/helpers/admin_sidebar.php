@@ -68,6 +68,6 @@ $item = static function ($file, $label, $icon) use ($currentPage) {
         <?php if ($can('pricing')) { $item('admin-subscriptions.php', 'Subscriptions', $svg['pricing']); } ?>
         <?php if ($can('settings')) { $item('adminsettings.php', 'Settings', $svg['gear']); } ?>
         <a href="<?= htmlspecialchars(function_exists('rdv_url') ? rdv_url('dashboard') : '../dashboard', ENT_QUOTES, 'UTF-8') ?>" class="sidebar-item"><?= $svg['logout'] ?><span>Back to Store</span></a>
-        <a href="#" class="sidebar-item" onclick="logout()"><?= $svg['logout'] ?><span>Logout</span></a>
+        <a href="admin_logout" class="sidebar-item" onclick="logout(); return false;"><?= $svg['logout'] ?><span>Logout</span></a>
     </nav>
 </div>

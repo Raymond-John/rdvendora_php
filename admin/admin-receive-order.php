@@ -337,6 +337,6 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     window.closeModal = closeModal;
 
-    function logout() { if(confirm('Logout from admin panel?')) window.location.href='../logout'; }
+    function logout() { if(confirm('Logout from admin panel?')) window.location.href='admin_logout'; }
 </script>
 <?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>

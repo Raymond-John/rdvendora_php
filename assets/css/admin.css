@@ -444,6 +444,57 @@ body.admin-app {
     cursor: pointer;
     padding: 0 4px;
 }
+.rdv-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(7, 21, 48, 0.62);
+}
+.rdv-modal-overlay.is-open { display: flex; }
+.rdv-modal {
+    width: 100%;
+    max-width: 440px;
+    background: var(--bg-secondary, #fff);
+    border: 1px solid var(--border-primary, #e2e8f0);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem 1.25rem;
+    box-shadow: 0 24px 60px rgba(7, 21, 48, 0.28);
+}
+.rdv-modal-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+}
+.rdv-modal-body {
+    margin: 0 0 1.15rem;
+    color: var(--text-secondary, #64748b);
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+.rdv-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+}
+.rdv-modal-btn {
+    min-height: 40px;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 10px;
+    background: #071530;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+.rdv-modal-btn--ghost {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.rdv-modal-overlay[data-mode="alert"] #rdvAdminModalCancel { display: none; }
 .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 0 2rem 1.5rem; }
 @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 

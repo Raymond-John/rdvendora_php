@@ -11,8 +11,11 @@ function rdv_admin_flag_is_set() {
     return $value === true || $value === 1 || $value === '1';
 }
 
-function rdv_admin_user_columns(mysqli $conn) {
+function rdv_admin_user_columns(mysqli $conn, $refresh = false) {
     static $columns = null;
+    if ($refresh) {
+        $columns = null;
+    }
     if ($columns !== null) {
         return $columns;
     }
@@ -80,15 +83,19 @@ function rdv_hydrate_admin_session($conn) {
         $user = null;
     }
 
-    $isDbAdmin = $user && !empty($user['is_admin']);
-    $isKnownPlatformAdmin = strcasecmp($email, 'admin@rdvendora.com') === 0
-        || ($user && strcasecmp((string) ($user['email'] ?? ''), 'admin@rdvendora.com') === 0);
-
-    if (!$isDbAdmin && !$isKnownPlatformAdmin && !rdv_admin_flag_is_set()) {
-        return false;
-    }
     if (!$user) {
         return rdv_admin_flag_is_set();
+    }
+
+    $isActive = !isset($columns['is_active']) || (int) ($user['is_active'] ?? 1) === 1;
+    $isDbAdmin = !empty($user['is_admin']);
+    $isKnownPlatformAdmin = strcasecmp($email, 'admin@rdvendora.com') === 0
+        || strcasecmp((string) ($user['email'] ?? ''), 'admin@rdvendora.com') === 0;
+
+    if (!$isActive || (!$isDbAdmin && !$isKnownPlatformAdmin)) {
+        $_SESSION['is_admin'] = false;
+        unset($_SESSION['role_name'], $_SESSION['role_id']);
+        return false;
     }
 
     $_SESSION['user_id'] = (int) $user['id'];

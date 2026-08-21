@@ -50,6 +50,7 @@ $defaultSettings = [
     'maintenance_end_time' => '',
     'admin_name' => 'Platform Admin',
     'admin_email' => 'admin@rdvendora.com',
+    'admin_alert_email' => '',
     'default_theme' => 'light'
 ];
 foreach ($defaultSettings as $key => $default) {
@@ -86,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_general'])) {
         setSetting($conn, 'site_name', $_POST['site_name']);
         setSetting($conn, 'site_email', $_POST['site_email']);
+        setSetting($conn, 'admin_alert_email', trim((string) ($_POST['admin_alert_email'] ?? '')));
         setSetting($conn, 'site_phone', $_POST['site_phone']);
         setSetting($conn, 'site_address', $_POST['site_address']);
         setSetting($conn, 'currency', $_POST['currency']);
@@ -356,6 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Fetch current settings
 $site_name = getSetting($conn, 'site_name');
 $site_email = getSetting($conn, 'site_email');
+$admin_alert_email = getSetting($conn, 'admin_alert_email');
 $site_phone = getSetting($conn, 'site_phone');
 $site_address = getSetting($conn, 'site_address');
 $currency = getSetting($conn, 'currency');
@@ -424,6 +427,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             <form method="POST">
                 <div class="form-group"><label>Site Name</label><input type="text" name="site_name" value="<?= htmlspecialchars($site_name) ?>" required></div>
                 <div class="form-group"><label>Site Email</label><input type="email" name="site_email" value="<?= htmlspecialchars($site_email) ?>" required></div>
+                <div class="form-group"><label>Admin login alert email</label><input type="email" name="admin_alert_email" value="<?= htmlspecialchars($admin_alert_email) ?>" placeholder="Your Gmail address"><small>Gmail that receives a name, email, IP, and deactivate link whenever someone signs in to the admin dashboard.</small></div>
                 <div class="form-group"><label>Contact Phone</label><input type="text" name="site_phone" value="<?= htmlspecialchars($site_phone) ?>"></div>
                 <div class="form-group"><label>Address</label><textarea name="site_address" rows="2"><?= htmlspecialchars($site_address) ?></textarea></div>
                 <div class="form-group"><label>Currency Symbol</label><input type="text" name="currency" value="<?= htmlspecialchars($currency) ?>" maxlength="5" required></div>

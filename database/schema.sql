@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_admin` tinyint(1) NOT NULL DEFAULT 0,
   `last_active` timestamp NOT NULL DEFAULT current_timestamp(),
   `role_id` int(11) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `google_id` (`google_id`),

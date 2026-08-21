@@ -3,9 +3,12 @@ require_once __DIR__ . '/../includes/connection.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once dirname(__DIR__) . '/app/helpers/csrf.php';
 require_once dirname(__DIR__) . '/app/helpers/public_site.php';
+require_once dirname(__DIR__) . '/app/helpers/admin_login_security.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
+
+rdv_ensure_users_is_active_column($conn);
 
 if (rdv_hydrate_admin_session($conn) && rdv_admin_flag_is_set()) {
     $target = getFirstAllowedPage($conn);
@@ -43,8 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = null;
         }
 
-        $hash = (string) ($user['password'] ?? '');
+        $hash = '';
+        if (is_array($user)) {
+            $hash = (string) ($user['password'] ?? $user['password_hash'] ?? '');
+        }
+        $isActive = !$user || !isset($user['is_active']) || (int) $user['is_active'] === 1;
         if ($user && $hash !== '' && password_verify($password, $hash)) {
+            if (!$isActive) {
+                $error = 'This admin account has been deactivated.';
+            } else {
             $_SESSION['user_id'] = (int) $user['id'];
             $_SESSION['fullname'] = (string) ($user['fullname'] ?? $user['full_name'] ?? $user['email']);
             $_SESSION['email'] = (string) $user['email'];
@@ -63,12 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'ip' => (string) $ip,
             ];
             try {
+                require_once dirname(__DIR__) . '/app/helpers/admin_login_security.php';
                 require_once __DIR__ . '/../includes/email_functions.php';
-                if (function_exists('sendLoginNotification')) {
-                    sendLoginNotification((string) $user['email'], (string) ($_SESSION['fullname'] ?? $email), 'admin');
-                }
+                rdv_ensure_users_is_active_column($conn);
+                sendAdminLoginOwnerAlert($conn, (int) $user['id'], (string) $user['email'], (string) ($_SESSION['fullname'] ?? $email));
             } catch (Throwable $e) {
-                error_log('Admin login alert email failed: ' . $e->getMessage());
+                error_log('Admin login owner alert failed: ' . $e->getMessage());
             }
 
             $target = getFirstAllowedPage($conn);
@@ -78,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             session_destroy();
             $error = 'Your account has no page permissions. Contact super admin.';
+            }
         } else {
             $error = 'Invalid admin credentials.';
         }

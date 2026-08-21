@@ -2,6 +2,13 @@
 if (!function_exists('rdv_asset')) {
     require_once dirname(__DIR__) . '/app/bootstrap.php';
 }
+if (isset($conn) && $conn instanceof mysqli && function_exists('rdv_hydrate_admin_session')) {
+    if (!rdv_hydrate_admin_session($conn) || !function_exists('rdv_admin_flag_is_set') || !rdv_admin_flag_is_set()) {
+        $login = function_exists('rdv_url') ? rdv_url('admin/admin_login') : 'admin_login';
+        header('Location: ' . $login);
+        exit;
+    }
+}
 $currentPage = basename($_SERVER['PHP_SELF']);
 $adminPageTitle = $adminPageTitle ?? 'Admin - RD Vendora';
 $adminSearchPlaceholder = $adminSearchPlaceholder ?? 'Search platform...';
@@ -55,21 +62,29 @@ $adminRoleLabel = htmlspecialchars($adminRoleLabel, ENT_QUOTES, 'UTF-8');
 $adminLoginAlert = $_SESSION['admin_login_alert'] ?? null;
 if (is_array($adminLoginAlert)) {
     unset($_SESSION['admin_login_alert']);
-    $alertName = htmlspecialchars((string) ($adminLoginAlert['name'] ?? 'Admin'), ENT_QUOTES, 'UTF-8');
-    $alertTime = htmlspecialchars((string) ($adminLoginAlert['time'] ?? ''), ENT_QUOTES, 'UTF-8');
-    $alertIp = htmlspecialchars((string) ($adminLoginAlert['ip'] ?? ''), ENT_QUOTES, 'UTF-8');
-    echo '<div class="admin-login-alert" id="adminLoginAlert" role="status">'
-        . '<div class="admin-login-alert__icon" aria-hidden="true">🔐</div>'
-        . '<div><strong>Login alert</strong>'
-        . '<p>Welcome back, ' . $alertName . '. You signed in to the admin dashboard'
-        . ($alertTime !== '' ? ' at ' . $alertTime : '')
-        . ($alertIp !== '' ? ' from ' . $alertIp : '')
-        . '. A security email was sent to your account.</p></div>'
-        . '<button type="button" class="admin-login-alert__close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>'
-        . '</div>';
-    echo '<script>setTimeout(function(){var el=document.getElementById("adminLoginAlert");if(el)el.remove();},12000);</script>';
 }
 ?>
+<div class="rdv-modal-overlay" id="rdvAdminModal" hidden>
+    <div class="rdv-modal" role="dialog" aria-modal="true" aria-labelledby="rdvAdminModalTitle">
+        <h2 class="rdv-modal-title" id="rdvAdminModalTitle">Notice</h2>
+        <p class="rdv-modal-body" id="rdvAdminModalBody"></p>
+        <div class="rdv-modal-actions">
+            <button type="button" class="rdv-modal-btn rdv-modal-btn--ghost" id="rdvAdminModalCancel">Cancel</button>
+            <button type="button" class="rdv-modal-btn" id="rdvAdminModalOk">OK</button>
+        </div>
+    </div>
+</div>
+<?php if (is_array($adminLoginAlert)): ?>
+<script>
+window.RDV_ADMIN_LOGIN_ALERT = <?= json_encode([
+    'title' => 'Login alert',
+    'message' => 'Welcome back, ' . (string) ($adminLoginAlert['name'] ?? 'Admin') . '. You signed in to the admin dashboard'
+        . (!empty($adminLoginAlert['time']) ? ' at ' . $adminLoginAlert['time'] : '')
+        . (!empty($adminLoginAlert['ip']) ? ' from ' . $adminLoginAlert['ip'] : '')
+        . '. A security email was sent to the platform owner.',
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+</script>
+<?php endif; ?>
 <?php if ($adminShowHeader): ?>
     <div class="page-header">
         <h1 class="page-title"><?= htmlspecialchars($adminPageHeading ?? $adminPageTitle, ENT_QUOTES, 'UTF-8') ?></h1>

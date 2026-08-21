@@ -646,8 +646,32 @@ body.admin-app {
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+    cursor: pointer;
 }
+.access-card.is-open .access-card__head { margin-bottom: 1rem; }
+.access-card__body { display: none; padding-top: 0.15rem; }
+.access-card.is-open .access-card__body { display: block; }
+.access-chevron {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--bg-tertiary);
+    position: relative;
+    flex-shrink: 0;
+}
+.access-chevron::after {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 8px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text-secondary);
+    border-bottom: 2px solid var(--text-secondary);
+    transform: rotate(45deg);
+}
+.access-card.is-open .access-chevron::after { top: 12px; transform: rotate(-135deg); }
 .access-card__head h4 { margin: 0 0 0.2rem; font-size: 1.02rem; }
 .access-card__head p { margin: 0; color: var(--text-muted); font-size: 0.82rem; }
 .access-card__meta { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }

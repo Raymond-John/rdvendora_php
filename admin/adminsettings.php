@@ -790,10 +790,10 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 $roleDesc = trim((string) ($role['description'] ?? ''));
                 ?>
                 <article class="access-card<?= $isSuperRole ? ' access-card--locked' : '' ?>">
-                    <header class="access-card__head">
+                    <header class="access-card__head" data-access-toggle role="button" tabindex="0" aria-expanded="false">
                         <div>
                             <h4><?= htmlspecialchars(rdv_pretty_role_name($role['name'])) ?></h4>
-                            <p><?= htmlspecialchars($roleDesc !== '' ? $roleDesc : ($isSuperRole ? 'Full access to every page' : 'Limited dashboard access')) ?></p>
+                            <p><?= htmlspecialchars($roleDesc !== '' ? $roleDesc : ($isSuperRole ? 'Full access to every page' : 'Click to set which pages this role can open')) ?></p>
                         </div>
                         <div class="access-card__meta">
                             <?php if ($isSuperRole): ?>
@@ -802,8 +802,10 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                                 <span class="badge badge-secondary"><?= htmlspecialchars(rdv_pretty_role_name($role['name'])) ?></span>
                                 <button type="submit" form="delete-role-<?= (int) $role['id'] ?>" name="delete_role" class="btn btn-danger btn-sm">Delete</button>
                             <?php endif; ?>
+                            <span class="access-chevron" aria-hidden="true"></span>
                         </div>
                     </header>
+                    <div class="access-card__body">
                     <?php if (!$isSuperRole): ?>
                     <form id="delete-role-<?= (int) $role['id'] ?>" method="POST" onsubmit="return confirm('Delete this role? Admins using it will need a new role.')">
                         <input type="hidden" name="delete_role" value="1">
@@ -819,6 +821,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     <?php else: ?>
                         <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'perm_', [], true); ?>
                     <?php endif; ?>
+                    </div>
                 </article>
             <?php endforeach; ?>
             </div>
@@ -837,12 +840,14 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             <?php endif; ?>
 
             <form method="POST" class="access-card access-card--create">
-                <header class="access-card__head">
+                <header class="access-card__head" data-access-toggle role="button" tabindex="0" aria-expanded="false">
                     <div>
                         <h4>New administrator</h4>
-                        <p>They will only see the pages you turn on below.</p>
+                        <p>Click to add a person and choose their pages.</p>
                     </div>
+                    <span class="access-chevron" aria-hidden="true"></span>
                 </header>
+                <div class="access-card__body">
                 <div class="access-create access-create--admin">
                     <div class="form-group">
                         <label for="admin_fullname">Full name</label>
@@ -871,6 +876,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 <div class="access-card__foot">
                     <button type="submit" name="add_admin" class="btn">Create administrator</button>
                 </div>
+                </div>
             </form>
 
             <div class="access-stack">
@@ -880,7 +886,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 $displayName = (string) ($admin['fullname'] ?? $admin['email']);
                 ?>
                 <article class="access-card<?= $isSuperAccount ? ' access-card--locked' : '' ?>">
-                    <header class="access-card__head">
+                    <header class="access-card__head" data-access-toggle role="button" tabindex="0" aria-expanded="false">
                         <div class="access-person">
                             <span class="access-avatar" aria-hidden="true"><?= htmlspecialchars(rdv_admin_initials($displayName, $admin['email'] ?? '')) ?></span>
                             <div>
@@ -893,8 +899,10 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                             <?php if (!$isSelf): ?>
                                 <button type="submit" form="delete-admin-<?= (int) $admin['id'] ?>" name="delete_admin" class="btn btn-danger btn-sm">Remove</button>
                             <?php endif; ?>
+                            <span class="access-chevron" aria-hidden="true"></span>
                         </div>
                     </header>
+                    <div class="access-card__body">
                     <?php if (!$isSelf): ?>
                     <form id="delete-admin-<?= (int) $admin['id'] ?>" method="POST" onsubmit="return confirm('Remove this administrator?')">
                         <input type="hidden" name="delete_admin" value="1">
@@ -923,6 +931,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     <?php else: ?>
                         <?php rdv_render_access_pills($adminPages, $adminPageGroups, 'perm_', [], true); ?>
                     <?php endif; ?>
+                    </div>
                 </article>
             <?php endforeach; ?>
             </div>
@@ -934,6 +943,31 @@ document.querySelectorAll('.access-pill input[type="checkbox"]').forEach(functio
     input.addEventListener('change', function () {
         var pill = this.closest('.access-pill');
         if (pill) pill.classList.toggle('is-on', this.checked);
+    });
+});
+document.querySelectorAll('[data-access-toggle]').forEach(function (toggle) {
+    var card = toggle.closest('.access-card');
+    if (!card) return;
+    function openCard() {
+        document.querySelectorAll('.access-card.is-open').forEach(function (openCard) {
+            if (openCard !== card) {
+                openCard.classList.remove('is-open');
+                var other = openCard.querySelector('[data-access-toggle]');
+                if (other) other.setAttribute('aria-expanded', 'false');
+            }
+        });
+        var open = card.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    toggle.addEventListener('click', function (e) {
+        if (e.target.closest('button, a, input, select, label')) return;
+        openCard();
+    });
+    toggle.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openCard();
+        }
     });
 });
 </script>

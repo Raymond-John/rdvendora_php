@@ -603,4 +603,42 @@ body.admin-app {
 @media (max-width: 768px) {
     .settings-container, .content-card { margin: 1rem; }
 }
+.role-item, .admin-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-primary);
+}
+.role-info, .admin-info { display: flex; flex-direction: column; gap: 0.2rem; }
+.role-info small, .admin-info small { color: var(--text-muted); font-size: 0.8rem; }
+.perm-panel, .new-admin-form {
+    margin: 0 0 1.25rem;
+    padding: 1rem;
+    background: var(--bg-tertiary, #f8fafc);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+}
+.perm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.55rem 0.75rem;
+    margin: 0.75rem 0 1rem;
+}
+.perm-check {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+.perm-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.settings-help { color: var(--text-muted); font-size: 0.82rem; margin: 0.35rem 0 0.75rem; line-height: 1.45; }
+.btn-secondary { background: #e2e8f0 !important; color: #0f172a !important; }
+.btn-danger { background: #b91c1c !important; }
+.btn-sm { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
+.badge-primary { background: #071530; color: #fff; }
+.badge-secondary { background: #e2e8f0; color: #0f172a; }
 

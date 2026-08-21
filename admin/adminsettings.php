@@ -5,14 +5,18 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// Allow only logged-in admins
-$isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
-if (!$isAdmin) {
+rdv_ensure_rbac_tables($conn);
+rdv_hydrate_admin_session($conn);
+
+if (!rdv_admin_flag_is_set()) {
     die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
 }
 
-// Determine if this is a super admin (role_name = 'super_admin')
 $isSuperAdmin = isset($_SESSION['role_name']) && $_SESSION['role_name'] === 'super_admin';
+if (!adminHasPermission('settings', $conn)) {
+    http_response_code(403);
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to manage settings.</p><a href="admin">Dashboard</a></div>');
+}
 
 // Helper functions
 function getSetting($conn, $key, $default = '') {
@@ -60,23 +64,7 @@ foreach ($defaultSettings as $key => $default) {
 }
 
 // List of admin pages (for permissions UI)
-$adminPages = [
-    'dashboard' => 'Dashboard',
-    'users' => 'Users',
-    'stores' => 'Stores',
-    'pricing' => 'Pricing Plans',
-    'testimonials' => 'Testimonials',
-    'contacts' => 'Contact Messages',
-    'newsletter' => 'Newsletter',
-    'about' => 'About Page',
-    'chat' => 'Chat',
-    'orders' => 'All Orders',
-    'transport' => 'Transport Orders',
-    'customers' => 'Customers',
-    'send_email' => 'Send Email',
-    'marketplace_design' => 'Marketplace Design',
-    'settings' => 'Settings'
-];
+$adminPages = rdv_admin_pages();
 
 $message = '';
 $messageType = '';
@@ -249,12 +237,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Cannot change permissions for super admin role.";
                 $messageType = "error";
             } else {
-                foreach ($adminPages as $pageKey => $label) {
-                    $can = isset($_POST['perm_' . $pageKey]) ? 1 : 0;
-                    $stmt = $conn->prepare("INSERT INTO role_permissions (role_id, page_name, can_access) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE can_access = ?");
-                    $stmt->bind_param("isii", $roleId, $pageKey, $can, $can);
-                    $stmt->execute();
-                }
+                rdv_save_page_permissions(
+                    $conn,
+                    'role_permissions',
+                    'role_id',
+                    $roleId,
+                    $adminPages,
+                    rdv_posted_page_permissions($adminPages)
+                );
                 $message = "Role permissions updated.";
                 $messageType = "success";
             }
@@ -304,15 +294,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message = "Email already exists.";
                     $messageType = "error";
                 } else {
+                    $cols = rdv_admin_user_columns($conn, true);
+                    $nameCol = !empty($cols['fullname']) ? 'fullname' : 'full_name';
+                    $passCol = !empty($cols['password']) ? 'password' : 'password_hash';
                     $hashed = password_hash($pass, PASSWORD_DEFAULT);
-                    $stmt = $conn->prepare("INSERT INTO users (fullname, email, password, is_admin, role_id, created_at) VALUES (?, ?, ?, 1, ?, NOW())");
-                    $stmt->bind_param("sssi", $name, $email, $hashed, $roleId);
-                    if ($stmt->execute()) {
-                        $message = "Admin account created with assigned role.";
-                        $messageType = "success";
-                    } else {
+                    $fields = [$nameCol, 'email', $passCol, 'is_admin'];
+                    $placeholders = ['?', '?', '?', '1'];
+                    $types = 'sss';
+                    $values = [$name, $email, $hashed];
+                    if (!empty($cols['role_id'])) {
+                        $fields[] = 'role_id';
+                        $placeholders[] = '?';
+                        $types .= 'i';
+                        $values[] = $roleId;
+                    }
+                    if (!empty($cols['is_active'])) {
+                        $fields[] = 'is_active';
+                        $placeholders[] = '1';
+                    }
+                    $sql = 'INSERT INTO users (' . implode(', ', $fields) . ', created_at) VALUES (' . implode(', ', $placeholders) . ', NOW())';
+                    $stmt = $conn->prepare($sql);
+                    if (!$stmt) {
                         $message = "Database error.";
                         $messageType = "error";
+                    } else {
+                        $stmt->bind_param($types, ...$values);
+                        if ($stmt->execute()) {
+                            $newId = (int) $conn->insert_id;
+                            rdv_save_page_permissions(
+                                $conn,
+                                'admin_permissions',
+                                'admin_id',
+                                $newId,
+                                $adminPages,
+                                rdv_posted_page_permissions($adminPages, 'new_perm_')
+                            );
+                            $message = "Admin account created. Page access was saved.";
+                            $messageType = "success";
+                        } else {
+                            $message = "Database error.";
+                            $messageType = "error";
+                        }
+                        $stmt->close();
                     }
                 }
             }
@@ -324,15 +347,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Please select a valid role.";
                 $messageType = "error";
             } else {
-                $stmt = $conn->prepare("UPDATE users SET role_id = ? WHERE id = ? AND is_admin = 1");
-                $stmt->bind_param("ii", $newRoleId, $adminId);
-                if ($stmt->execute()) {
-                    $message = "Admin role updated.";
-                    $messageType = "success";
-                } else {
-                    $message = "Update failed.";
-                    $messageType = "error";
+                $roleCheck = $conn->prepare('SELECT name FROM roles WHERE id = ? LIMIT 1');
+                $roleName = '';
+                if ($roleCheck) {
+                    $roleCheck->bind_param('i', $newRoleId);
+                    $roleCheck->execute();
+                    $roleRow = $roleCheck->get_result()->fetch_assoc();
+                    $roleName = (string) ($roleRow['name'] ?? '');
+                    $roleCheck->close();
                 }
+                if ($roleName === 'super_admin') {
+                    $message = "Assign a limited role instead of super admin.";
+                    $messageType = "error";
+                } else {
+                    $stmt = $conn->prepare("UPDATE users SET role_id = ? WHERE id = ? AND is_admin = 1");
+                    $stmt->bind_param("ii", $newRoleId, $adminId);
+                    if ($stmt->execute()) {
+                        $message = "Admin role updated.";
+                        $messageType = "success";
+                    } else {
+                        $message = "Update failed.";
+                        $messageType = "error";
+                    }
+                }
+            }
+        }
+        elseif (isset($_POST['update_admin_permissions']) && isset($_POST['admin_id'])) {
+            $adminId = intval($_POST['admin_id']);
+            if ($adminId === (int) ($_SESSION['user_id'] ?? 0)) {
+                $message = "Change your own access from another super admin account.";
+                $messageType = "error";
+            } else {
+                $newRoleId = intval($_POST['admin_role'] ?? 0);
+                if ($newRoleId > 0) {
+                    $roleCheck = $conn->prepare('SELECT name FROM roles WHERE id = ? LIMIT 1');
+                    if ($roleCheck) {
+                        $roleCheck->bind_param('i', $newRoleId);
+                        $roleCheck->execute();
+                        $roleRow = $roleCheck->get_result()->fetch_assoc();
+                        $roleCheck->close();
+                        if ($roleRow && ($roleRow['name'] ?? '') !== 'super_admin') {
+                            $upd = $conn->prepare('UPDATE users SET role_id = ? WHERE id = ? AND is_admin = 1');
+                            if ($upd) {
+                                $upd->bind_param('ii', $newRoleId, $adminId);
+                                $upd->execute();
+                                $upd->close();
+                            }
+                        }
+                    }
+                }
+                rdv_save_page_permissions(
+                    $conn,
+                    'admin_permissions',
+                    'admin_id',
+                    $adminId,
+                    $adminPages,
+                    rdv_posted_page_permissions($adminPages)
+                );
+                $message = "Admin page access updated.";
+                $messageType = "success";
             }
         }
         elseif (isset($_POST['delete_admin']) && isset($_POST['del_admin_id'])) {
@@ -389,26 +462,64 @@ $flutterwave_encryption_key = getSetting($conn, 'flutterwave_encryption_key', $p
 $roles = [];
 if ($isSuperAdmin) {
     $rolesRes = $conn->query("SELECT id, name, description FROM roles ORDER BY id ASC");
-    $roles = $rolesRes->fetch_all(MYSQLI_ASSOC);
+    $roles = ($rolesRes && method_exists($rolesRes, 'fetch_all')) ? $rolesRes->fetch_all(MYSQLI_ASSOC) : [];
     foreach ($roles as &$role) {
-        $permRes = $conn->query("SELECT page_name, can_access FROM role_permissions WHERE role_id = {$role['id']}");
         $role['permissions'] = [];
-        while ($row = $permRes->fetch_assoc()) {
-            $role['permissions'][$row['page_name']] = $row['can_access'];
+        $rid = (int) $role['id'];
+        $permRes = $conn->query("SELECT page_name, can_access FROM role_permissions WHERE role_id = {$rid}");
+        if ($permRes) {
+            while ($row = $permRes->fetch_assoc()) {
+                $role['permissions'][$row['page_name']] = $row['can_access'];
+            }
         }
     }
     unset($role);
 }
 
-// Fetch all admin accounts (only for super admin)
 $admins = [];
 if ($isSuperAdmin) {
-    $adminsQuery = $conn->query("SELECT u.id, u.full_name AS name, u.email, u.role_id, r.name AS role_name, u.created_at 
-                                 FROM users u 
-                                 LEFT JOIN roles r ON u.role_id = r.id 
-                                 WHERE u.is_admin = 1 
+    $cols = rdv_admin_user_columns($conn, true);
+    $nameParts = [];
+    foreach (['fullname', 'full_name', 'name'] as $candidate) {
+        if (!empty($cols[$candidate])) {
+            $nameParts[] = "NULLIF(u.$candidate, '')";
+        }
+    }
+    $nameExpr = $nameParts ? ('COALESCE(' . implode(', ', $nameParts) . ', u.email)') : 'u.email';
+    $adminsQuery = $conn->query("SELECT u.id, $nameExpr AS fullname, u.email, u.role_id, r.name AS role_name, u.created_at
+                                 FROM users u
+                                 LEFT JOIN roles r ON u.role_id = r.id
+                                 WHERE u.is_admin = 1
                                  ORDER BY u.id ASC");
-    $admins = $adminsQuery->fetch_all(MYSQLI_ASSOC);
+    $admins = ($adminsQuery && method_exists($adminsQuery, 'fetch_all')) ? $adminsQuery->fetch_all(MYSQLI_ASSOC) : [];
+    foreach ($admins as &$admin) {
+        $admin['permissions'] = [];
+        $aid = (int) $admin['id'];
+        $permRes = $conn->prepare('SELECT page_name, can_access FROM admin_permissions WHERE admin_id = ?');
+        if ($permRes) {
+            $permRes->bind_param('i', $aid);
+            $permRes->execute();
+            $permRows = $permRes->get_result();
+            while ($row = $permRows->fetch_assoc()) {
+                $admin['permissions'][$row['page_name']] = (int) $row['can_access'];
+            }
+            $permRes->close();
+        }
+        if (!$admin['permissions'] && !empty($admin['role_id'])) {
+            $rid = (int) $admin['role_id'];
+            $rolePerms = $conn->prepare('SELECT page_name, can_access FROM role_permissions WHERE role_id = ?');
+            if ($rolePerms) {
+                $rolePerms->bind_param('i', $rid);
+                $rolePerms->execute();
+                $roleRows = $rolePerms->get_result();
+                while ($row = $roleRows->fetch_assoc()) {
+                    $admin['permissions'][$row['page_name']] = (int) $row['can_access'];
+                }
+                $rolePerms->close();
+            }
+        }
+    }
+    unset($admin);
 }
 
 $adminPageTitle = 'Admin Settings - RD Vendora';
@@ -546,130 +657,140 @@ require __DIR__ . '/../includes/admin_layout_start.php';
         </div>
 
         <?php if ($isSuperAdmin): ?>
-        <!-- ========== ROLE MANAGEMENT ========== -->
         <div class="settings-card">
-            <h3>🎭 Role Management</h3>
-            <?php if ($message && (strpos($message, 'Role') !== false || strpos($message, 'permission') !== false)) {
-                echo '<div class="message '.$messageType.'">'.htmlspecialchars($message).'</div>';
-            } ?>
+            <h3>Role management</h3>
+            <?php if ($message && (stripos($message, 'Role') !== false || stripos($message, 'permission') !== false)): ?>
+                <div class="message <?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
+            <?php endif; ?>
             <form method="POST" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-primary);">
-                <h4>➕ Add New Role</h4>
-                <div class="form-group"><label>Role Name</label><input type="text" name="role_name" required placeholder="e.g. Content Manager"></div>
+                <h4>Add role</h4>
+                <div class="form-group"><label>Role name</label><input type="text" name="role_name" required placeholder="e.g. Content Manager"></div>
                 <div class="form-group"><label>Description</label><input type="text" name="role_description" placeholder="Short description"></div>
-                <button type="submit" name="add_role" class="btn">Create Role</button>
+                <button type="submit" name="add_role" class="btn">Create role</button>
             </form>
 
-            <h4>📋 Existing Roles & Permissions</h4>
-            <?php foreach ($roles as $role): 
+            <h4>Roles and page access</h4>
+            <p class="settings-help">Tick the pages this role can open, then save. Super admin always has every page.</p>
+            <?php foreach ($roles as $role):
                 $isSuperRole = ($role['name'] === 'super_admin');
                 ?>
                 <div class="role-item">
                     <div class="role-info">
-                        <strong><?= htmlspecialchars($role['name']) ?></strong>
-                        <small><?= htmlspecialchars($role['description']) ?></small>
+                        <strong><?= htmlspecialchars((string) $role['name']) ?></strong>
+                        <small><?= htmlspecialchars((string) ($role['description'] ?? '')) ?></small>
                         <?php if ($isSuperRole): ?>
                             <span class="badge badge-primary">Super Admin</span>
                         <?php endif; ?>
                     </div>
                     <?php if (!$isSuperRole): ?>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleRolePermForm(<?= $role['id'] ?>)">Edit Permissions</button>
-                        <form method="POST" onsubmit="return confirm('Delete this role?')">
-                            <input type="hidden" name="del_role_id" value="<?= $role['id'] ?>">
-                            <button type="submit" name="delete_role" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </div>
+                    <form method="POST" onsubmit="return confirm('Delete this role?')">
+                        <input type="hidden" name="del_role_id" value="<?= (int) $role['id'] ?>">
+                        <button type="submit" name="delete_role" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
                     <?php endif; ?>
                 </div>
-                <!-- Permissions form for this role -->
-                <div id="role-perm-form-<?= $role['id'] ?>" style="display: none; margin: 1rem 0 1rem 1.5rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius);">
-                    <form method="POST">
-                        <input type="hidden" name="role_id" value="<?= $role['id'] ?>">
-                        <div class="perm-grid">
-                            <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
-                                <label class="perm-check">
-                                    <input type="checkbox" name="perm_<?= $pageKey ?>" value="1" <?= isset($role['permissions'][$pageKey]) && $role['permissions'][$pageKey] ? 'checked' : '' ?>>
-                                    <?= $pageLabel ?>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                        <button type="submit" name="update_role_permissions" class="btn">Save Role Permissions</button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleRolePermForm(<?= $role['id'] ?>)">Cancel</button>
-                    </form>
-                </div>
+                <?php if (!$isSuperRole): ?>
+                <form method="POST" class="perm-panel">
+                    <input type="hidden" name="role_id" value="<?= (int) $role['id'] ?>">
+                    <div class="perm-grid">
+                        <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
+                            <label class="perm-check">
+                                <input type="checkbox" name="perm_<?= htmlspecialchars($pageKey) ?>" value="1" <?= !empty($role['permissions'][$pageKey]) ? 'checked' : '' ?>>
+                                <?= htmlspecialchars($pageLabel) ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="submit" name="update_role_permissions" class="btn">Save role pages</button>
+                </form>
+                <?php endif; ?>
             <?php endforeach; ?>
         </div>
 
-        <!-- ========== ADMIN USER MANAGEMENT (with role assignment) ========== -->
         <div class="settings-card">
-            <h3>👥 Admin Accounts</h3>
-            <?php if ($message && (strpos($message, 'Admin') !== false || strpos($message, 'account') !== false || strpos($message, 'deleted') !== false)) {
-                echo '<div class="message '.$messageType.'">'.htmlspecialchars($message).'</div>';
-            } ?>
-            <form method="POST" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-primary);">
-                <h4>➕ Add New Admin</h4>
-                <div class="form-group"><label>Full Name</label><input type="text" name="admin_fullname" required></div>
-                <div class="form-group"><label>Email Address</label><input type="email" name="admin_email_new" required></div>
+            <h3>Admin accounts</h3>
+            <?php if ($message && (stripos($message, 'Admin') !== false || stripos($message, 'account') !== false || stripos($message, 'access') !== false || stripos($message, 'deleted') !== false)): ?>
+                <div class="message <?= htmlspecialchars($messageType) ?>"><?= htmlspecialchars($message) ?></div>
+            <?php endif; ?>
+            <form method="POST" class="new-admin-form">
+                <h4>Add admin</h4>
+                <div class="form-group"><label>Full name</label><input type="text" name="admin_fullname" required></div>
+                <div class="form-group"><label>Email</label><input type="email" name="admin_email_new" required></div>
                 <div class="form-group"><label>Password (min 6 chars)</label><input type="password" name="admin_password_new" required></div>
                 <div class="form-group"><label>Role</label>
                     <select name="admin_role" required>
                         <option value="">Select a role</option>
                         <?php foreach ($roles as $role): ?>
-                            <option value="<?= $role['id'] ?>"><?= htmlspecialchars($role['name']) ?></option>
+                            <?php if ($role['name'] === 'super_admin') continue; ?>
+                            <option value="<?= (int) $role['id'] ?>"><?= htmlspecialchars((string) $role['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <button type="submit" name="add_admin" class="btn">Create Admin</button>
+                <p class="settings-help">Choose the pages this person can open. Untick a page to keep it blocked.</p>
+                <div class="perm-grid">
+                    <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
+                        <label class="perm-check">
+                            <input type="checkbox" name="new_perm_<?= htmlspecialchars($pageKey) ?>" value="1">
+                            <?= htmlspecialchars($pageLabel) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <button type="submit" name="add_admin" class="btn">Create admin</button>
             </form>
 
-            <h4>📋 Existing Administrators</h4>
-            <?php foreach ($admins as $admin): 
-                $isSelf = ($admin['id'] == $_SESSION['user_id']);
+            <h4>Existing administrators</h4>
+            <?php foreach ($admins as $admin):
+                $isSelf = ((int) $admin['id'] === (int) ($_SESSION['user_id'] ?? 0));
+                $isSuperAccount = (($admin['role_name'] ?? '') === 'super_admin');
                 ?>
                 <div class="admin-item">
                     <div class="admin-info">
-                        <strong><?= htmlspecialchars($admin['fullname']) ?></strong>
-                        <small><?= htmlspecialchars($admin['email']) ?> • Joined <?= date('M d, Y', strtotime($admin['created_at'])) ?></small>
-                        <?php if ($admin['role_name'] === 'super_admin'): ?>
+                        <strong><?= htmlspecialchars((string) ($admin['fullname'] ?? $admin['email'])) ?></strong>
+                        <small><?= htmlspecialchars((string) $admin['email']) ?> · Joined <?= !empty($admin['created_at']) ? date('M d, Y', strtotime((string) $admin['created_at'])) : '—' ?></small>
+                        <?php if ($isSuperAccount): ?>
                             <span class="badge badge-primary">Super Admin</span>
                         <?php else: ?>
-                            <span class="badge badge-secondary"><?= htmlspecialchars($admin['role_name'] ?? 'No role') ?></span>
+                            <span class="badge badge-secondary"><?= htmlspecialchars((string) ($admin['role_name'] ?? 'No role')) ?></span>
                         <?php endif; ?>
                     </div>
                     <?php if (!$isSelf): ?>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAdminRoleForm(<?= $admin['id'] ?>)">Change Role</button>
-                        <form method="POST" onsubmit="return confirm('Delete this admin?')">
-                            <input type="hidden" name="del_admin_id" value="<?= $admin['id'] ?>">
-                            <button type="submit" name="delete_admin" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </div>
+                    <form method="POST" onsubmit="return confirm('Delete this admin?')">
+                        <input type="hidden" name="del_admin_id" value="<?= (int) $admin['id'] ?>">
+                        <button type="submit" name="delete_admin" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
                     <?php endif; ?>
                 </div>
-                <!-- Change role form -->
-                <div id="admin-role-form-<?= $admin['id'] ?>" style="display: none; margin: 1rem 0 1rem 1.5rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius);">
-                    <form method="POST">
-                        <input type="hidden" name="admin_id" value="<?= $admin['id'] ?>">
-                        <div class="form-group">
-                            <label>Assign Role</label>
-                            <select name="admin_role" required>
-                                <?php foreach ($roles as $role): ?>
-                                    <option value="<?= $role['id'] ?>" <?= ($admin['role_id'] == $role['id']) ? 'selected' : '' ?>><?= htmlspecialchars($role['name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <button type="submit" name="update_admin_role" class="btn">Save Role</button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAdminRoleForm(<?= $admin['id'] ?>)">Cancel</button>
-                    </form>
-                </div>
+                <?php if (!$isSelf): ?>
+                <form method="POST" class="perm-panel">
+                    <input type="hidden" name="admin_id" value="<?= (int) $admin['id'] ?>">
+                    <?php if ($isSuperAccount): ?>
+                    <p class="settings-help">This account currently has full access. Assign a limited role and tick pages, then save to restrict them.</p>
+                    <?php endif; ?>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select name="admin_role">
+                            <?php foreach ($roles as $role): ?>
+                                <?php if ($role['name'] === 'super_admin') continue; ?>
+                                <option value="<?= (int) $role['id'] ?>" <?= ((int) $admin['role_id'] === (int) $role['id']) ? 'selected' : '' ?>><?= htmlspecialchars((string) $role['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <p class="settings-help">Tick pages to allow. Untick to remove access, then save.</p>
+                    <div class="perm-grid">
+                        <?php foreach ($adminPages as $pageKey => $pageLabel): ?>
+                            <label class="perm-check">
+                                <input type="checkbox" name="perm_<?= htmlspecialchars($pageKey) ?>" value="1" <?= !empty($admin['permissions'][$pageKey]) ? 'checked' : '' ?>>
+                                <?= htmlspecialchars($pageLabel) ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="perm-actions">
+                        <button type="submit" name="update_admin_permissions" class="btn">Save page access</button>
+                        <button type="submit" name="update_admin_role" class="btn btn-secondary">Save role only</button>
+                    </div>
+                </form>
+                <?php endif; ?>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
     </div>
-</div>
-
-
-</body>
-</html>
-<?php ?>
 <?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>

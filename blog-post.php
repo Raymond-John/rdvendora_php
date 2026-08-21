@@ -20,8 +20,8 @@ if (!$post) {
     $rdvBodyClass = 'rdv-article-page';
     require __DIR__ . '/includes/public_layout_start.php';
     echo '<article class="rdv-article"><div class="rdv-article-inner">';
-    echo '<nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="./">Home</a> / <a href="blog">News</a></nav>';
-    echo '<h1>Story not found</h1><p>This article is unpublished, was removed, or the link is incomplete. <a href="blog">Back to News</a>.</p></div></article>';
+    echo '<nav class="rdv-crumbs" aria-label="Breadcrumb"><a href="' . rdv_blog_h(rdv_url('index')) . '">Home</a> / <a href="' . rdv_blog_h(rdv_url('blog')) . '">News</a></nav>';
+    echo '<h1>Story not found</h1><p>This article is unpublished, was removed, or the link is incomplete. <a href="' . rdv_blog_h(rdv_url('blog')) . '">Back to News</a>.</p></div></article>';
     require __DIR__ . '/includes/public_layout_end.php';
     exit;
 }
@@ -51,9 +51,9 @@ require __DIR__ . '/includes/public_layout_start.php';
   <header class="rdv-article-hero">
     <div class="rdv-article-inner">
       <nav class="rdv-crumbs" aria-label="Breadcrumb">
-        <a href="./">Home</a>
+        <a href="<?= rdv_blog_h(rdv_url('index')) ?>">Home</a>
         <span aria-hidden="true">/</span>
-        <a href="blog">News</a>
+        <a href="<?= rdv_blog_h(rdv_url('blog')) ?>">News</a>
         <span aria-hidden="true">/</span>
         <span><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></span>
       </nav>

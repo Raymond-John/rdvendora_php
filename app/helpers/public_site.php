@@ -158,8 +158,9 @@ if (!function_exists('rdv_newsletter_form')) {
     function rdv_newsletter_form($context = 'footer') {
         $csrf = rdv_csrf_field();
         $id = 'rdv-newsletter-' . preg_replace('/[^a-z0-9-]/', '', $context);
+        $action = htmlspecialchars(function_exists('rdv_url') ? rdv_url('newsletter-subscribe') : 'newsletter-subscribe', ENT_QUOTES, 'UTF-8');
         return <<<HTML
-<form class="rdv-newsletter-form" id="{$id}" method="post" action="newsletter-subscribe" novalidate>
+<form class="rdv-newsletter-form" id="{$id}" method="post" action="{$action}" novalidate>
   {$csrf}
   <input type="text" name="website" class="rdv-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
   <label class="rdv-sr-only" for="{$id}-email">Email address</label>

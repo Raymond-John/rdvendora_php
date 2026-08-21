@@ -82,6 +82,14 @@
             if (!ok) return;
             form.dataset.rdvConfirmed = '1';
             form.removeAttribute('onsubmit');
+            var submitter = e.submitter;
+            if (submitter && submitter.name && !form.querySelector('input[name="' + submitter.name + '"]')) {
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = submitter.name;
+                hidden.value = submitter.value || '1';
+                form.appendChild(hidden);
+            }
             HTMLFormElement.prototype.submit.call(form);
         });
     }, true);

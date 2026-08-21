@@ -249,25 +249,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $messageType = "success";
             }
         }
-        elseif (isset($_POST['delete_role']) && isset($_POST['del_role_id'])) {
+        elseif (!empty($_POST['del_role_id'])) {
             $delId = intval($_POST['del_role_id']);
             $checkRole = $conn->prepare("SELECT name FROM roles WHERE id = ?");
             $checkRole->bind_param("i", $delId);
             $checkRole->execute();
             $roleData = $checkRole->get_result()->fetch_assoc();
-            if ($roleData && $roleData['name'] === 'super_admin') {
-                $message = "Cannot delete super admin role.";
+            $checkRole->close();
+            if ($roleData && ($roleData['name'] ?? '') === 'super_admin') {
+                $message = "Cannot delete the Super Admin role.";
+                $messageType = "error";
+            } elseif (!$roleData) {
+                $message = "That role was not found.";
                 $messageType = "error";
             } else {
+                $cols = rdv_admin_user_columns($conn, true);
+                if (!empty($cols['role_id'])) {
+                    $clear = $conn->prepare('UPDATE users SET role_id = NULL WHERE role_id = ?');
+                    if ($clear) {
+                        $clear->bind_param('i', $delId);
+                        $clear->execute();
+                        $clear->close();
+                    }
+                }
+                $permDel = $conn->prepare('DELETE FROM role_permissions WHERE role_id = ?');
+                if ($permDel) {
+                    $permDel->bind_param('i', $delId);
+                    $permDel->execute();
+                    $permDel->close();
+                }
                 $delStmt = $conn->prepare("DELETE FROM roles WHERE id = ?");
                 $delStmt->bind_param("i", $delId);
-                if ($delStmt->execute()) {
-                    $message = "Role deleted.";
+                if ($delStmt->execute() && $delStmt->affected_rows > 0) {
+                    $message = "Role deleted. Admins who had it now need a new role assigned.";
                     $messageType = "success";
                 } else {
-                    $message = "Deletion failed.";
+                    $message = "Could not delete this role. Assign its admins another role, then try again.";
                     $messageType = "error";
                 }
+                $delStmt->close();
             }
         }
 
@@ -408,7 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $messageType = "success";
             }
         }
-        elseif (isset($_POST['delete_admin']) && isset($_POST['del_admin_id'])) {
+        elseif (!empty($_POST['del_admin_id'])) {
             $delId = intval($_POST['del_admin_id']);
             if ($delId == $_SESSION['user_id']) {
                 $message = "You cannot delete your own account.";
@@ -775,7 +795,8 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                         </div>
                     </header>
                     <?php if (!$isSuperRole): ?>
-                    <form id="delete-role-<?= (int) $role['id'] ?>" method="POST" onsubmit="return confirm('Delete this role?')">
+                    <form id="delete-role-<?= (int) $role['id'] ?>" method="POST" onsubmit="return confirm('Delete this role? Admins using it will need a new role.')">
+                        <input type="hidden" name="delete_role" value="1">
                         <input type="hidden" name="del_role_id" value="<?= (int) $role['id'] ?>">
                     </form>
                     <form method="POST">
@@ -866,6 +887,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     </header>
                     <?php if (!$isSelf): ?>
                     <form id="delete-admin-<?= (int) $admin['id'] ?>" method="POST" onsubmit="return confirm('Remove this administrator?')">
+                        <input type="hidden" name="delete_admin" value="1">
                         <input type="hidden" name="del_admin_id" value="<?= (int) $admin['id'] ?>">
                     </form>
                     <form method="POST">

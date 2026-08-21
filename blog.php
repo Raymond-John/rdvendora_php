@@ -1,4 +1,12 @@
 <?php
+// If /blog/{slug} was mapped onto blog.php (PATH_INFO), show the article.
+$pathInfo = trim((string) ($_SERVER['PATH_INFO'] ?? ''), '/');
+if ($pathInfo !== '' && strpos($pathInfo, '/') === false) {
+    $_GET['slug'] = $pathInfo;
+    require __DIR__ . '/blog-post.php';
+    exit;
+}
+
 $rdvPageTitle = 'News | RD Vendora';
 $rdvPageDescription = 'Platform news, store guides, and payment notes from the RD Vendora team.';
 $rdvPagePath = 'blog.php';

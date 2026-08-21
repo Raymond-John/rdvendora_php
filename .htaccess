@@ -1,4 +1,4 @@
-Options -Indexes
+Options -Indexes -MultiViews
 ServerSignature Off
 DirectorySlash Off
 
@@ -77,18 +77,24 @@ DirectorySlash Off
     RewriteRule ^admin/([A-Za-z0-9_-]+)/?$ admin/$1.php [L,QSA]
 
     # Serve existing files/directories as-is (assets, uploads, etc.)
-    # Skip admin/vendor dirs so they never directory-list/403
+    # Skip admin/vendor dirs so they never directory-list/403.
+    # Skip /blog/{slug} — LiteSpeed can treat that as blog.php + PATH_INFO
+    # (a "file") and 500 before the article rewrite below runs.
     RewriteCond %{REQUEST_URI} !/(admin|vendor)/?$ [NC]
+    RewriteCond %{REQUEST_URI} !/blog/.+ [NC]
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # /page → page.php when that script exists
-    RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^(.+?)/?$ $1.php [L,QSA]
-
-    # /blog/{slug} → article (must be before store catch-all)
+    # /blog/{slug} → article. Must run before the generic ".php exists" map:
+    # Hostinger/LiteSpeed sets REQUEST_FILENAME to .../blog for /blog/slug because
+    # blog.php exists, so that map would internally rewrite to a missing
+    # blog/slug.php and return a 500.
     RewriteRule ^blog/([a-z0-9-]+)/?$ blog-post.php?slug=$1 [L,QSA]
+
+    # /page → page.php when that script exists (one URL segment only)
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^([A-Za-z0-9_-]+)/?$ $1.php [L,QSA]
 
     # ----- Store path URLs (only when no matching .php page) -----
     RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/product/([0-9]+)(?:-[a-z0-9-]+)?/?$ product-details.php?slug=$1&id=$2 [L,QSA]

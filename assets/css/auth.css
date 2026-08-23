@@ -379,6 +379,121 @@
 .auth-alert.error { background: var(--error-light); border: 1px solid var(--error); color: var(--error-dark, #b91c1c); }
 .auth-alert.success { background: var(--success-light); border: 1px solid var(--success); color: var(--success-dark); }
 
+.auth-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+.auth-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 3.5rem;
+  opacity: 0.45;
+}
+.auth-step.is-active,
+.auth-step.is-done {
+  opacity: 1;
+}
+.auth-step-num {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid var(--border-primary);
+  color: var(--text-secondary);
+  background: #fff;
+}
+.auth-step.is-active .auth-step-num {
+  border-color: #071530;
+  background: #071530;
+  color: #d4af37;
+}
+.auth-step.is-done .auth-step-num {
+  border-color: #d4af37;
+  background: #071530;
+  color: #fff;
+}
+.auth-step-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.auth-step-line {
+  flex: 1;
+  max-width: 2.5rem;
+  height: 2px;
+  background: var(--border-primary);
+  margin-bottom: 1.1rem;
+}
+.auth-step-line.is-done {
+  background: #d4af37;
+}
+.form-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.auth-code-input {
+  letter-spacing: 0.35em;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+.auth-inline-form {
+  margin-top: 0.75rem;
+}
+.auth-text-btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.35rem 0;
+  border: 0;
+  background: none;
+  color: #071530;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.auth-text-btn:hover {
+  color: #d4af37;
+}
+.auth-verified-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--success-light);
+  border: 1px solid var(--success);
+  color: var(--success-dark);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.auth-verified-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--success);
+  flex-shrink: 0;
+}
+.auth-verified-change {
+  margin: 0 0 0 auto;
+}
+
 .auth-page img.rdv-brand-logo {
   width: auto;
   height: 28px;

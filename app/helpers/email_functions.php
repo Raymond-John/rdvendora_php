@@ -166,6 +166,43 @@ function sendWelcomeEmail($email, $fullname) {
 }
 
 // ============================================================
+//  SIGNUP EMAIL VERIFICATION CODE
+// ============================================================
+function sendSignupVerificationCode($email, $code) {
+    $year = date('Y');
+    $safeEmail = htmlspecialchars((string) $email, ENT_QUOTES, 'UTF-8');
+    $safeCode = htmlspecialchars((string) $code, ENT_QUOTES, 'UTF-8');
+    $minutes = 15;
+
+    $htmlBody = '
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#F5F7FB;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">
+<table align="center" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FB;padding:40px 20px;">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border-radius:18px;border:1px solid #E5E7EB;">
+<tr><td style="background:#071530;border-bottom:6px solid #D4AF37;border-radius:18px 18px 0 0;padding:20px;text-align:center;color:#fff;font-size:22px;font-weight:700;">RD Vendora</td></tr>
+<tr><td style="padding:32px 28px;text-align:center;">
+<p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#b45309;">Verify your email</p>
+<h1 style="margin:0 0 12px;font-size:22px;color:#0f172a;">Confirm your signup</h1>
+<p style="margin:0 0 20px;color:#64748b;line-height:1.6;">Enter this code on the signup page for <strong>' . $safeEmail . '</strong>. It expires in ' . $minutes . ' minutes.</p>
+<p style="margin:0 0 8px;font-size:36px;font-weight:800;letter-spacing:0.35em;color:#071530;">' . $safeCode . '</p>
+<p style="margin:20px 0 0;font-size:13px;color:#94a3b8;line-height:1.5;">If you did not request this, you can ignore this email.</p>
+<p style="margin:16px 0 0;font-size:13px;color:#94a3b8;">&copy; ' . $year . ' RD Vendora</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>';
+
+    $plainText = "Your RD Vendora verification code is: $code\n\nEnter it on the signup page for $email. It expires in $minutes minutes.\n\nIf you did not request this, ignore this email.";
+
+    return sendEmail($email, 'Your RD Vendora verification code: ' . $code, $htmlBody, $plainText);
+}
+
+// ============================================================
 //  LOGIN NOTIFICATION – Premium Styled
 // ============================================================
 function sendLoginNotification($email, $fullname, $context = 'account') {

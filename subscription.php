@@ -1,16 +1,13 @@
 <?php
-session_start();
-
-// Redirect if not logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login?error=Not logged in');
-    exit();
-}
-
 require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
 require_once 'includes/notification_helper.php';
 require_once 'includes/email_functions.php'; // <-- ADDED: load premium email functions
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login?error=Not logged in');
+    exit();
+}
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -183,18 +180,31 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 
 $payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
+$flwConfig = function_exists('rdv_flutterwave_config') ? rdv_flutterwave_config() : [
+    'secret' => trim((string) ($payKeys['flutterwave_secret'] ?? '')),
+    'public' => trim((string) ($payKeys['flutterwave_public'] ?? '')),
+    'configured' => !empty($payKeys['flutterwave_secret']) && !empty($payKeys['flutterwave_public']),
+    'mode' => 'missing',
+];
 if (!defined('FLW_PUBLIC_KEY')) {
-    define('FLW_PUBLIC_KEY', $payKeys['flutterwave_public'] ?? '');
+    define('FLW_PUBLIC_KEY', $flwConfig['public']);
 }
 if (!defined('FLW_SECRET_KEY')) {
-    define('FLW_SECRET_KEY', $payKeys['flutterwave_secret'] ?? '');
+    define('FLW_SECRET_KEY', $flwConfig['secret']);
 }
-define('FLW_SANDBOX', true);
-define('FLW_BASE_URL', FLW_SANDBOX ? 'https://api.flutterwave.com/v3' : 'https://api.flutterwave.com/v3');
+define('FLW_BASE_URL', 'https://api.flutterwave.com/v3');
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/storage/logs/flutterwave_error.log');
 
 function initializeFlutterwavePayment($amount, $customerName, $customerEmail, $customerPhone, $paymentReference, $returnUrl) {
+    $secret = trim((string) FLW_SECRET_KEY);
+    if ($secret === '') {
+        return ['error' => 'Flutterwave is not configured. Add your secret key in Admin → Settings → Payment keys.'];
+    }
+    if (!function_exists('curl_init')) {
+        return ['error' => 'CURL missing'];
+    }
+
     $payload = [
         'tx_ref' => $paymentReference,
         'amount' => $amount,
@@ -211,36 +221,55 @@ function initializeFlutterwavePayment($amount, $customerName, $customerEmail, $c
             'description' => 'Subscription to ' . $customerName,
         ]
     ];
-    if (!function_exists('curl_init')) return ['error' => 'CURL missing'];
+
     $ch = curl_init(FLW_BASE_URL . '/payments');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . FLW_SECRET_KEY, 'Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $secret, 'Content-Type: application/json']);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
-    if ($httpCode === 200) {
-        $data = json_decode($response, true);
-        if ($data && $data['status'] === 'success' && isset($data['data']['link'])) {
-            return ['success' => true, 'checkoutUrl' => $data['data']['link']];
-        }
-        return ['error' => $data['message'] ?? 'Unknown error'];
+
+    if ($curlError) {
+        error_log('Flutterwave init curl error: ' . $curlError);
+        return ['error' => 'Could not reach Flutterwave. Try again shortly.'];
     }
-    return ['error' => "HTTP $httpCode"];
+
+    $data = json_decode((string) $response, true);
+    if ($httpCode === 200 && $data && ($data['status'] ?? '') === 'success' && !empty($data['data']['link'])) {
+        return ['success' => true, 'checkoutUrl' => $data['data']['link']];
+    }
+
+    $apiMessage = trim((string) ($data['message'] ?? ''));
+    if ($httpCode === 401) {
+        error_log('Flutterwave init HTTP 401 – check FLUTTERWAVE_SECRET_KEY in Admin → Settings or .env');
+        return ['error' => 'Invalid Flutterwave secret key (HTTP 401). In Admin → Settings → Payment keys, paste your live FLWSECK-... secret from the Flutterwave dashboard.'];
+    }
+    if ($apiMessage !== '') {
+        return ['error' => $apiMessage];
+    }
+
+    error_log('Flutterwave init failed HTTP ' . $httpCode . ': ' . substr((string) $response, 0, 500));
+    return ['error' => 'HTTP ' . $httpCode];
 }
 
 function verifyFlutterwaveTransaction($transactionId) {
+    $secret = trim((string) FLW_SECRET_KEY);
+    if ($secret === '') {
+        return ['error' => 'Flutterwave is not configured.'];
+    }
     $ch = curl_init(FLW_BASE_URL . '/transactions/' . $transactionId . '/verify');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . FLW_SECRET_KEY, 'Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $secret, 'Content-Type: application/json']);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     if ($httpCode === 200) {
         $data = json_decode($response, true);
@@ -248,6 +277,9 @@ function verifyFlutterwaveTransaction($transactionId) {
             return ['success' => true, 'amount' => $data['data']['amount'], 'tx_ref' => $data['data']['tx_ref']];
         }
         return ['error' => $data['message'] ?? 'Payment not successful'];
+    }
+    if ($httpCode === 401) {
+        return ['error' => 'Invalid Flutterwave secret key (HTTP 401).'];
     }
     return ['error' => 'HTTP ' . $httpCode];
 }
@@ -378,8 +410,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $_SESSION['pending_billing'] = $billing;
     $_SESSION['pending_amount'] = $amount;
     $_SESSION['pending_tx_ref'] = $paymentReference;
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-    $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/subscription.php?flutterwave_callback=1';
+    $returnUrl = function_exists('rdv_url')
+        ? rdv_url('subscription', ['flutterwave_callback' => '1'])
+        : ((function_exists('rdv_request_is_https') && rdv_request_is_https()) ? 'https://' : 'http://')
+            . ($_SERVER['HTTP_HOST'] ?? 'localhost')
+            . '/subscription?flutterwave_callback=1';
     $init = initializeFlutterwavePayment($amount, $fullName, $email, $phone, $paymentReference, $returnUrl);
     if (isset($init['success']) && $init['success']) {
         header('Location: ' . $init['checkoutUrl']);
@@ -1037,6 +1072,12 @@ if (!$current_subscription) {
                 <div class="alert alert-error"><?= htmlspecialchars($activation_error) ?></div>
             <?php endif; ?>
 
+            <?php if (!$flwConfig['configured']): ?>
+                <div class="alert alert-warning">
+                    <strong>Payments not configured.</strong> Add your Flutterwave public and secret keys in <strong>Admin → Settings → Payment keys</strong>, then try again.
+                </div>
+            <?php endif; ?>
+
             <?php if ($show_trial_warning): ?>
                 <div class="alert alert-warning">⚠️ Your free trial ends in <strong><?= $remaining_days ?> day(s)</strong>. <a href="#" onclick="scrollToPlans()">Upgrade now</a> to avoid service interruption.</div>
             <?php endif; ?>
@@ -1241,7 +1282,15 @@ if (!$current_subscription) {
                     <div class="form-group"><label>Phone Number *</label><input type="tel" id="phone" required placeholder="08012345678"></div>
                     <button type="submit" class="btn btn-pay" id="payNowBtn">Proceed to Flutterwave</button>
                 </form>
-                <div class="remita-note" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-4); text-align:center;">🔒 Test mode – No real charge will be deducted.</div>
+                <div class="remita-note" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-4); text-align:center;">
+                    <?php if ($flwConfig['mode'] === 'test'): ?>
+                        Test mode – use Flutterwave test cards only.
+                    <?php elseif ($flwConfig['mode'] === 'live'): ?>
+                        Secured checkout – real charges apply.
+                    <?php else: ?>
+                        Configure Flutterwave keys in Admin → Settings before paying.
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>

@@ -43,3 +43,21 @@ if (!function_exists('rdv_payment_keys')) {
         return $cfg;
     }
 }
+
+if (!function_exists('rdv_flutterwave_config')) {
+    function rdv_flutterwave_config() {
+        $keys = rdv_payment_keys();
+        $secret = trim((string) ($keys['flutterwave_secret'] ?? ''));
+        $public = trim((string) ($keys['flutterwave_public'] ?? ''));
+        $mode = 'missing';
+        if ($secret !== '') {
+            $mode = (stripos($secret, 'TEST') !== false) ? 'test' : 'live';
+        }
+        return [
+            'secret' => $secret,
+            'public' => $public,
+            'configured' => $secret !== '' && $public !== '',
+            'mode' => $mode,
+        ];
+    }
+}

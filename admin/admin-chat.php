@@ -314,11 +314,19 @@ $adminPageStyles = <<<'CSS'
     .chat-layout {
         margin: calc(var(--topbar-height) + 0.5rem) 0.5rem 0.5rem;
         flex-direction: column;
-        height: calc(100vh - var(--topbar-height) - 1rem);
+        height: calc(100dvh - var(--topbar-height) - 1rem);
+        max-height: calc(100dvh - var(--topbar-height) - 1rem);
     }
-    .vendor-list { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--border-primary); }
-    .local-video, .remote-video { width: 120px; height: 90px; }
-    .remote-video { right: 140px; }
+    .vendor-list {
+        width: 100%;
+        max-height: 38%;
+        min-height: 140px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-primary);
+    }
+    .chat-area { min-height: 0; flex: 1; }
+    .local-video, .remote-video { width: 110px; height: 82px; }
+    .remote-video { right: 12px; bottom: 90px; left: auto; }
 }
 CSS;
 require __DIR__ . '/../includes/admin_layout_start.php';

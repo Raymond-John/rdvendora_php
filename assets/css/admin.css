@@ -215,7 +215,7 @@ body.admin-app {
 .page-content { padding: 0 2rem 2rem; }
 
 .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
     gap: 1.5rem; padding: 1.5rem 2rem;
 }
 .stat-card {
@@ -335,7 +335,7 @@ body.admin-app {
 .sidebar-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.5); z-index:299; display:none; backdrop-filter: blur(4px); }
 .settings-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
     gap: 1.5rem;
     padding: 0 2rem 2rem;
 }
@@ -601,9 +601,6 @@ body.admin-app {
 .alert-success { background: var(--success-light); color: var(--success); }
 .alert-error { background: var(--error-light); color: var(--error); }
 .alert-warning { background: var(--warning-light); color: #b45309; }
-@media (max-width: 768px) {
-    .settings-container, .content-card { margin: 1rem; }
-}
 .role-item, .admin-item { display: none; }
 .access-studio { padding: 1.75rem !important; }
 .access-head { margin-bottom: 1.25rem; }
@@ -765,5 +762,187 @@ body.admin-app {
 @media (max-width: 900px) {
     .access-create, .access-create--admin { grid-template-columns: 1fr; }
     .access-card__head { flex-direction: column; }
+}
+
+/* ========== Admin responsive shell ========== */
+@media (max-width: 1024px) {
+    .dash-search { width: min(220px, 40vw); }
+    .page-header,
+    .page-content,
+    .stats-grid,
+    .admin-toolbar,
+    .toolbar,
+    .filters,
+    .pagination,
+    .alert,
+    .settings-container {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+    .content-card { margin-left: 1.25rem; margin-right: 1.25rem; }
+    .admin-grid, .grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: min(var(--sidebar-width), 86vw);
+        max-width: 300px;
+        transform: translateX(-105%);
+        box-shadow: var(--shadow-lg);
+    }
+    .sidebar.collapsed {
+        width: min(var(--sidebar-width), 86vw);
+        max-width: 300px;
+    }
+    .sidebar.collapsed .sidebar-item span,
+    .sidebar.collapsed .sidebar-section-title,
+    .sidebar.collapsed .nav-logo span,
+    .sidebar.collapsed .rdv-brand-name {
+        opacity: 1;
+        width: auto;
+        overflow: visible;
+    }
+    .sidebar.collapsed .nav-logo .rdv-brand-logo {
+        height: 36px;
+        max-width: 140px;
+        padding: 2px 6px;
+    }
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    .sidebar-overlay {
+        display: none;
+        z-index: 299;
+    }
+    .sidebar-overlay.is-visible {
+        display: block;
+    }
+    .main-content,
+    .sidebar.collapsed ~ .main-content {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
+    }
+    .dash-navbar,
+    .sidebar.collapsed ~ .main-content .dash-navbar {
+        left: 0;
+        right: 0;
+        width: 100%;
+        padding: 0 0.75rem;
+        gap: 0.5rem;
+        padding-left: max(0.75rem, env(safe-area-inset-left));
+        padding-right: max(0.75rem, env(safe-area-inset-right));
+    }
+    .mobile-sidebar-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+    }
+    .dash-search {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        padding: 0.35rem 0.75rem;
+    }
+    .dash-user-info { display: none; }
+    .dash-actions { gap: 0.5rem; flex-shrink: 0; }
+    .page-header {
+        margin-top: var(--topbar-height);
+        padding: 1rem 1rem 0.35rem;
+    }
+    .page-title { font-size: 1.35rem; }
+    .page-subtitle { font-size: 0.8rem; }
+    .page-content,
+    .stats-grid,
+    .admin-toolbar,
+    .toolbar,
+    .filters,
+    .pagination {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .page-content { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+    .stats-grid {
+        gap: 0.85rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        grid-template-columns: 1fr;
+    }
+    .stat-card { padding: 1rem; }
+    .alert {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    .settings-container {
+        padding: 0 1rem 1.25rem;
+        gap: 1rem;
+        grid-template-columns: 1fr;
+    }
+    .settings-card,
+    .content-card {
+        margin-left: 1rem;
+        margin-right: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius-lg);
+    }
+    .content-card { margin-top: 1rem; }
+    .table-container {
+        margin: 0 1rem 1rem;
+        border-radius: var(--radius-lg);
+        -webkit-overflow-scrolling: touch;
+    }
+    .data-table,
+    .admin-app table {
+        min-width: 640px;
+    }
+    .data-table th,
+    .data-table td,
+    .admin-app table th,
+    .admin-app table td {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    .form-grid { grid-template-columns: 1fr; }
+    .action-buttons { flex-wrap: wrap; }
+    .btn {
+        width: auto;
+        max-width: 100%;
+        padding: 0.65rem 1rem;
+    }
+    .modal-container,
+    .rdv-modal {
+        max-width: calc(100vw - 1.5rem);
+        margin: 0.5rem;
+    }
+    .rdv-modal-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+    .rdv-modal-btn { width: 100%; justify-content: center; }
+    .access-studio { padding: 1rem !important; }
+    .access-card { padding: 0.9rem; }
+    .access-card__meta { width: 100%; justify-content: space-between; }
+    .access-role-field { max-width: none; width: 100%; }
+    .filter-tabs,
+    .design-section,
+    .email-form-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    .email-form-container .form-card { padding: 1.15rem; }
+}
+
+@media (max-width: 480px) {
+    .dash-navbar { height: 56px; }
+    :root { --topbar-height: 56px; }
+    .dash-search { display: none; }
+    .page-title { font-size: 1.2rem; }
+    .stats-grid { gap: 0.75rem; }
+    .sidebar-item {
+        padding: 0.7rem 0.9rem;
+        font-size: 0.9rem;
+    }
 }
 

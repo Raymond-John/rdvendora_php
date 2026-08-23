@@ -658,6 +658,11 @@ $adminPageStyles = <<<'CSS'
     .stores-grid.list-view .store-card { grid-template-columns: 1fr; }
     .stores-grid.list-view .card-actions { border-left: none; border-top: 1px solid var(--border-primary); max-width: none; }
 }
+@media (max-width: 768px) {
+    .filter-tabs { padding: 0 1rem 1rem; }
+    .stores-meta { padding: 0 1rem 0.75rem; }
+    .stores-grid { padding: 0 1rem 1.25rem; }
+}
 CSS;
 require __DIR__ . '/../includes/admin_layout_start.php';
 ?>

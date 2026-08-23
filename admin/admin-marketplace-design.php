@@ -465,6 +465,9 @@ $adminPageStyles = <<<'CSS'
 }
 @media (max-width: 768px) {
     .design-section { padding: 1rem; }
+    .settings-group-header,
+    .settings-group-body { padding: 1rem; }
+    .hero-preview img { max-width: 100%; }
 }
 CSS;
 require __DIR__ . '/../includes/admin_layout_start.php';

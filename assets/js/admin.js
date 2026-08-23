@@ -152,32 +152,54 @@
         overlay.className = 'sidebar-overlay';
         document.body.appendChild(overlay);
     }
+    function isMobileNav() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
     function closeMobile() {
         if (!sidebar) return;
         sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('is-visible');
         overlay.style.display = 'none';
         document.body.style.overflow = '';
+        if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'false');
     }
     function openMobile() {
         if (!sidebar) return;
         sidebar.classList.add('mobile-open');
+        overlay.classList.add('is-visible');
         overlay.style.display = 'block';
         document.body.style.overflow = 'hidden';
+        if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'true');
+    }
+    function toggleMobile() {
+        if (sidebar && sidebar.classList.contains('mobile-open')) closeMobile();
+        else openMobile();
     }
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function () {
-            if (window.innerWidth <= 768) {
-                if (sidebar.classList.contains('mobile-open')) closeMobile();
-                else openMobile();
-            } else {
-                sidebar.classList.toggle('collapsed');
-      }
-    });
-  }
-    if (mobileToggle) mobileToggle.addEventListener('click', openMobile);
+            if (isMobileNav()) toggleMobile();
+            else sidebar.classList.toggle('collapsed');
+        });
+    }
+    if (mobileToggle) {
+        mobileToggle.setAttribute('aria-expanded', 'false');
+        mobileToggle.addEventListener('click', toggleMobile);
+    }
     overlay.addEventListener('click', closeMobile);
+    if (sidebar) {
+        sidebar.querySelectorAll('a.sidebar-item').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (isMobileNav()) closeMobile();
+            });
+        });
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('mobile-open')) {
+            closeMobile();
+        }
+    });
     window.addEventListener('resize', function () {
-        if (window.innerWidth > 768) {
+        if (!isMobileNav()) {
             closeMobile();
             if (sidebar) sidebar.classList.remove('collapsed');
         }

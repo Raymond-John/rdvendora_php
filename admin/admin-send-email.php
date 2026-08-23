@@ -204,6 +204,10 @@ $adminSearchPlaceholder = 'Search customers...';
 $adminShowHeader = true;
 $adminPageStyles = <<<'CSS'
 .email-form-container { padding: 1.5rem 2rem 2rem; }
+@media (max-width: 768px) {
+    .email-form-container { padding: 1rem; }
+    .email-form-container .form-card { padding: 1.15rem; }
+}
 .email-form-container .form-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-primary);

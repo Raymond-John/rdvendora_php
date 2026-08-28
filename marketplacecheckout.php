@@ -114,17 +114,7 @@ $nigeria_states = [
     'Yobe', 'Zamfara'
 ];
 
-$conn->close();
-
-// ============================================================
-// 3. PDO SETUP & PAYMENT KEYS (use .env credentials — never hardcode root)
-// ============================================================
-$dbHost = function_exists('rdv_env') ? rdv_env('DB_HOST', 'localhost') : 'localhost';
-$dbUser = function_exists('rdv_env') ? rdv_env('DB_USER', 'root') : 'root';
-$dbPass = function_exists('rdv_env') ? rdv_env('DB_PASS', '') : '';
-$dbName = function_exists('rdv_env') ? rdv_env('DB_NAME', 'rdvendora_db') : 'rdvendora_db';
-$dbPort = (int) (function_exists('rdv_env') ? rdv_env('DB_PORT', 3306) : 3306);
-
+// Payment keys from Admin → Settings (must load before $conn->close())
 $payKeys = function_exists('rdv_payment_keys') ? rdv_payment_keys() : [];
 if (!defined('PAYSTACK_SECRET_KEY')) {
     define('PAYSTACK_SECRET_KEY', $payKeys['paystack_secret'] ?? '');
@@ -141,6 +131,21 @@ if (!defined('FLUTTERWAVE_PUBLIC_KEY')) {
 if (!defined('FLUTTERWAVE_ENCRYPTION_KEY')) {
     define('FLUTTERWAVE_ENCRYPTION_KEY', $payKeys['flutterwave_encryption'] ?? '');
 }
+$paymentsConfigured = [
+    'paystack' => PAYSTACK_PUBLIC_KEY !== '' && PAYSTACK_SECRET_KEY !== '',
+    'flutterwave' => FLUTTERWAVE_PUBLIC_KEY !== '' && FLUTTERWAVE_SECRET_KEY !== '',
+];
+
+$conn->close();
+
+// ============================================================
+// 3. PDO SETUP (use .env credentials — never hardcode root)
+// ============================================================
+$dbHost = function_exists('rdv_env') ? rdv_env('DB_HOST', 'localhost') : 'localhost';
+$dbUser = function_exists('rdv_env') ? rdv_env('DB_USER', 'root') : 'root';
+$dbPass = function_exists('rdv_env') ? rdv_env('DB_PASS', '') : '';
+$dbName = function_exists('rdv_env') ? rdv_env('DB_NAME', 'rdvendora_db') : 'rdvendora_db';
+$dbPort = (int) (function_exists('rdv_env') ? rdv_env('DB_PORT', 3306) : 3306);
 
 try {
     $dsn = sprintf(
@@ -259,6 +264,12 @@ if ($isAjax) {
             }
             if (!in_array($paymentMethod, ['paystack', 'flutterwave'])) {
                 throw new Exception('Invalid payment method');
+            }
+            if ($paymentMethod === 'paystack' && (PAYSTACK_PUBLIC_KEY === '' || PAYSTACK_SECRET_KEY === '')) {
+                throw new Exception('Paystack is not configured. Add live keys in Admin → Settings → Payment keys.');
+            }
+            if ($paymentMethod === 'flutterwave' && (FLUTTERWAVE_PUBLIC_KEY === '' || FLUTTERWAVE_SECRET_KEY === '')) {
+                throw new Exception('Flutterwave is not configured. Add live keys in Admin → Settings → Payment keys.');
             }
             if (!filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
                 throw new Exception('Invalid email address');
@@ -1120,15 +1131,20 @@ if ($isAjax) {
 
                 <div class="payment-methods">
                     <h3><i class="fas fa-credit-card"></i> Choose Payment Method</h3>
-                    <div class="payment-method" data-method="paystack">
-                        <input type="radio" name="payment_method" value="paystack" id="paystack" checked>
+                    <?php if (!$paymentsConfigured['paystack'] && !$paymentsConfigured['flutterwave']): ?>
+                    <div class="checkout-alert" style="margin-bottom:1rem;padding:0.75rem 1rem;border-radius:8px;background:#fef3c7;border:1px solid #f59e0b;color:#92400e;font-size:0.9rem;">
+                        Payments are not configured. The site owner must add Paystack and/or Flutterwave keys in <strong>Admin → Settings → Payment keys</strong>.
+                    </div>
+                    <?php endif; ?>
+                    <div class="payment-method" data-method="paystack"<?= !$paymentsConfigured['paystack'] ? ' style="opacity:0.5;"' : '' ?>>
+                        <input type="radio" name="payment_method" value="paystack" id="paystack"<?= $paymentsConfigured['paystack'] ? ' checked' : '' ?><?= !$paymentsConfigured['paystack'] ? ' disabled' : '' ?>>
                         <label for="paystack">
                             <span class="method-icon"><i class="fas fa-bolt" style="color:#4f46e5;"></i></span>
                             Pay with Paystack
                         </label>
                     </div>
-                    <div class="payment-method" data-method="flutterwave">
-                        <input type="radio" name="payment_method" value="flutterwave" id="flutterwave">
+                    <div class="payment-method" data-method="flutterwave"<?= !$paymentsConfigured['flutterwave'] ? ' style="opacity:0.5;"' : '' ?>>
+                        <input type="radio" name="payment_method" value="flutterwave" id="flutterwave"<?= !$paymentsConfigured['paystack'] && $paymentsConfigured['flutterwave'] ? ' checked' : '' ?><?= !$paymentsConfigured['flutterwave'] ? ' disabled' : '' ?>>
                         <label for="flutterwave">
                             <span class="method-icon"><i class="fas fa-water" style="color:#0ea5e9;"></i></span>
                             Pay with Flutterwave
@@ -1136,7 +1152,7 @@ if ($isAjax) {
                     </div>
                 </div>
 
-                <button type="submit" class="place-order-btn" id="placeOrderBtn">
+                <button type="submit" class="place-order-btn" id="placeOrderBtn"<?= (!$paymentsConfigured['paystack'] && !$paymentsConfigured['flutterwave']) ? ' disabled' : '' ?>>
                     <i class="fas fa-lock"></i> Place Order & Pay
                 </button>
             </form>
@@ -1192,6 +1208,11 @@ if ($isAjax) {
 </footer>
 
 <script>
+// ── PAYMENT KEYS (from Admin → Settings) ──
+const PAYSTACK_PUBLIC_KEY = <?= json_encode(PAYSTACK_PUBLIC_KEY, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+const FLUTTERWAVE_PUBLIC_KEY = <?= json_encode(FLUTTERWAVE_PUBLIC_KEY, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+const PAYMENTS_CONFIGURED = <?= json_encode($paymentsConfigured, JSON_UNESCAPED_UNICODE) ?>;
+
 // ── CART KEY ──
 const CART_KEY = "greenshop_cart";
 
@@ -1313,7 +1334,19 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
     const userPhone = document.getElementById('user_phone').value.trim();
     const userAddress = document.getElementById('user_address').value.trim();
     const userState = document.getElementById('user_state').value.trim();
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+    if (!paymentMethod) {
+        showToast('No payment method is available. Contact the site administrator.', 'error');
+        return;
+    }
+    if (paymentMethod === 'paystack' && (!PAYMENTS_CONFIGURED.paystack || !PAYSTACK_PUBLIC_KEY)) {
+        showToast('Paystack is not configured with live keys.', 'error');
+        return;
+    }
+    if (paymentMethod === 'flutterwave' && (!PAYMENTS_CONFIGURED.flutterwave || !FLUTTERWAVE_PUBLIC_KEY)) {
+        showToast('Flutterwave is not configured with live keys.', 'error');
+        return;
+    }
     
     if (!userName || !userEmail || !userPhone || !userAddress || !userState) {
         showToast('Please fill all required fields', 'error');
@@ -1353,7 +1386,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
         
         if (paymentMethod === 'paystack') {
             const handler = PaystackPop.setup({
-                key: '<?= PAYSTACK_PUBLIC_KEY ?>',
+                key: PAYSTACK_PUBLIC_KEY,
                 email: user_email,
                 amount: Math.round(amount * 100),
                 ref: transaction_ref,
@@ -1368,7 +1401,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
             handler.openIframe();
         } else if (paymentMethod === 'flutterwave') {
             FlutterwaveCheckout({
-                public_key: '<?= FLUTTERWAVE_PUBLIC_KEY ?>',
+                public_key: FLUTTERWAVE_PUBLIC_KEY,
                 tx_ref: transaction_ref,
                 amount: amount,
                 currency: 'NGN',

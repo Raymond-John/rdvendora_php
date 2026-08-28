@@ -229,4 +229,25 @@
             userDD.classList.remove('open');
         });
     }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.rdv-admin-json');
+        if (!btn) return;
+        var fnName = btn.getAttribute('data-fn');
+        var payload = btn.getAttribute('data-payload');
+        if (!fnName || !payload || typeof window[fnName] !== 'function') return;
+        e.preventDefault();
+        try {
+            window[fnName](JSON.parse(payload));
+        } catch (err) {
+            console.error('Admin action failed:', err);
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        var overlay = e.target.closest('.modal-overlay.active');
+        if (overlay && e.target === overlay) {
+            overlay.classList.remove('active');
+        }
+    });
 })();

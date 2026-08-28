@@ -432,3 +432,13 @@ if (!function_exists('rdv_posted_page_permissions')) {
         return $posted;
     }
 }
+
+if (!function_exists('admin_json_attr')) {
+    function admin_json_attr($data) {
+        return htmlspecialchars(
+            json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+    }
+}

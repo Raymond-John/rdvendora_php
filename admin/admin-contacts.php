@@ -110,7 +110,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                             <td><span class="badge <?= $msg['status'] === 'unread' ? 'badge-unread' : 'badge-read' ?>"><?= ucfirst($msg['status']) ?></span></td>
                             <td><?= date('M d, Y H:i', strtotime($msg['created_at'])) ?></td>
                             <td class="action-buttons">
-                                <button class="btn-sm btn-outline" onclick="viewMessage(<?= htmlspecialchars(json_encode($msg)) ?>)">View</button>
+                                <button type="button" class="btn-sm btn-outline rdv-admin-json" data-fn="viewMessage" data-payload="<?= admin_json_attr($msg) ?>">View</button>
                                 <?php if ($msg['status'] === 'unread'): ?>
                                     <form method="POST" style="display:inline;">
                                         <input type="hidden" name="action" value="mark_read">
@@ -160,4 +160,32 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             <!-- Dynamic content will be injected here -->
         </div>
     </div>
-<?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>
+</div>
+<?php
+$adminFooterScripts = <<<'JS'
+<script>
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function (m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
+    });
+}
+function viewMessage(msg) {
+    var modal = document.getElementById('messageModal');
+    var body = document.getElementById('modalBody');
+    if (!modal || !body) return;
+    body.innerHTML = '<p><strong>From:</strong> ' + escapeHtml(msg.name) + ' &lt;' + escapeHtml(msg.email) + '&gt;</p>'
+        + '<p><strong>Subject:</strong> ' + escapeHtml(msg.subject) + '</p>'
+        + '<p><strong>Received:</strong> ' + escapeHtml(msg.created_at) + '</p>'
+        + '<p><strong>Status:</strong> ' + escapeHtml(msg.status) + '</p>'
+        + '<hr style="border:0;border-top:1px solid var(--border-primary);margin:1rem 0;">'
+        + '<p style="white-space:pre-wrap;">' + escapeHtml(msg.message) + '</p>';
+    modal.classList.add('active');
+}
+function closeModal() {
+    var modal = document.getElementById('messageModal');
+    if (modal) modal.classList.remove('active');
+}
+</script>
+JS;
+require __DIR__ . '/../includes/admin_layout_end.php';

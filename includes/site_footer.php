@@ -48,7 +48,8 @@ $year = (int) date('Y');
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; <?= $year ?> RD Vendora. All rights reserved.</p>
+        <p class="footer-copyright">&copy; <?= $year ?> RD Vendora. All rights reserved.</p>
+        <p class="footer-developer-credit"><?= rdv_developer_credit_html($GLOBALS['conn'] ?? ($GLOBALS['connect'] ?? null)) ?></p>
       </div>
     </div>
   </footer>

@@ -42,6 +42,8 @@ try {
 } catch (Throwable $e) {
     error_log('maintenance.php end_time: ' . $e->getMessage());
 }
+require_once __DIR__ . '/app/helpers/public_site.php';
+$developerCreditHtml = rdv_developer_credit_html($conn);
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -398,7 +400,8 @@ $conn->close();
   <footer class="footer-glass">
     <div class="container">
       <div class="footer-bottom">
-        <span>© 2026 RD Vendora. All rights reserved.</span>
+        <span>&copy; <?= date('Y') ?> RD Vendora. All rights reserved.</span>
+        <span class="footer-developer-credit"><?= $developerCreditHtml ?></span>
         <div class="footer-social">
           <a href="#">Twitter</a>
           <a href="#">GitHub</a>

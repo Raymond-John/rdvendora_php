@@ -182,7 +182,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                             </span>
                         </td>
                         <td class="action-buttons">
-                            <button class="icon-btn" onclick="editPlan(<?= htmlspecialchars(json_encode($plan)) ?>)">
+                            <button type="button" class="icon-btn rdv-admin-json" data-fn="editPlan" data-payload="<?= admin_json_attr($plan) ?>">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg>
                             </button>
                             <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this plan?')">
@@ -210,16 +210,16 @@ require __DIR__ . '/../includes/admin_layout_start.php';
 </div>
 
 <!-- Edit Modal – Only price, features, status can be changed (name and duration are read‑only) -->
-<div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background: var(--bg-secondary); border-radius: var(--radius-xl); max-width:600px; width:90%; padding:1.5rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+<div id="editModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
             <h3>Edit Plan</h3>
-            <button onclick="closeEditModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
         </div>
         <form method="POST" id="editForm">
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">
-            
+            <div class="modal-body">
             <!-- Plan Name – read‑only (display only) -->
             <div class="form-group">
                 <label>Plan Name (cannot be changed)</label>
@@ -252,11 +252,33 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                 <label>Features (one per line)</label>
                 <textarea name="features" id="edit_features" rows="4"></textarea>
             </div>
-            
-            <div style="display:flex; gap:1rem; justify-content:flex-end;">
+            </div>
+            <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
         </form>
     </div>
-<?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>
+</div>
+<?php
+$adminFooterScripts = <<<'JS'
+<script>
+function editPlan(plan) {
+    document.getElementById('edit_id').value = plan.id;
+    document.getElementById('edit_name_display').value = plan.name || '';
+    document.getElementById('edit_duration_display').value = plan.duration ? plan.duration.charAt(0).toUpperCase() + plan.duration.slice(1) : '';
+    document.getElementById('edit_price').value = plan.price;
+    document.getElementById('edit_status').value = plan.status || 'active';
+    var features = plan.features;
+    if (typeof features === 'string') {
+        try { features = JSON.parse(features); } catch (e) {}
+    }
+    document.getElementById('edit_features').value = Array.isArray(features) ? features.join('\n') : (features || '');
+    document.getElementById('editModal').classList.add('active');
+}
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+}
+</script>
+JS;
+require __DIR__ . '/../includes/admin_layout_end.php';

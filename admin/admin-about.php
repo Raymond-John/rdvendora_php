@@ -273,7 +273,13 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                         <td><?= $member['display_order'] ?></td>
                         <td><span class="badge <?= $member['status'] === 'active' ? 'badge-active' : 'badge-inactive' ?>"><?= ucfirst($member['status']) ?></span></td>
                         <td class="action-buttons">
-                            <button class="icon-btn" onclick="editTeamMember(<?= htmlspecialchars(json_encode($member)) ?>)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg></button>
+                            <?php
+                            $memberEdit = $member;
+                            $memberEdit['avatar_url'] = (!empty($member['avatar']) && file_exists(rdv_fs_path($member['avatar'])))
+                                ? rdv_admin_src($member['avatar'])
+                                : '';
+                            ?>
+                            <button type="button" class="icon-btn rdv-admin-json" data-fn="editTeamMember" data-payload="<?= admin_json_attr($memberEdit) ?>"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg></button>
                             <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this team member?')">
                                 <input type="hidden" name="action" value="delete_team">
                                 <input type="hidden" name="id" value="<?= $member['id'] ?>">
@@ -331,4 +337,30 @@ require __DIR__ . '/../includes/admin_layout_start.php';
             </div>
         </form>
     </div>
-<?php require __DIR__ . '/../includes/admin_layout_end.php'; ?>
+</div>
+<?php
+$adminFooterScripts = <<<'JS'
+<script>
+function editTeamMember(member) {
+    document.getElementById('edit_id').value = member.id;
+    document.getElementById('edit_name').value = member.name || '';
+    document.getElementById('edit_role').value = member.role || '';
+    document.getElementById('edit_bio').value = member.bio || '';
+    document.getElementById('edit_initials').value = member.initials || '';
+    document.getElementById('edit_avatar_color').value = member.avatar_color || 'primary';
+    document.getElementById('edit_display_order').value = member.display_order || 0;
+    var preview = document.getElementById('currentAvatarPreview');
+    if (member.avatar_url) {
+        preview.innerHTML = '<img src="' + member.avatar_url.replace(/"/g, '&quot;') + '" class="avatar-preview" alt="">';
+    } else {
+        preview.innerHTML = '<span style="color:var(--text-muted)">No image</span>';
+    }
+    document.getElementById('edit_avatar').value = '';
+    document.getElementById('editModal').classList.add('active');
+}
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+}
+</script>
+JS;
+require __DIR__ . '/../includes/admin_layout_end.php';

@@ -68,6 +68,38 @@ if (!function_exists('rdv_site_setting')) {
     }
 }
 
+if (!function_exists('rdv_developer_credit')) {
+    function rdv_developer_credit($conn = null) {
+        if (!$conn instanceof mysqli) {
+            $conn = $GLOBALS['conn'] ?? ($GLOBALS['connect'] ?? null);
+        }
+        $label = 'RD NEXA TECH';
+        $url = '';
+        if ($conn instanceof mysqli) {
+            $labelSetting = rdv_site_setting($conn, 'developer_credit_label');
+            $urlSetting = rdv_site_setting($conn, 'developer_credit_url');
+            if ($labelSetting !== '') {
+                $label = $labelSetting;
+            }
+            $url = $urlSetting;
+        }
+        return ['label' => $label, 'url' => $url];
+    }
+}
+
+if (!function_exists('rdv_developer_credit_html')) {
+    function rdv_developer_credit_html($conn = null) {
+        $credit = rdv_developer_credit($conn);
+        $label = htmlspecialchars($credit['label'], ENT_QUOTES, 'UTF-8');
+        $url = trim((string) $credit['url']);
+        if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
+            $urlEsc = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+            return 'Developed by <a href="' . $urlEsc . '" target="_blank" rel="noopener noreferrer" class="footer-developer-link">' . $label . '</a>';
+        }
+        return 'Developed by ' . $label;
+    }
+}
+
 if (!function_exists('rdv_brand_logo')) {
     function rdv_brand_logo($prefix = '', $extraClass = '', $showName = true) {
         $src = htmlspecialchars(rdv_asset('assets/brand-logo.png', $prefix), ENT_QUOTES, 'UTF-8');

@@ -55,7 +55,9 @@ $defaultSettings = [
     'admin_name' => 'Platform Admin',
     'admin_email' => 'admin@rdvendora.com',
     'admin_alert_email' => '',
-    'default_theme' => 'light'
+    'default_theme' => 'light',
+    'developer_credit_label' => 'RD NEXA TECH',
+    'developer_credit_url' => ''
 ];
 foreach ($defaultSettings as $key => $default) {
     $stmt = $conn->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
@@ -83,14 +85,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSetting($conn, 'maintenance_mode', isset($_POST['maintenance_mode']) ? '1' : '0');
         $endTime = !empty($_POST['maintenance_end_time']) ? $_POST['maintenance_end_time'] : '';
         setSetting($conn, 'maintenance_end_time', $endTime);
+        setSetting($conn, 'developer_credit_label', trim((string) ($_POST['developer_credit_label'] ?? 'RD NEXA TECH')));
+        $devUrl = trim((string) ($_POST['developer_credit_url'] ?? ''));
+        if ($devUrl !== '' && !filter_var($devUrl, FILTER_VALIDATE_URL)) {
+            $message = "Developer credit URL must be a valid URL (include https://).";
+            $messageType = "error";
+        } else {
+            setSetting($conn, 'developer_credit_url', $devUrl);
+        }
         $gaId = strtoupper(preg_replace('/\s+/', '', (string) ($_POST['google_analytics_id'] ?? '')));
         if ($gaId !== '' && !preg_match('/^G-[A-Z0-9]{6,}$/', $gaId)) {
             $message = "Google Analytics ID must look like G-XXXXXXXXXX.";
             $messageType = "error";
         } else {
             setSetting($conn, 'google_analytics_id', $gaId);
-        $message = "General settings updated.";
-        $messageType = "success";
+        }
+        if ($messageType !== 'error') {
+            $message = "General settings updated.";
+            $messageType = "success";
         }
     }
     // Admin profile update
@@ -472,6 +484,8 @@ $admin_name = getSetting($conn, 'admin_name');
 $admin_email = getSetting($conn, 'admin_email');
 $default_theme = getSetting($conn, 'default_theme');
 $google_analytics_id = getSetting($conn, 'google_analytics_id');
+$developer_credit_label = getSetting($conn, 'developer_credit_label', 'RD NEXA TECH');
+$developer_credit_url = getSetting($conn, 'developer_credit_url');
 
 $smtp_host = getSetting($conn, 'smtp_host');
 $smtp_port = getSetting($conn, 'smtp_port');
@@ -673,6 +687,16 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     <label>Maintenance End Time (for countdown)</label>
                     <input type="datetime-local" name="maintenance_end_time" value="<?= htmlspecialchars($maintenance_end_time) ?>">
                     <small style="display:block; color:var(--text-muted); font-size:0.7rem; margin-top:4px;">Leave empty for no countdown. Visitors will see a timer until this date/time.</small>
+                </div>
+                <div class="form-group">
+                    <label>Footer developer credit label</label>
+                    <input type="text" name="developer_credit_label" value="<?= htmlspecialchars($developer_credit_label) ?>" placeholder="RD NEXA TECH" required>
+                    <small style="display:block; color:var(--text-muted); font-size:0.7rem; margin-top:4px;">Shown in the site footer as “Developed by …”.</small>
+                </div>
+                <div class="form-group">
+                    <label>Footer developer credit link</label>
+                    <input type="url" name="developer_credit_url" value="<?= htmlspecialchars($developer_credit_url) ?>" placeholder="https://rdnexatech.com">
+                    <small style="display:block; color:var(--text-muted); font-size:0.7rem; margin-top:4px;">Optional URL for the developer name. Leave blank to show plain text.</small>
                 </div>
                 <button type="submit" name="update_general" class="btn">Save General Settings</button>
             </form>

@@ -763,7 +763,7 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                             <input type="hidden" name="action" value="delete">
                             <button type="submit" class="btn-sm btn-delete">🗑️ Delete</button>
                         </form>
-                        <button class="btn-sm" onclick="viewStoreDetails(<?= htmlspecialchars(json_encode($store)) ?>)">View Details</button>
+                        <button type="button" class="btn-sm rdv-admin-json" data-fn="viewStoreDetails" data-payload="<?= admin_json_attr($store) ?>">View Details</button>
                     </div>
                 </div>
             <?php endforeach; ?>

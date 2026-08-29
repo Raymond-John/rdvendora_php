@@ -108,7 +108,7 @@ function sendWelcomeEmail($email, $fullname) {
             <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
                 <tr>
                     <td style="padding:0;">
-                        ' . rdv_email_header_html('', ['centered' => true, 'show_name' => false, 'logo_width' => 150]) . '
+                        ' . rdv_email_header_html('', ['centered' => true]) . '
                         <!-- BODY -->
                         <table width="100%" border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -177,7 +177,7 @@ function sendSignupVerificationCode($email, $code) {
 <table align="center" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FB;padding:40px 20px;">
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border-radius:18px;border:1px solid #E5E7EB;">
-<tr><td style="padding:0;">' . rdv_email_header_html('', ['centered' => true, 'show_name' => false, 'logo_width' => 140]) . '</td></tr>
+<tr><td style="padding:0;">' . rdv_email_header_html('', ['centered' => true, 'logo_width' => 100]) . '</td></tr>
 <tr><td style="padding:32px 28px;text-align:center;">
 <p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#b45309;">Verify your email</p>
 <h1 style="margin:0 0 12px;font-size:22px;color:#0f172a;">Confirm your signup</h1>
@@ -237,7 +237,7 @@ function sendLoginNotification($email, $fullname, $context = 'account') {
             <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
                 <tr>
                     <td style="padding:0;">
-                        ' . rdv_email_header_html('', ['centered' => true, 'show_name' => false, 'logo_width' => 150]) . '
+                        ' . rdv_email_header_html('', ['centered' => true]) . '
                         <!-- BODY -->
                         <table width="100%" border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -682,7 +682,7 @@ function sendSubscriptionEmail($email, $fullname, $planName, $billingCycle, $amo
             <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
                 <tr>
                     <td style="padding:0;">
-                        ' . rdv_email_header_html('', ['centered' => true, 'show_name' => false, 'logo_width' => 150]) . '
+                        ' . rdv_email_header_html('', ['centered' => true]) . '
                         <!-- BODY -->
                         <table width="100%" border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -780,7 +780,7 @@ function sendTeamInviteEmail($email, $storeName, $role, $inviteLink, $inviterNam
             <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04);">
                 <tr>
                     <td style="padding:0;">
-                        ' . rdv_email_header_html('', ['centered' => true, 'show_name' => false, 'logo_width' => 150]) . '
+                        ' . rdv_email_header_html('', ['centered' => true]) . '
                         <table width="100%" border="0" cellpadding="0" cellspacing="0">
                             <tr>
                                 <td style="padding:32px 30px 24px 30px; text-align:center;">

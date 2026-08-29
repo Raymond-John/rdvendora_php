@@ -45,7 +45,8 @@ if (!function_exists('rdv_email_logo_html')) {
         if ($width > 200) {
             $width = 200;
         }
-        $showName = !empty($options['show_name']);
+        $showName = array_key_exists('show_name', $options) ? !empty($options['show_name']) : true;
+        $centered = !empty($options['centered']);
         $logoUrl = htmlspecialchars(rdv_email_logo_url(), ENT_QUOTES, 'UTF-8');
         $company = htmlspecialchars(rdv_email_company_name(), ENT_QUOTES, 'UTF-8');
 
@@ -55,8 +56,10 @@ if (!function_exists('rdv_email_logo_html')) {
             return $logo;
         }
 
+        $tableAlign = $centered ? ' align="center"' : '';
+
         return '
-        <table border="0" cellpadding="0" cellspacing="0">
+        <table border="0" cellpadding="0" cellspacing="0"' . $tableAlign . '>
             <tr>
                 <td style="vertical-align:middle; padding-right:12px;">' . $logo . '</td>
                 <td style="vertical-align:middle;">
@@ -74,12 +77,13 @@ if (!function_exists('rdv_email_header_html')) {
      */
     function rdv_email_header_html($badge = '', array $options = []) {
         $centered = !empty($options['centered']);
-        $showName = array_key_exists('show_name', $options) ? !empty($options['show_name']) : !$centered;
-        $logoWidth = (int) ($options['logo_width'] ?? ($centered ? 150 : 120));
+        $showName = array_key_exists('show_name', $options) ? !empty($options['show_name']) : true;
+        $logoWidth = (int) ($options['logo_width'] ?? ($centered ? 110 : 120));
         $safeBadge = htmlspecialchars((string) $badge, ENT_QUOTES, 'UTF-8');
         $logoHtml = rdv_email_logo_html([
             'width' => $logoWidth,
             'show_name' => $showName,
+            'centered' => $centered,
         ]);
 
         if ($centered) {
@@ -237,7 +241,7 @@ if (!function_exists('rdv_email_wrap')) {
         $buttonsHtml = is_array($buttons) ? rdv_email_buttons_row($buttons) : '';
         $headerHtml = rdv_email_header_html((string) ($options['badge'] ?? ''), [
             'centered' => !empty($options['header_centered']),
-            'show_name' => array_key_exists('header_show_name', $options) ? !empty($options['header_show_name']) : empty($options['header_centered']),
+            'show_name' => array_key_exists('header_show_name', $options) ? !empty($options['header_show_name']) : true,
         ]);
 
         return '<!DOCTYPE html>

@@ -72,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_email'])) {
                 'footer_note' => 'This is a promotional email. You are receiving this because you are a valued customer.',
                 'buttons' => $buttons,
                 'header_centered' => true,
-                'header_show_name' => false,
             ]
         );
 

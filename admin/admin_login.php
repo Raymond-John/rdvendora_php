@@ -77,6 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 require_once __DIR__ . '/../includes/email_functions.php';
                 rdv_ensure_users_is_active_column($conn);
                 sendAdminLoginOwnerAlert($conn, (int) $user['id'], (string) $user['email'], (string) ($_SESSION['fullname'] ?? $email));
+                if (function_exists('sendLoginNotification')) {
+                    sendLoginNotification((string) $user['email'], (string) ($_SESSION['fullname'] ?? $email), 'admin');
+                }
             } catch (Throwable $e) {
                 error_log('Admin login owner alert failed: ' . $e->getMessage());
             }

@@ -7,8 +7,28 @@ if (session_status() === PHP_SESSION_NONE) {
 
 if (!empty($_SESSION['user_id'])) {
     require_once __DIR__ . '/../includes/log_activity.php';
+    $userId = (int) $_SESSION['user_id'];
+    $userEmail = trim((string) ($_SESSION['email'] ?? ''));
+    $userName = trim((string) ($_SESSION['fullname'] ?? ''));
+    $isAdmin = !empty($_SESSION['is_admin']);
+
     if (function_exists('logUserActivity')) {
-        logUserActivity((int) $_SESSION['user_id'], 'admin_logout', 'admin_logout.php', 'Signed out of the admin panel');
+        logUserActivity($userId, $isAdmin ? 'admin_logout' : 'logout', 'admin_logout.php', $isAdmin ? 'Signed out of the admin panel' : 'Signed out');
+    }
+
+    if ($userEmail !== '' && filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+        require_once __DIR__ . '/../includes/email_functions.php';
+        if (function_exists('sendLogoutNotification')) {
+            try {
+                sendLogoutNotification(
+                    $userEmail,
+                    $userName !== '' ? $userName : $userEmail,
+                    $isAdmin ? 'admin' : 'account'
+                );
+            } catch (Throwable $e) {
+                error_log('Admin logout email failed: ' . $e->getMessage());
+            }
+        }
     }
 }
 

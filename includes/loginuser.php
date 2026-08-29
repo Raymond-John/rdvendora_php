@@ -80,7 +80,11 @@ if (function_exists('logUserActivity')) {
     logUserActivity((int) $user['id'], 'login', 'login.php', 'Signed in');
 }
 if (function_exists('sendLoginNotification')) {
-    sendLoginNotification($email, $displayName);
+    try {
+        sendLoginNotification($email, $displayName);
+    } catch (Throwable $e) {
+        error_log('Login email failed: ' . $e->getMessage());
+    }
 }
 
 $next = trim((string) ($_POST['next'] ?? $_GET['next'] ?? ''));

@@ -315,6 +315,68 @@ function sendLoginNotification($email, $fullname, $context = 'account') {
 }
 
 // ============================================================
+//  LOGOUT NOTIFICATION – Premium Styled
+// ============================================================
+function sendLogoutNotification($email, $fullname, $context = 'account') {
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+    if (strpos((string) $ip, ',') !== false) {
+        $ip = trim(explode(',', (string) $ip)[0]);
+    }
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown browser';
+    $time = date('Y-m-d H:i:s');
+    $isAdmin = ($context === 'admin');
+    $place = $isAdmin ? 'RD Vendora admin dashboard' : 'RD Vendora account';
+    $loginUrl = function_exists('rdv_url')
+        ? rdv_url($isAdmin ? 'admin/admin_login' : 'login')
+        : 'https://' . ($_SERVER['HTTP_HOST'] ?? 'rdvendora.com') . ($isAdmin ? '/admin/admin_login' : '/login');
+
+    $safeName = htmlspecialchars((string) $fullname, ENT_QUOTES, 'UTF-8');
+    $safeIp = htmlspecialchars((string) $ip, ENT_QUOTES, 'UTF-8');
+    $safeAgent = htmlspecialchars((string) $userAgent, ENT_QUOTES, 'UTF-8');
+    $safeTime = htmlspecialchars($time, ENT_QUOTES, 'UTF-8');
+    $safePlace = htmlspecialchars($place, ENT_QUOTES, 'UTF-8');
+
+    $inner = '
+        <div style="text-align:center; margin-bottom:18px;">
+            <span style="font-size:48px;">👋</span>
+            <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:8px 0 6px 0;">Hello, ' . $safeName . '</h1>
+            <p style="font-size:16px; color:#64748B; margin:0; line-height:1.6;">
+                You have signed out of your <strong style="color:#1A56DB;">' . $safePlace . '</strong>.
+            </p>
+        </div>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#F8FAFC; border-radius:14px; border-left:6px solid #D4AF37; padding:16px 20px; margin:0 0 20px 0;">
+            <tr>
+                <td style="font-size:15px; color:#1E293B; line-height:1.8;">
+                    <strong>Time:</strong> ' . $safeTime . '<br>
+                    <strong>IP Address:</strong> ' . $safeIp . '<br>
+                    <strong>Browser:</strong> ' . $safeAgent . '
+                </td>
+            </tr>
+        </table>
+        <p style="font-size:15px; color:#64748B; margin:0; line-height:1.6; text-align:center;">
+            If you did not sign out, please reset your password immediately and contact support.
+        </p>';
+
+    $htmlBody = rdv_email_wrap($inner, [
+        'title' => 'Logout Notification',
+        'preheader' => 'You signed out of your ' . $place,
+        'footer_note' => 'This is an automated security alert. Please do not reply.',
+        'header_centered' => true,
+        'buttons' => [
+            ['label' => 'Log In Again', 'url' => $loginUrl, 'style' => 'primary'],
+        ],
+    ]);
+
+    $plainText = "Hello $fullname,\n\nYou signed out of your $place.\n\nTime: $time\nIP Address: $ip\nBrowser: $userAgent\n\nIf this was not you, reset your password and contact support.\n\nLog in again: $loginUrl\n\n– RD Vendora Security Team";
+
+    $subject = $isAdmin
+        ? 'Security Alert: Admin logout from RD Vendora'
+        : 'Security Alert: You signed out of your RD Vendora account';
+
+    return sendEmail($email, $subject, $htmlBody, $plainText);
+}
+
+// ============================================================
 //  ORDER CONFIRMATION – Premium Styled
 // ============================================================
 function sendOrderConfirmation($customerEmail, $customerName, $orderData) {

@@ -75,7 +75,7 @@ if (!function_exists('rdv_reserved_store_subdomains')) {
             'process_order', 'payment_callback', 'verify-paystack', 'verify-flutterwave',
             'verify_payment', 'marketplaceaddtocart', 'marketplacecheckout',
             'marketplaceviewproduct', 'marketplace_process_order', 'marketplace_verify_payment',
-            'order_success', 'order_success_store', 'order_confirmation', 'order-confirmation',
+            'order_success', 'order_success_store', 'order_confirmation', 'order-confirmation', 'order-received',
             'customer-profile', 'vendor-chat', 'vendor-chat-api', 'vendor-communication',
             'vendor-messages', 'transport_orders', 'update_order_status', 'get_notification_count',
             'chatbot-ajax', 'chat_get_messages', 'chat_mark_read', 'chat_typing',

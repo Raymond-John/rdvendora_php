@@ -9,6 +9,8 @@ $phpmailer_available = function_exists('rdv_load_phpmailer') ? rdv_load_phpmaile
 if (!function_exists('rdv_smtp_settings')) {
     require_once APP_PATH . '/helpers/smtp_config.php';
 }
+require_once APP_PATH . '/helpers/email_template.php';
+require_once APP_PATH . '/helpers/order_actions.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -486,23 +488,24 @@ function sendOrderConfirmation($customerEmail, $customerName, $orderData) {
                                             </td>
                                         </tr>
                                     </table>
+                                    ' . rdv_email_buttons_row([
+                                        [
+                                            'label' => 'Continue',
+                                            'url' => rdv_url('marketplace'),
+                                            'style' => 'gold',
+                                        ],
+                                        [
+                                            'label' => 'I Have Received My Order',
+                                            'url' => rdv_order_received_url($orderId),
+                                            'style' => 'success',
+                                        ],
+                                    ]) . '
                                     <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                                         <tr>
-                                            <td style="text-align:center; padding:0 10px;">
-                                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="display:inline-block; margin:0 6px 8px 6px;">
-                                                    <tr>
-                                                        <td style="background-color:#1A56DB; border-radius:50px; padding:12px 32px; box-shadow:0 4px 12px rgba(26,86,219,0.25);">
-                                                            <a href="https://rdvendora.com/account/orders" style="color:#FFFFFF; text-decoration:none; font-weight:600; font-size:15px; display:inline-block;">View My Order</a>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="display:inline-block; margin:0 6px 8px 6px;">
-                                                    <tr>
-                                                        <td style="background-color:#D4AF37; border-radius:50px; padding:12px 32px; box-shadow:0 4px 12px rgba(212,175,55,0.2);">
-                                                            <a href="https://rdvendora.com" style="color:#0A3D91; text-decoration:none; font-weight:600; font-size:15px; display:inline-block;">Continue Shopping</a>
-                                                        </td>
-                                                    </tr>
-                                                </table>
+                                            <td style="text-align:center; padding:0 10px 8px 10px;">
+                                                <p style="font-size:14px; color:#64748B; margin:0; line-height:1.6;">
+                                                    When your package arrives, tap <strong style="color:#16A34A;">I Have Received My Order</strong> so we can notify the seller.
+                                                </p>
                                             </td>
                                         </tr>
                                     </table>
@@ -567,9 +570,122 @@ function sendOrderConfirmation($customerEmail, $customerName, $orderData) {
 </body>
 </html>';
 
-    $plainText = "Thank you for your order, $customerName!\n\nOrder #$orderId\nDate: $orderDate\n\nItems:\n$itemsText\nTotal: ₦" . number_format($total, 2) . "\n\nWe'll notify you when it ships.\n– RD Vendora Team";
+    $receivedUrl = rdv_order_received_url($orderId);
+    $plainText = "Thank you for your order, $customerName!\n\nOrder #$orderId\nDate: $orderDate\n\nItems:\n$itemsText\nTotal: ₦" . number_format($total, 2) . "\n\nContinue shopping: " . rdv_url('marketplace') . "\nConfirm delivery: $receivedUrl\n\nWhen your package arrives, use the confirmation link above so we can notify the seller.\n– RD Vendora Team";
 
     return sendEmail($customerEmail, "Order Confirmation #$orderId – RD Vendora", $htmlBody, $plainText);
+}
+
+// ============================================================
+//  ORDER DELIVERED – Notify vendor & admin
+// ============================================================
+function sendOrderDeliveredNotification(array $order, $conn) {
+    $orderId = (int) ($order['id'] ?? 0);
+    if ($orderId <= 0 || !$conn) {
+        return false;
+    }
+
+    $customerName = trim((string) ($order['user_name'] ?? $order['customer_name'] ?? 'Customer'));
+    $customerEmail = trim((string) ($order['user_email'] ?? $order['customer_email'] ?? ''));
+    $orderRef = trim((string) ($order['order_ref'] ?? ('#' . $orderId)));
+    $total = (float) ($order['total_amount'] ?? $order['total'] ?? 0);
+    $confirmedAt = date('F j, Y \a\t g:i A');
+
+    $itemsHtml = '';
+    $itemsText = '';
+    $stmt = $conn->prepare('SELECT oi.product_name, oi.quantity, oi.price, s.store_name, u.email AS vendor_email, u.full_name AS vendor_name
+        FROM order_items oi
+        LEFT JOIN stores s ON oi.store_id = s.id
+        LEFT JOIN users u ON s.user_id = u.id
+        WHERE oi.order_id = ?');
+    if ($stmt) {
+        $stmt->bind_param('i', $orderId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $vendorEmails = [];
+        while ($row = $res->fetch_assoc()) {
+            $name = htmlspecialchars((string) ($row['product_name'] ?? 'Product'), ENT_QUOTES, 'UTF-8');
+            $qty = (int) ($row['quantity'] ?? 0);
+            $price = (float) ($row['price'] ?? 0);
+            $storeName = htmlspecialchars((string) ($row['store_name'] ?? 'Store'), ENT_QUOTES, 'UTF-8');
+            $lineTotal = $qty * $price;
+            $itemsHtml .= '<tr><td style="padding:10px 0; border-bottom:1px solid #E5E7EB; font-size:14px; color:#1E293B;">' . $name . ' <span style="color:#64748B;">(' . $storeName . ')</span></td><td style="padding:10px 0; border-bottom:1px solid #E5E7EB; text-align:center; font-size:14px;">' . $qty . '</td><td style="padding:10px 0; border-bottom:1px solid #E5E7EB; text-align:right; font-size:14px; font-weight:600;">₦' . number_format($lineTotal, 2) . '</td></tr>';
+            $itemsText .= "- {$row['product_name']} x {$qty} ({$row['store_name']}) = ₦" . number_format($lineTotal, 2) . "\n";
+            $vendorEmail = trim((string) ($row['vendor_email'] ?? ''));
+            if ($vendorEmail !== '' && filter_var($vendorEmail, FILTER_VALIDATE_EMAIL)) {
+                $vendorEmails[$vendorEmail] = (string) ($row['vendor_name'] ?? 'Seller');
+            }
+        }
+        $stmt->close();
+    }
+
+    $safeCustomer = htmlspecialchars($customerName, ENT_QUOTES, 'UTF-8');
+    $safeEmail = htmlspecialchars($customerEmail, ENT_QUOTES, 'UTF-8');
+    $safeRef = htmlspecialchars($orderRef, ENT_QUOTES, 'UTF-8');
+    $safeTime = htmlspecialchars($confirmedAt, ENT_QUOTES, 'UTF-8');
+
+    $inner = '
+        <div style="text-align:center; margin-bottom:20px;">
+            <span style="font-size:42px;">📦</span>
+            <h1 style="font-size:24px; font-weight:600; color:#1E293B; margin:8px 0 6px 0;">Customer Confirmed Delivery</h1>
+            <p style="font-size:16px; color:#64748B; margin:0;">The customer has confirmed that this order was delivered successfully.</p>
+        </div>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:14px; padding:16px 20px; margin-bottom:22px;">
+            <tr>
+                <td style="font-size:15px; color:#166534; line-height:1.7;">
+                    <strong>Order:</strong> ' . $safeRef . '<br>
+                    <strong>Customer:</strong> ' . $safeCustomer . ($customerEmail !== '' ? ' (' . $safeEmail . ')' : '') . '<br>
+                    <strong>Confirmed at:</strong> ' . $safeTime . '<br>
+                    <strong>Order total:</strong> ₦' . number_format($total, 2) . '
+                </td>
+            </tr>
+        </table>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border:1px solid #E5E7EB; border-radius:14px; overflow:hidden; margin-bottom:8px;">
+            <tr><td style="background:#F8FAFC; padding:12px 16px; font-weight:600; color:#1E293B;">Items delivered</td></tr>
+            <tr><td style="padding:0 16px 12px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <th style="text-align:left; font-size:12px; color:#64748B; padding:10px 0;">Product</th>
+                        <th style="text-align:center; font-size:12px; color:#64748B; padding:10px 0;">Qty</th>
+                        <th style="text-align:right; font-size:12px; color:#64748B; padding:10px 0;">Total</th>
+                    </tr>
+                    ' . $itemsHtml . '
+                </table>
+            </td></tr>
+        </table>';
+
+    $htmlBody = rdv_email_wrap($inner, [
+        'title' => 'Order Delivered',
+        'badge' => $safeRef,
+        'preheader' => $customerName . ' confirmed delivery for ' . $orderRef,
+        'footer_note' => 'Delivery confirmation from RD Vendora.',
+        'buttons' => [
+            ['label' => 'View Orders', 'url' => rdv_url('orders'), 'style' => 'primary'],
+        ],
+    ]);
+
+    $plainText = "Customer confirmed delivery\n\nOrder: $orderRef\nCustomer: $customerName"
+        . ($customerEmail !== '' ? " ($customerEmail)" : '')
+        . "\nConfirmed at: $confirmedAt\nTotal: ₦" . number_format($total, 2)
+        . "\n\nItems:\n$itemsText\nView orders: " . rdv_url('orders');
+
+    $subject = 'Delivery Confirmed: ' . $orderRef . ' – RD Vendora';
+    $sent = false;
+
+    foreach ($vendorEmails as $email => $vendorName) {
+        if (sendEmail($email, $subject, $htmlBody, $plainText)) {
+            $sent = true;
+        }
+    }
+
+    $adminEmail = rdv_get_admin_alert_email($conn);
+    if ($adminEmail !== '') {
+        if (sendEmail($adminEmail, $subject, $htmlBody, $plainText)) {
+            $sent = true;
+        }
+    }
+
+    return $sent;
 }
 
 // ============================================================

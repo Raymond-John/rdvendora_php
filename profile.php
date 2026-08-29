@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
+require_once __DIR__ . '/app/helpers/user_avatar.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -61,6 +62,9 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+$userAvatarUrl = rdv_user_avatar_url($conn, (int) $_SESSION['user_id']);
+$userInitials = rdv_user_avatar_initials($user['fullname'] ?? 'User');
+
 // Fetch store data
 $stmt = $conn->prepare("SELECT * FROM stores WHERE user_id = ?");
 $stmt->bind_param("i", $_SESSION['user_id']);
@@ -92,14 +96,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
             $stmt->bind_param("ssi", $fullname, $email, $_SESSION['user_id']);
             if ($stmt->execute()) {
                 $_SESSION['fullname'] = $fullname;
-                $message = "Profile updated successfully.";
                 $user['fullname'] = $fullname;
                 $user['email'] = $email;
+                $userInitials = rdv_user_avatar_initials($fullname);
             } else {
                 $error = "Failed to update profile.";
             }
             $stmt->close();
         }
+    }
+
+    if (empty($error) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        $avatarResult = rdv_user_avatar_upload($conn, (int) $_SESSION['user_id'], $_FILES['avatar']);
+        if ($avatarResult['success']) {
+            $userAvatarUrl = rdv_user_avatar_url($conn, (int) $_SESSION['user_id']);
+            $message = $message ? $message . ' Profile photo updated.' : 'Profile updated successfully.';
+        } else {
+            $error = $avatarResult['message'];
+        }
+    } elseif (empty($error) && !isset($message)) {
+        $message = "Profile updated successfully.";
     }
 }
 
@@ -949,6 +965,38 @@ $conn->close();
             border-bottom: 2px solid var(--primary);
             display: inline-block;
         }
+        .profile-photo-block {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+        .profile-photo-preview {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .profile-photo-preview img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .profile-photo-help {
+            font-size: var(--text-xs);
+            color: var(--text-muted);
+            margin-top: var(--space-2);
+        }
         .form-group {
             margin-bottom: var(--space-4);
         }
@@ -1103,7 +1151,10 @@ $conn->close();
 
                 <div class="dropdown" id="userDropdown">
                     <div class="topbar-user dropdown-trigger">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" alt="User" class="topbar-user-avatar">
+                        <img src="<?= $userAvatarUrl !== '' ? htmlspecialchars($userAvatarUrl, ENT_QUOTES, 'UTF-8') : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100' ?>" alt="User" class="topbar-user-avatar" id="topbarUserAvatar"<?= $userAvatarUrl === '' ? ' style="display:none;"' : '' ?>>
+                        <?php if ($userAvatarUrl === ''): ?>
+                        <div class="topbar-user-avatar" id="topbarUserAvatarFallback" style="display:flex;align-items:center;justify-content:center;background:var(--primary-light);color:var(--primary);font-weight:700;"><?= htmlspecialchars($userInitials) ?></div>
+                        <?php endif; ?>
                         <div class="topbar-user-info">
                             <span class="topbar-user-name"><?= htmlspecialchars($_SESSION['fullname']) ?></span>
                             <span class="topbar-user-role">
@@ -1150,7 +1201,21 @@ $conn->close();
                 <!-- Account Information -->
                 <div class="profile-card">
                     <h2 class="card-title">Account Information</h2>
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="profile-photo-block">
+                            <div class="profile-photo-preview" id="profilePhotoPreview">
+                                <?php if ($userAvatarUrl !== ''): ?>
+                                    <img src="<?= htmlspecialchars($userAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Profile photo">
+                                <?php else: ?>
+                                    <?= htmlspecialchars($userInitials) ?>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <label class="form-label" for="avatarInput">Profile Photo</label>
+                                <input type="file" name="avatar" id="avatarInput" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                                <p class="profile-photo-help">JPG, PNG, GIF, or WEBP. Max 2MB.</p>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="form-label">Full Name</label>
                             <input type="text" name="fullname" class="form-input" value="<?= htmlspecialchars($user['fullname'] ?? '') ?>" required>
@@ -1333,6 +1398,20 @@ $conn->close();
             if (confirm('Are you sure you want to log out?')) {
                 window.location.href='logout';
             }
+        }
+
+        const avatarInput = document.getElementById('avatarInput');
+        const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+        if (avatarInput && profilePhotoPreview) {
+            avatarInput.addEventListener('change', function () {
+                const file = this.files && this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    profilePhotoPreview.innerHTML = '<img src="' + e.target.result + '" alt="Profile photo preview">';
+                };
+                reader.readAsDataURL(file);
+            });
         }
     </script>
 </body>

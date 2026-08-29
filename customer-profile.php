@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 session_start();
 require_once 'includes/connection.php';
+require_once __DIR__ . '/app/helpers/user_avatar.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -16,8 +17,29 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = (int)$_SESSION['user_id'];
 
+$profileMessage = '';
+$profileError = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_avatar'])) {
+    if (!isset($_FILES['avatar']) || ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        $profileError = 'Please choose an image to upload.';
+    } else {
+        $avatarResult = rdv_user_avatar_upload($conn, $user_id, $_FILES['avatar']);
+        if ($avatarResult['success']) {
+            header('Location: customer-profile?section=account&avatar_updated=1');
+            exit;
+        }
+        $profileError = $avatarResult['message'];
+    }
+}
+
+if (isset($_GET['avatar_updated'])) {
+    $profileMessage = 'Profile photo updated.';
+}
+
 // Fetch user details from unified users table
-$userSql = "SELECT id, fullname, email, phone, avatar, created_at FROM users WHERE id = ?";
+$avatarCol = rdv_user_avatar_column($conn);
+$userSql = "SELECT id, fullname, email, phone, `{$avatarCol}` AS avatar, created_at FROM users WHERE id = ?";
 $stmt = $conn->prepare($userSql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -30,6 +52,9 @@ if (!$user) {
     header('Location: login');
     exit;
 }
+
+$userAvatarUrl = rdv_user_avatar_url($conn, $user_id);
+$userInitials = rdv_user_avatar_initials($user['fullname'] ?? 'User');
 
 // ----- Helper: get table columns -----
 function getTableColumns($conn, $tableName) {
@@ -298,6 +323,36 @@ function getStatusIcon($status) {
             flex-shrink: 0;
         }
         .profile-avatar img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+        .account-photo-form {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .account-photo-preview {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            overflow: hidden;
+            border: 3px solid rgba(99,102,241,0.2);
+        }
+        .account-photo-preview img { width:100%; height:100%; object-fit:cover; }
+        .account-alert {
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .account-alert.success { background: #ecfdf5; color: #047857; }
+        .account-alert.error { background: #fef2f2; color: #b91c1c; }
         .profile-info h1 { font-size: 1.4rem; font-weight: 800; }
         .profile-info p {
             color: var(--text-secondary);
@@ -705,10 +760,10 @@ function getStatusIcon($status) {
             </a>
             <div class="header-user">
                 <div class="avatar-sm">
-                    <?php if (!empty($user['avatar'])): ?>
-                        <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">
+                    <?php if ($userAvatarUrl !== ''): ?>
+                        <img src="<?= htmlspecialchars($userAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="">
                     <?php else: ?>
-                        <?= strtoupper(substr($user['fullname'] ?? 'U', 0, 1)) ?>
+                        <?= htmlspecialchars($userInitials) ?>
                     <?php endif; ?>
                 </div>
                 <span>
@@ -726,10 +781,10 @@ function getStatusIcon($status) {
     <!-- Profile Header -->
     <div class="profile-header">
         <div class="profile-avatar">
-            <?php if (!empty($user['avatar'])): ?>
-                <img src="<?= htmlspecialchars($user['avatar']) ?>" alt="">
+            <?php if ($userAvatarUrl !== ''): ?>
+                <img src="<?= htmlspecialchars($userAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="">
             <?php else: ?>
-                <?= strtoupper(substr($user['fullname'] ?? 'U', 0, 1)) ?>
+                <?= htmlspecialchars($userInitials) ?>
             <?php endif; ?>
         </div>
         <div class="profile-info">
@@ -770,6 +825,9 @@ function getStatusIcon($status) {
         </a>
         <a href="?section=refunds" class="<?= $section === 'refunds' ? 'active' : '' ?>">
             <i class="fas fa-undo-alt"></i> <span>Refunds</span>
+        </a>
+        <a href="?section=account" class="<?= $section === 'account' ? 'active' : '' ?>">
+            <i class="fas fa-user-circle"></i> <span>Account</span>
         </a>
     </div>
 
@@ -974,6 +1032,44 @@ function getStatusIcon($status) {
         <?php endif; ?>
     </div>
 
+    <!-- ================================ -->
+    <!-- ACCOUNT SECTION -->
+    <!-- ================================ -->
+    <div class="section-content <?= $section === 'account' ? 'active' : '' ?>" id="section-account">
+        <div class="section-title">
+            <i class="fas fa-user-circle"></i> Account Settings
+        </div>
+
+        <?php if ($profileMessage): ?>
+            <div class="account-alert success"><?= htmlspecialchars($profileMessage) ?></div>
+        <?php endif; ?>
+        <?php if ($profileError): ?>
+            <div class="account-alert error"><?= htmlspecialchars($profileError) ?></div>
+        <?php endif; ?>
+
+        <div class="order-card">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="account-photo-form">
+                    <div class="account-photo-preview" id="customerAvatarPreview">
+                        <?php if ($userAvatarUrl !== ''): ?>
+                            <img src="<?= htmlspecialchars($userAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Profile photo">
+                        <?php else: ?>
+                            <?= htmlspecialchars($userInitials) ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <label for="customerAvatarInput" style="display:block;font-weight:600;margin-bottom:0.5rem;">Profile Photo</label>
+                        <input type="file" name="avatar" id="customerAvatarInput" accept="image/jpeg,image/png,image/gif,image/webp" required>
+                        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;">JPG, PNG, GIF, or WEBP. Max 2MB.</p>
+                        <button type="submit" name="update_avatar" class="btn-primary-sm" style="margin-top:1rem;">
+                            <i class="fas fa-upload"></i> Update Photo
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div> <!-- /profile-wrapper -->
 
 <!-- ===== REFUND MODAL ===== -->
@@ -1176,6 +1272,20 @@ function getStatusIcon($status) {
             closeAddressModal();
         }
     });
+
+    const customerAvatarInput = document.getElementById('customerAvatarInput');
+    const customerAvatarPreview = document.getElementById('customerAvatarPreview');
+    if (customerAvatarInput && customerAvatarPreview) {
+        customerAvatarInput.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                customerAvatarPreview.innerHTML = '<img src="' + e.target.result + '" alt="Profile photo preview">';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 </script>
 <?php
 // Close connection at the very end

@@ -21,6 +21,96 @@ if (!function_exists('rdv_email_support_address')) {
     }
 }
 
+if (!function_exists('rdv_email_logo_url')) {
+    function rdv_email_logo_url() {
+        if (function_exists('rdv_asset')) {
+            $url = rdv_asset('assets/brand-logo.png');
+            if (preg_match('#^https?://#i', (string) $url)) {
+                return $url;
+            }
+        }
+        return rtrim(rdv_email_base_url(), '/') . '/assets/brand-logo.png';
+    }
+}
+
+if (!function_exists('rdv_email_logo_html')) {
+    /**
+     * @param array<string,mixed> $options
+     */
+    function rdv_email_logo_html(array $options = []) {
+        $width = (int) ($options['width'] ?? 140);
+        if ($width < 80) {
+            $width = 80;
+        }
+        if ($width > 200) {
+            $width = 200;
+        }
+        $showName = !empty($options['show_name']);
+        $logoUrl = htmlspecialchars(rdv_email_logo_url(), ENT_QUOTES, 'UTF-8');
+        $company = htmlspecialchars(rdv_email_company_name(), ENT_QUOTES, 'UTF-8');
+
+        $logo = '<img src="' . $logoUrl . '" alt="' . $company . '" width="' . $width . '" style="display:block;max-width:' . $width . 'px;height:auto;border:0;background:#ffffff;border-radius:8px;padding:4px 8px;">';
+
+        if (!$showName) {
+            return $logo;
+        }
+
+        return '
+        <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="vertical-align:middle; padding-right:12px;">' . $logo . '</td>
+                <td style="vertical-align:middle;">
+                    <span style="font-size:22px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">' . $company . '</span>
+                </td>
+            </tr>
+        </table>';
+    }
+}
+
+if (!function_exists('rdv_email_header_html')) {
+    /**
+     * @param string $badge Optional right-side badge text (e.g. Order #123)
+     * @param array<string,mixed> $options centered, show_name, logo_width
+     */
+    function rdv_email_header_html($badge = '', array $options = []) {
+        $centered = !empty($options['centered']);
+        $showName = array_key_exists('show_name', $options) ? !empty($options['show_name']) : !$centered;
+        $logoWidth = (int) ($options['logo_width'] ?? ($centered ? 150 : 120));
+        $safeBadge = htmlspecialchars((string) $badge, ENT_QUOTES, 'UTF-8');
+        $logoHtml = rdv_email_logo_html([
+            'width' => $logoWidth,
+            'show_name' => $showName,
+        ]);
+
+        if ($centered) {
+            return '
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+                <tr>
+                    <td style="padding:22px 30px; text-align:center;">' . $logoHtml . '</td>
+                </tr>
+            </table>';
+        }
+
+        $badgeHtml = $safeBadge !== ''
+            ? '<span style="font-size:14px; color:#D4AF37; font-weight:500; font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">' . $safeBadge . '</span>'
+            : '';
+
+        return '
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; border-radius:18px 18px 0 0;">
+            <tr>
+                <td style="padding:22px 30px;">
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td style="vertical-align:middle;">' . $logoHtml . '</td>
+                            <td style="vertical-align:middle; text-align:right;">' . $badgeHtml . '</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>';
+    }
+}
+
 if (!function_exists('rdv_email_button_styles')) {
     function rdv_email_button_styles() {
         return [
@@ -145,10 +235,10 @@ if (!function_exists('rdv_email_wrap')) {
         $footerNote = (string) ($options['footer_note'] ?? '');
         $buttons = $options['buttons'] ?? [];
         $buttonsHtml = is_array($buttons) ? rdv_email_buttons_row($buttons) : '';
-
-        $headerRight = $badge !== ''
-            ? '<span style="font-size:14px; color:#D4AF37; font-weight:500;">' . $badge . '</span>'
-            : '';
+        $headerHtml = rdv_email_header_html((string) ($options['badge'] ?? ''), [
+            'centered' => !empty($options['header_centered']),
+            'show_name' => array_key_exists('header_show_name', $options) ? !empty($options['header_show_name']) : empty($options['header_centered']),
+        ]);
 
         return '<!DOCTYPE html>
 <html>
@@ -164,16 +254,7 @@ if (!function_exists('rdv_email_wrap')) {
         <td align="center">
             <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; background-color:#FFFFFF; border-radius:18px; border:1px solid #E5E7EB; box-shadow:0 8px 30px rgba(0,0,0,0.04); overflow:hidden;">
                 <tr>
-                    <td style="background-color:#0A3D91; border-bottom:6px solid #D4AF37; padding:22px 30px;">
-                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td style="vertical-align:middle;">
-                                    <span style="font-size:22px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">' . htmlspecialchars(rdv_email_company_name(), ENT_QUOTES, 'UTF-8') . '</span>
-                                </td>
-                                <td style="vertical-align:middle; text-align:right;">' . $headerRight . '</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td style="padding:0;">' . $headerHtml . '</td>
                 </tr>
                 <tr>
                     <td style="padding:32px 30px 24px 30px; color:#1E293B; font-size:16px; line-height:1.7;">

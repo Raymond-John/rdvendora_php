@@ -34,7 +34,27 @@ if (!function_exists('rdv_user_avatar_write_column')) {
                 return $col;
             }
         }
+        foreach ($cols as $col) {
+            if (strcasecmp($col, 'avatar') === 0) {
+                return $col;
+            }
+        }
         return $cols[0] ?? '';
+    }
+}
+
+if (!function_exists('rdv_user_avatar_read_sql')) {
+    function rdv_user_avatar_read_sql(mysqli $conn) {
+        $cols = rdv_user_avatar_columns($conn);
+        if (empty($cols)) {
+            return "'' AS avatar_path";
+        }
+        if (count($cols) === 1) {
+            return '`' . $cols[0] . '` AS avatar_path';
+        }
+        $preferred = rdv_user_avatar_write_column($conn);
+        $fallback = $cols[0] === $preferred ? $cols[1] : $cols[0];
+        return 'COALESCE(NULLIF(`' . $preferred . '`, \'\'), NULLIF(`' . $fallback . '`, \'\')) AS avatar_path';
     }
 }
 
@@ -69,6 +89,26 @@ if (!function_exists('rdv_user_name_column')) {
     }
 }
 
+if (!function_exists('rdv_user_avatar_web_url')) {
+    function rdv_user_avatar_web_url($path) {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return '';
+        }
+        if (preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+        if (!function_exists('rdv_web_relative')) {
+            require_once dirname(__DIR__) . '/bootstrap.php';
+        }
+        $web = rdv_web_relative($path);
+        if (function_exists('rdv_asset')) {
+            return rdv_asset($web);
+        }
+        return '/' . ltrim($web, '/');
+    }
+}
+
 if (!function_exists('rdv_user_avatar_raw_path')) {
     function rdv_user_avatar_raw_path(mysqli $conn, $userId) {
         try {
@@ -76,15 +116,8 @@ if (!function_exists('rdv_user_avatar_raw_path')) {
             if ($userId < 1) {
                 return '';
             }
-            $cols = rdv_user_avatar_columns($conn);
-            if (empty($cols)) {
-                return '';
-            }
-            if (count($cols) === 1) {
-                $sql = "SELECT `{$cols[0]}` AS avatar_path FROM users WHERE id = ? LIMIT 1";
-            } else {
-                $sql = "SELECT COALESCE(NULLIF(`{$cols[0]}`, ''), NULLIF(`{$cols[1]}`, '')) AS avatar_path FROM users WHERE id = ? LIMIT 1";
-            }
+            $select = rdv_user_avatar_read_sql($conn);
+            $sql = "SELECT {$select} FROM users WHERE id = ? LIMIT 1";
             $stmt = $conn->prepare($sql);
             if (!$stmt) {
                 return '';
@@ -112,20 +145,7 @@ if (!function_exists('rdv_user_avatar_raw_path')) {
 if (!function_exists('rdv_user_avatar_url')) {
     function rdv_user_avatar_url(mysqli $conn, $userId) {
         try {
-            $path = rdv_user_avatar_raw_path($conn, $userId);
-            if ($path === '') {
-                return '';
-            }
-            if (preg_match('#^https?://#i', $path)) {
-                return $path;
-            }
-            if (!function_exists('rdv_fs_path')) {
-                require_once dirname(__DIR__) . '/bootstrap.php';
-            }
-            if (!file_exists(rdv_fs_path($path))) {
-                return '';
-            }
-            return function_exists('rdv_asset') ? rdv_asset($path) : $path;
+            return rdv_user_avatar_web_url(rdv_user_avatar_raw_path($conn, $userId));
         } catch (Throwable $e) {
             error_log('rdv_user_avatar_url: ' . $e->getMessage());
             return '';
@@ -147,6 +167,28 @@ if (!function_exists('rdv_user_avatar_initials')) {
     }
 }
 
+if (!function_exists('rdv_user_avatar_save_path')) {
+    function rdv_user_avatar_save_path(mysqli $conn, $userId, $webPath) {
+        $cols = rdv_user_avatar_columns($conn);
+        if (empty($cols)) {
+            return false;
+        }
+        $ok = false;
+        foreach ($cols as $col) {
+            $stmt = $conn->prepare("UPDATE users SET `{$col}` = ? WHERE id = ?");
+            if (!$stmt) {
+                continue;
+            }
+            $stmt->bind_param('si', $webPath, $userId);
+            if ($stmt->execute()) {
+                $ok = true;
+            }
+            $stmt->close();
+        }
+        return $ok;
+    }
+}
+
 if (!function_exists('rdv_user_avatar_upload')) {
     function rdv_user_avatar_upload(mysqli $conn, $userId, array $file) {
         try {
@@ -154,8 +196,7 @@ if (!function_exists('rdv_user_avatar_upload')) {
             if ($userId < 1) {
                 return ['success' => false, 'message' => 'Invalid user.'];
             }
-            $col = rdv_user_avatar_write_column($conn);
-            if ($col === '') {
+            if (empty(rdv_user_avatar_columns($conn))) {
                 return ['success' => false, 'message' => 'Profile photos are not enabled on this site yet.'];
             }
             $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
@@ -170,42 +211,37 @@ if (!function_exists('rdv_user_avatar_upload')) {
             if ((int) ($file['size'] ?? 0) > 2 * 1024 * 1024) {
                 return ['success' => false, 'message' => 'Image must be 2MB or smaller.'];
             }
-            $uploadDir = 'uploads/avatars/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+
+            if (!function_exists('rdv_fs_path')) {
+                require_once dirname(__DIR__) . '/bootstrap.php';
             }
-            $filename = 'user_' . $userId . '_' . time() . '.' . $ext;
-            $destination = $uploadDir . $filename;
-            if (!move_uploaded_file($file['tmp_name'], $destination)) {
+
+            $webPath = 'uploads/avatars/user_' . $userId . '_' . time() . '.' . $ext;
+            $destinationFs = rdv_fs_path($webPath);
+            $uploadDir = dirname($destinationFs);
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            if (!move_uploaded_file($file['tmp_name'], $destinationFs)) {
                 return ['success' => false, 'message' => 'Could not save uploaded file.'];
             }
 
             $oldPath = rdv_user_avatar_raw_path($conn, $userId);
-            $stmt = $conn->prepare("UPDATE users SET `{$col}` = ? WHERE id = ?");
-            if (!$stmt) {
-                @unlink($destination);
+            if (!rdv_user_avatar_save_path($conn, $userId, $webPath)) {
+                @unlink($destinationFs);
                 return ['success' => false, 'message' => 'Failed to update profile photo.'];
             }
-            $stmt->bind_param('si', $destination, $userId);
-            if (!$stmt->execute()) {
-                @unlink($destination);
-                $stmt->close();
-                return ['success' => false, 'message' => 'Failed to update profile photo.'];
-            }
-            $stmt->close();
 
-            if ($oldPath !== '' && $oldPath !== $destination && !preg_match('#^https?://#i', $oldPath)) {
-                if (!function_exists('rdv_fs_path')) {
-                    require_once dirname(__DIR__) . '/bootstrap.php';
-                }
+            if ($oldPath !== '' && $oldPath !== $webPath && !preg_match('#^https?://#i', $oldPath)) {
                 $oldFs = rdv_fs_path($oldPath);
                 if (is_file($oldFs)) {
                     @unlink($oldFs);
                 }
             }
 
-            $_SESSION['user_avatar'] = rdv_user_avatar_url($conn, $userId);
-            return ['success' => true, 'message' => 'Profile photo updated.', 'path' => $destination];
+            $publicUrl = rdv_user_avatar_web_url($webPath);
+            $_SESSION['user_avatar'] = $publicUrl;
+            return ['success' => true, 'message' => 'Profile photo updated.', 'path' => $webPath, 'url' => $publicUrl];
         } catch (Throwable $e) {
             error_log('rdv_user_avatar_upload: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Could not update profile photo.'];

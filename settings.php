@@ -1047,7 +1047,7 @@ $conn->close();
                 </button>
                 <div class="dropdown" id="userDropdown">
                     <div class="topbar-user dropdown-trigger" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                        <?php include __DIR__ . '/includes/vendor_user_avatar.php'; ?>
                         <!-- <span><?= htmlspecialchars($userName) ?></span> -->
                     </div>
                     <div class="dropdown-menu"><a href="#" class="dropdown-item" onclick="handleLogout()">Logout</a></div>

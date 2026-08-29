@@ -144,8 +144,14 @@ try {
         require_once APP_PATH . '/helpers/user_avatar.php';
     }
     $userInitials = $h(rdv_user_avatar_initials($_SESSION['fullname'] ?? 'Vendor'));
-    if ($conn instanceof mysqli && $userId > 0) {
+    if (!empty($_SESSION['user_avatar']) && is_string($_SESSION['user_avatar'])) {
+        $userAvatarUrl = (string) $_SESSION['user_avatar'];
+    }
+    if ($userAvatarUrl === '' && $conn instanceof mysqli && $userId > 0) {
         $userAvatarUrl = rdv_user_avatar_url($conn, $userId);
+        if ($userAvatarUrl !== '') {
+            $_SESSION['user_avatar'] = $userAvatarUrl;
+        }
     }
 } catch (Throwable $e) {
     error_log('vendor_sidebar avatar: ' . $e->getMessage());

@@ -38,14 +38,7 @@ if (isset($_GET['avatar_updated'])) {
 }
 
 // Fetch user details from unified users table
-$avatarCols = rdv_user_avatar_columns($conn);
-if (count($avatarCols) >= 2) {
-    $avatarSelect = "COALESCE(NULLIF(`{$avatarCols[0]}`, ''), NULLIF(`{$avatarCols[1]}`, '')) AS avatar";
-} elseif (count($avatarCols) === 1) {
-    $avatarSelect = "`{$avatarCols[0]}` AS avatar";
-} else {
-    $avatarSelect = "'' AS avatar";
-}
+$avatarSelect = rdv_user_avatar_read_sql($conn);
 $userSql = "SELECT id, fullname, email, phone, {$avatarSelect}, created_at FROM users WHERE id = ?";
 $stmt = $conn->prepare($userSql);
 $stmt->bind_param("i", $user_id);

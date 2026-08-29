@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     if (empty($error) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
         $avatarResult = rdv_user_avatar_upload($conn, (int) $_SESSION['user_id'], $_FILES['avatar']);
         if ($avatarResult['success']) {
-            $userAvatarUrl = rdv_user_avatar_url($conn, (int) $_SESSION['user_id']);
+            $userAvatarUrl = $avatarResult['url'] ?? rdv_user_avatar_url($conn, (int) $_SESSION['user_id']);
             $message = $message ? $message . ' Profile photo updated.' : 'Profile updated successfully.';
         } else {
             $error = $avatarResult['message'];
@@ -1151,10 +1151,7 @@ $conn->close();
 
                 <div class="dropdown" id="userDropdown">
                     <div class="topbar-user dropdown-trigger">
-                        <img src="<?= $userAvatarUrl !== '' ? htmlspecialchars($userAvatarUrl, ENT_QUOTES, 'UTF-8') : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100' ?>" alt="User" class="topbar-user-avatar" id="topbarUserAvatar"<?= $userAvatarUrl === '' ? ' style="display:none;"' : '' ?>>
-                        <?php if ($userAvatarUrl === ''): ?>
-                        <div class="topbar-user-avatar" id="topbarUserAvatarFallback" style="display:flex;align-items:center;justify-content:center;background:var(--primary-light);color:var(--primary);font-weight:700;"><?= htmlspecialchars($userInitials) ?></div>
-                        <?php endif; ?>
+                        <?php include __DIR__ . '/includes/vendor_user_avatar.php'; ?>
                         <div class="topbar-user-info">
                             <span class="topbar-user-name"><?= htmlspecialchars($_SESSION['fullname']) ?></span>
                             <span class="topbar-user-role">

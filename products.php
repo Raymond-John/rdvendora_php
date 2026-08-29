@@ -1702,7 +1702,7 @@ $remainingSlots = ($productLimit == PHP_INT_MAX) ? 'Unlimited' : max(0, $product
                 <!-- User Dropdown -->
                 <div class="dropdown" id="userDropdown">
                     <div class="topbar-user dropdown-trigger">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" alt="User" class="topbar-user-avatar">
+                        <?php include __DIR__ . '/includes/vendor_user_avatar.php'; ?>
                         <div class="topbar-user-info">
                             <span class="topbar-user-name"><?= htmlspecialchars($_SESSION['fullname']) ?></span>
                             <span class="topbar-user-role">

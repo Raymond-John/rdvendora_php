@@ -692,7 +692,7 @@ function getInitials($name) {
 
                 <div class="dropdown" id="userDropdown">
                     <div class="topbar-user dropdown-trigger">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" class="topbar-user-avatar">
+                        <?php include __DIR__ . '/includes/vendor_user_avatar.php'; ?>
                         <!-- <div class="topbar-user-info">
                             <span class="topbar-user-name"><?= htmlspecialchars($_SESSION['fullname']) ?></span>
                             <span class="topbar-user-role"><?= htmlspecialchars($_SESSION['store_name'] ?? '') ?></span>

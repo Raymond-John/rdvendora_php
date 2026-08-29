@@ -138,13 +138,19 @@ $badge = static function ($count) use ($h) {
 $logoutHref = $h($url('logout'));
 $userName = $h($_SESSION['fullname'] ?? 'Vendor');
 $userAvatarUrl = '';
-if (!function_exists('rdv_user_avatar_url')) {
-    require_once APP_PATH . '/helpers/user_avatar.php';
+$userInitials = 'V';
+try {
+    if (!function_exists('rdv_user_avatar_initials')) {
+        require_once APP_PATH . '/helpers/user_avatar.php';
+    }
+    $userInitials = $h(rdv_user_avatar_initials($_SESSION['fullname'] ?? 'Vendor'));
+    if ($conn instanceof mysqli && $userId > 0) {
+        $userAvatarUrl = rdv_user_avatar_url($conn, $userId);
+    }
+} catch (Throwable $e) {
+    error_log('vendor_sidebar avatar: ' . $e->getMessage());
+    $userInitials = $h(rdv_user_avatar_initials($_SESSION['fullname'] ?? 'Vendor'));
 }
-if ($conn && $userId > 0) {
-    $userAvatarUrl = rdv_user_avatar_url($conn, $userId);
-}
-$userInitials = $h(rdv_user_avatar_initials($_SESSION['fullname'] ?? 'Vendor'));
 $storeName = trim((string) ($_SESSION['store_name'] ?? ''));
 $createStoreHref = $h($url('create-store'));
 $homeHref = $h($url('index'));

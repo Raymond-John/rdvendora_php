@@ -12,6 +12,7 @@ logUserActivity($_SESSION['user_id'], 'dashboard_view', 'dashboard.php', 'Viewed
 
 require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
+require_once __DIR__ . '/app/helpers/user_avatar.php';
 
 // ---------- Load PHPMailer if available ----------
 $phpmailer_available = function_exists('rdv_load_phpmailer') ? rdv_load_phpmailer() : false;
@@ -112,13 +113,18 @@ if ($storeStatus === 'pending') {
 
 // ---------- Get user's display name ----------
 if (!isset($_SESSION['fullname'])) {
-    $stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
-    $stmt->bind_param("i", $_SESSION['user_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $_SESSION['fullname'] = $row['full_name'] ?? 'User';  // use correct column
-    $stmt->close();
+    $nameCol = rdv_user_name_column($conn);
+    $stmt = $conn->prepare("SELECT `{$nameCol}` AS display_name FROM users WHERE id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $_SESSION['user_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+        $_SESSION['fullname'] = trim((string) ($row['display_name'] ?? '')) ?: 'User';
+        $stmt->close();
+    } else {
+        $_SESSION['fullname'] = 'User';
+    }
 }
 
 // ---------- Handle AJAX Invite Request ----------
@@ -212,8 +218,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 $teamMembers = [];
 $pendingInvites = [];
 if (!$storeRestricted) {
+    $nameCol = rdv_user_name_column($conn);
     $teamQuery = $conn->prepare("
-        SELECT u.id, u.full_name AS name, u.email, ss.role, ss.created_at
+        SELECT u.id, u.`{$nameCol}` AS name, u.email, ss.role, ss.created_at
         FROM store_staff ss
         JOIN users u ON ss.user_id = u.id
         WHERE ss.store_id = ?
@@ -1213,7 +1220,7 @@ $revenue = $total_revenue;
                             <?php foreach ($teamMembers as $member): ?>
                                 <div class="team-member">
                                     <div class="member-info">
-                                        <strong><?= htmlspecialchars($member['fullname']) ?></strong> (<?= htmlspecialchars($member['email']) ?>)
+                                        <strong><?= htmlspecialchars($member['name'] ?? 'User') ?></strong> (<?= htmlspecialchars($member['email']) ?>)
                                         <div class="member-role">Role: <?= ucfirst($member['role']) ?></div>
                                     </div>
                                 </div>

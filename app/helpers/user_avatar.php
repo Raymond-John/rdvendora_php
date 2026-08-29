@@ -32,6 +32,7 @@ if (!function_exists('rdv_user_avatar_raw_path')) {
         if ($userId < 1) {
             return '';
         }
+        $col = rdv_user_avatar_column($conn);
         $stmt = $conn->prepare("SELECT `{$col}` AS avatar_path FROM users WHERE id = ? LIMIT 1");
         if (!$stmt) {
             return '';

@@ -138,10 +138,10 @@ $badge = static function ($count) use ($h) {
 $logoutHref = $h($url('logout'));
 $userName = $h($_SESSION['fullname'] ?? 'Vendor');
 $userAvatarUrl = '';
+if (!function_exists('rdv_user_avatar_url')) {
+    require_once APP_PATH . '/helpers/user_avatar.php';
+}
 if ($conn && $userId > 0) {
-    if (!function_exists('rdv_user_avatar_url')) {
-        require_once APP_PATH . '/helpers/user_avatar.php';
-    }
     $userAvatarUrl = rdv_user_avatar_url($conn, $userId);
 }
 $userInitials = $h(rdv_user_avatar_initials($_SESSION['fullname'] ?? 'Vendor'));

@@ -1,19 +1,20 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/connection.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../app/helpers/transport_companies.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
 
-// Admin authentication
-$isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true;
-if (!$isAdmin) {
-    if (isset($_SESSION['email']) && $_SESSION['email'] === 'admin@example.com') {
-        $_SESSION['is_admin'] = true;
-        $isAdmin = true;
-    } else {
-        die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
-    }
+rdv_hydrate_admin_session($conn);
+
+if (!rdv_admin_flag_is_set()) {
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view this page.</p><a href="../">Go Home</a></div>');
+}
+
+if (!adminHasPermission('transport', $conn)) {
+    die('<div style="text-align:center; padding:3rem;"><h1>Access Denied</h1><p>You do not have permission to view transport orders.</p><a href="admin">Go to Dashboard</a></div>');
 }
 
 // Create notifications table if not exists
@@ -25,6 +26,21 @@ $conn->query("CREATE TABLE IF NOT EXISTS `transport_notifications` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `manifest_filename` (`manifest_filename`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+$message = '';
+$messageType = '';
+
+// Handle transport company list save
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_transport_companies'])) {
+    $saved = rdv_save_transport_companies($conn, (string) ($_POST['transport_companies'] ?? ''));
+    if ($saved === false) {
+        $message = 'Failed to save transport companies.';
+        $messageType = 'error';
+    } else {
+        $message = 'Transport companies updated.';
+        $messageType = 'success';
+    }
+}
 
 // Handle AJAX requests (mark as read, mark all read)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
@@ -50,8 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 }
 
 // Handle file deletion
-$message = '';
-$messageType = '';
 if (isset($_GET['delete']) && !empty($_GET['delete'])) {
     $filename = basename($_GET['delete']);
     $filepath = '../transport_manifests/' . $filename;
@@ -119,6 +133,8 @@ if ($stmt) {
     $stmt->close();
 }
 
+$transportCompaniesText = rdv_transport_companies_text($conn);
+
 $adminPageTitle = 'Transport Orders - RD Vendora Admin';
 $adminPageHeading = 'Transport Orders';
 $adminPageSubtitle = 'Logistics and transport requests';
@@ -132,6 +148,20 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     <?php if ($debugInfo): ?>
         <div class="debug-info"><?= htmlspecialchars($debugInfo) ?></div>
     <?php endif; ?>
+
+    <div class="content-card" style="margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 1rem;">🚚 Transport Companies</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+            Vendors see these companies when they use <strong>Send to Transport</strong> on their orders page. Enter one company name per line.
+        </p>
+        <form method="POST">
+            <div class="form-group">
+                <label>Company list</label>
+                <textarea name="transport_companies" rows="6" class="form-textarea" placeholder="Fast Delivery Express&#10;Logistics Plus&#10;Speed Cargo" required><?= htmlspecialchars($transportCompaniesText) ?></textarea>
+            </div>
+            <button type="submit" name="save_transport_companies" class="btn btn-primary">Save Companies</button>
+        </form>
+    </div>
 
     <div class="toolbar">
         <button class="btn-sm" id="markAllReadBtn" <?= $unreadCount == 0 ? 'disabled' : '' ?>>✓ Mark all as read</button>

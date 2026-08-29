@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
 require_once 'includes/notification_helper.php'; // <-- ADDED FOR NOTIFICATIONS
+require_once __DIR__ . '/app/helpers/transport_companies.php';
 
 if (!isset($conn) && isset($connect)) $conn = $connect;
 if (!$conn) die('Database connection failed.');
@@ -66,6 +67,9 @@ if (!$isAdmin) {
     $hasSubscription = true;
     $activePlan = null;
 }
+
+$transportCompanies = rdv_transport_companies($conn);
+$hasTransportCompanies = !empty($transportCompanies);
 
 // ---------- Get user's display name ----------
 if (!isset($_SESSION['fullname'])) {
@@ -747,7 +751,7 @@ $totalOrdersCount = count($orders);
                 </div>
                 <?php if (!$isAdmin): ?>
                 <div class="transport-actions">
-                    <button class="btn btn-primary" id="sendToTransportBtn" <?= (!$hasSubscription) ? 'disabled' : '' ?>>
+                    <button class="btn btn-primary" id="sendToTransportBtn" <?= (!$hasSubscription || !$hasTransportCompanies) ? 'disabled' : '' ?> title="<?= !$hasTransportCompanies ? 'No transport companies configured by admin' : '' ?>">
                         🚚 Send to Transport
                     </button>
                     <span class="selected-count" id="selectedCount">0 selected</span>
@@ -793,11 +797,14 @@ $totalOrdersCount = count($orders);
                 <div id="selectedOrdersList" style="margin-bottom:1rem;max-height:200px;overflow-y:auto;background:var(--bg-tertiary);padding:12px;border-radius:var(--radius-md);font-size:var(--text-sm);"></div>
                 <div class="form-group">
                     <label class="form-label">Transport Company</label>
-                    <select id="transportCompany" class="form-select">
-                        <option value="Fast Delivery Express">Fast Delivery Express</option>
-                        <option value="Logistics Plus">Logistics Plus</option>
-                        <option value="Speed Cargo">Speed Cargo</option>
-                        <option value="Local Courier Service">Local Courier Service</option>
+                    <select id="transportCompany" class="form-select" <?= empty($transportCompanies) ? 'disabled' : '' ?>>
+                        <?php if (empty($transportCompanies)): ?>
+                            <option value="">No transport companies available</option>
+                        <?php else: ?>
+                            <?php foreach ($transportCompanies as $company): ?>
+                                <option value="<?= htmlspecialchars($company, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($company) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1075,6 +1082,10 @@ $totalOrdersCount = count($orders);
         document.getElementById('confirmTransportBtn')?.addEventListener('click', async function () {
             const company = document.getElementById('transportCompany').value;
             const notes   = document.getElementById('transportNotes').value;
+            if (!company) {
+                showToast('error', 'No transport company', 'Please ask the admin to configure transport companies.');
+                return;
+            }
             const ids     = [...selectedOrders];
             if (!ids.length) { showToast('error', 'No orders', 'No orders selected.'); return; }
 

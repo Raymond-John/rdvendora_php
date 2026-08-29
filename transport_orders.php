@@ -14,6 +14,7 @@ try {
     }
 
     require_once 'includes/connection.php';
+    require_once __DIR__ . '/app/helpers/transport_companies.php';
     if (!isset($conn) && isset($connect)) $conn = $connect;
     if (!$conn) throw new Exception('Database connection failed');
 
@@ -51,6 +52,9 @@ try {
 
     if (empty($orderIds)) throw new Exception('No orders selected');
     if (empty($company)) throw new Exception('Transport company not specified');
+    if (!rdv_transport_company_is_valid($conn, $company)) {
+        throw new Exception('Invalid transport company selected');
+    }
 
     // Get column list
     $cols = [];

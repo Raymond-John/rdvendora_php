@@ -982,6 +982,11 @@ img.rdv-brand-logo,
 }
 
 /* ========== BLOG JOURNAL (Jenfrank-style index) ========== */
+.rdv-public-page.rdv-blog-journal-page main {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .rdv-blog-journal-page {
   --blog-primary: #5b8c51;
   --blog-primary-dark: #3f6a38;
@@ -995,12 +1000,12 @@ img.rdv-brand-logo,
 }
 
 .rdv-blog-page-header {
+  position: relative;
+  overflow: hidden;
   background:
-    linear-gradient(rgba(36, 48, 32, 0.62), rgba(36, 48, 32, 0.62)),
-    linear-gradient(135deg, #2f4630 0%, #5b8c51 45%, #3d5c38 100%);
-  background-position: center;
-  background-size: cover;
-  padding: 3.5rem 16px;
+    radial-gradient(1200px 500px at 80% -10%, rgba(212, 175, 55, 0.22), transparent 55%),
+    linear-gradient(165deg, #071530 0%, #0d2450 48%, #163a78 100%);
+  padding: 8.25rem 16px 3.5rem;
   margin-bottom: 0;
 }
 
@@ -1011,12 +1016,13 @@ img.rdv-brand-logo,
 }
 
 .rdv-blog-page-header h1 {
-  font-family: var(--blog-serif);
-  font-size: clamp(1.85rem, 4.5vw, 2.75rem);
-  font-weight: 700;
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: #fff;
   margin: 0 0 1rem;
-  line-height: 1.15;
+  line-height: 1.12;
 }
 
 .rdv-blog-breadcrumb {
@@ -1039,11 +1045,11 @@ img.rdv-brand-logo,
 
 .rdv-blog-breadcrumb a,
 .rdv-blog-breadcrumb li[aria-current='page'] {
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.86);
   text-decoration: none;
 }
 
-.rdv-blog-breadcrumb a:hover { color: #fff; text-decoration: underline; }
+.rdv-blog-breadcrumb a:hover { color: #d4af37; text-decoration: none; }
 
 .rdv-blog-journal {
   font-family: var(--blog-sans);
@@ -1378,5 +1384,5 @@ a.blog-page-link:hover {
 
 @media (max-width: 600px) {
   .rdv-blog-journal { padding-top: 2rem; }
-  .rdv-blog-page-header { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+  .rdv-blog-page-header { padding: 6.5rem 16px 2.5rem; }
 }

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     image_url VARCHAR(500) NULL,
     status ENUM('draft','published') NOT NULL DEFAULT 'draft',
     is_featured TINYINT(1) NOT NULL DEFAULT 0,
+    view_count INT UNSIGNED NOT NULL DEFAULT 0,
     published_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

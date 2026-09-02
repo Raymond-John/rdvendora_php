@@ -132,17 +132,18 @@ require __DIR__ . '/../includes/admin_layout_start.php';
     <?php if (!$isNew && !$edit): ?>
     <table>
       <thead>
-        <tr><th>Headline</th><th>Section</th><th>Status</th><th>Published</th><th>Featured</th><th></th></tr>
+        <tr><th>Headline</th><th>Section</th><th>Status</th><th>Views</th><th>Published</th><th>Featured</th><th></th></tr>
       </thead>
       <tbody>
         <?php if (!$rows): ?>
-          <tr><td colspan="6">No stories yet. <a href="admin-blog?new=1">Write the first one</a>.</td></tr>
+          <tr><td colspan="7">No stories yet. <a href="admin-blog?new=1">Write the first one</a>.</td></tr>
         <?php endif; ?>
         <?php foreach ($rows as $row): ?>
           <tr>
             <td><?= rdv_blog_h($row['title']) ?></td>
             <td><?= rdv_blog_h(rdv_blog_category_label($row['category'])) ?></td>
             <td><span class="badge <?= rdv_blog_h($row['status']) ?>"><?= rdv_blog_h($row['status']) ?></span></td>
+            <td><?= rdv_blog_h(rdv_blog_format_views((int) ($row['view_count'] ?? 0))) ?></td>
             <td><?= rdv_blog_h((string) $row['published_at']) ?></td>
             <td><?= ((int) $row['is_featured'] === 1) ? 'Yes' : '' ?></td>
             <td>

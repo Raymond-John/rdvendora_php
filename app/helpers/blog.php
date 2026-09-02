@@ -36,6 +36,7 @@ if (!function_exists('rdv_ensure_blog_table')) {
             image_url VARCHAR(500) NULL,
             status ENUM('draft','published') NOT NULL DEFAULT 'draft',
             is_featured TINYINT(1) NOT NULL DEFAULT 0,
+            view_count INT UNSIGNED NOT NULL DEFAULT 0,
             published_at DATETIME NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -44,10 +45,98 @@ if (!function_exists('rdv_ensure_blog_table')) {
             KEY idx_category (category),
             KEY idx_featured (is_featured)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            rdv_blog_ensure_view_count_column($conn);
             rdv_blog_seed_if_empty($conn);
         } catch (Throwable $e) {
             error_log('rdv_ensure_blog_table: ' . $e->getMessage());
         }
+    }
+}
+
+if (!function_exists('rdv_blog_ensure_view_count_column')) {
+    function rdv_blog_ensure_view_count_column(mysqli $conn) {
+        try {
+            $res = $conn->query("SHOW COLUMNS FROM blog_posts LIKE 'view_count'");
+            if ($res && $res->num_rows > 0) {
+                return;
+            }
+            $conn->query('ALTER TABLE blog_posts ADD COLUMN view_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER is_featured');
+        } catch (Throwable $e) {
+            error_log('rdv_blog_ensure_view_count_column: ' . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('rdv_blog_format_views')) {
+    function rdv_blog_format_views($count) {
+        $count = max(0, (int) $count);
+        if ($count >= 1000000) {
+            return rtrim(rtrim(number_format($count / 1000000, 1), '0'), '.') . 'M views';
+        }
+        if ($count >= 10000) {
+            return rtrim(rtrim(number_format($count / 1000, 1), '0'), '.') . 'K views';
+        }
+        $formatted = number_format($count);
+        return $count === 1 ? '1 view' : $formatted . ' views';
+    }
+}
+
+if (!function_exists('rdv_blog_story_meta')) {
+    /**
+     * @param array<string,mixed> $post
+     * @param array<string,bool> $options reading, views
+     */
+    function rdv_blog_story_meta(array $post, array $options = []) {
+        $showReading = !array_key_exists('reading', $options) || !empty($options['reading']);
+        $showViews = !array_key_exists('views', $options) || !empty($options['views']);
+        $parts = [];
+        $date = rdv_blog_format_date($post['published_at'] ?? '');
+        if ($date !== '') {
+            $parts[] = $date;
+        }
+        if ($showReading) {
+            $parts[] = (int) rdv_blog_reading_minutes($post) . ' min read';
+        }
+        if ($showViews) {
+            $parts[] = rdv_blog_format_views((int) ($post['view_count'] ?? 0));
+        }
+        return implode(' · ', $parts);
+    }
+}
+
+if (!function_exists('rdv_blog_record_view')) {
+    function rdv_blog_record_view(mysqli $conn, $postId) {
+        rdv_ensure_blog_table($conn);
+        $postId = (int) $postId;
+        if ($postId <= 0) {
+            return 0;
+        }
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        if (!isset($_SESSION['blog_views']) || !is_array($_SESSION['blog_views'])) {
+            $_SESSION['blog_views'] = [];
+        }
+
+        if (!empty($_SESSION['blog_views'][$postId])) {
+            $post = rdv_blog_get_by_id($conn, $postId);
+            return (int) ($post['view_count'] ?? 0);
+        }
+
+        $stmt = $conn->prepare("UPDATE blog_posts SET view_count = view_count + 1 WHERE id = ? AND status = 'published' LIMIT 1");
+        if (!$stmt) {
+            return 0;
+        }
+        $stmt->bind_param('i', $postId);
+        $stmt->execute();
+        $stmt->close();
+
+        $_SESSION['blog_views'][$postId] = time();
+
+        $post = rdv_blog_get_by_id($conn, $postId);
+        return (int) ($post['view_count'] ?? 0);
     }
 }
 

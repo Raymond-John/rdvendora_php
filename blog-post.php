@@ -11,6 +11,11 @@ if ($conn instanceof mysqli && $slug !== '') {
     $post = rdv_blog_get_by_slug($conn, $slug, $includeDraft);
 }
 
+$isPreviewRequest = $preview && !empty($_SESSION['is_admin']);
+if ($post && $conn instanceof mysqli && !$isPreviewRequest && ($post['status'] ?? '') === 'published') {
+    $post['view_count'] = rdv_blog_record_view($conn, (int) $post['id']);
+}
+
 if (!$post) {
     http_response_code(404);
     $rdvPageTitle = 'Story not found | RD Vendora News';
@@ -61,6 +66,7 @@ require __DIR__ . '/includes/public_layout_start.php';
         <a class="rdv-news-cat" href="<?= rdv_blog_h(rdv_blog_index_url(['cat' => $post['category']])) ?>"><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></a>
         <span class="rdv-article-pill">Complete guide</span>
         <span class="rdv-article-pill"><?= (int) rdv_blog_reading_minutes($post) ?> min read</span>
+        <span class="rdv-article-pill"><?= rdv_blog_h(rdv_blog_format_views((int) ($post['view_count'] ?? 0))) ?></span>
         <?php if ($stepCount > 0): ?><span class="rdv-article-pill"><?= (int) $stepCount ?> steps</span><?php endif; ?>
       </div>
       <h1><?= rdv_blog_h($post['title']) ?></h1>
@@ -72,6 +78,7 @@ require __DIR__ . '/includes/public_layout_start.php';
           <p class="rdv-news-meta">
             <?= rdv_blog_h(rdv_blog_format_date($post['published_at'], true)) ?>
             · <?= (int) rdv_blog_reading_minutes($post) ?> min read
+            · <?= rdv_blog_h(rdv_blog_format_views((int) ($post['view_count'] ?? 0))) ?>
             <?php if ($post['status'] !== 'published'): ?> · Draft preview<?php endif; ?>
           </p>
         </div>
@@ -113,7 +120,7 @@ require __DIR__ . '/includes/public_layout_start.php';
                   <?= rdv_blog_thumb_html($item, false) ?>
                   <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($item['category'])) ?></span>
                   <h3><?= rdv_blog_h($item['title']) ?></h3>
-                  <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_format_date($item['published_at'])) ?></p>
+                  <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($item, ['reading' => false])) ?></p>
                 </a>
               <?php endforeach; ?>
             </div>

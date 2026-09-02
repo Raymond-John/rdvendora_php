@@ -118,7 +118,7 @@ $todayLabel = date('l j F Y');
         <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($lead['category'])) ?></span>
         <h2><?= rdv_blog_h($lead['title']) ?></h2>
         <p><?= rdv_blog_h(rdv_blog_excerpt($lead, 36)) ?></p>
-        <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_format_date($lead['published_at'])) ?> · <?= (int) rdv_blog_reading_minutes($lead) ?> min read</p>
+        <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($lead)) ?></p>
       </a>
       <div class="rdv-news-secondary">
         <?php foreach ($secondary as $story): ?>
@@ -127,7 +127,7 @@ $todayLabel = date('l j F Y');
             <div>
               <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($story['category'])) ?></span>
               <h3><?= rdv_blog_h($story['title']) ?></h3>
-              <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_format_date($story['published_at'])) ?></p>
+              <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($story, ['reading' => false])) ?></p>
             </div>
           </a>
         <?php endforeach; ?>
@@ -149,7 +149,7 @@ $todayLabel = date('l j F Y');
             <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($story['category'])) ?></span>
             <h3><?= rdv_blog_h($story['title']) ?></h3>
             <p><?= rdv_blog_h(rdv_blog_excerpt($story, 22)) ?></p>
-            <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_format_date($story['published_at'])) ?> · <?= (int) rdv_blog_reading_minutes($story) ?> min read</p>
+            <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($story)) ?></p>
           </div>
         </a>
       <?php endforeach; ?>
@@ -175,7 +175,7 @@ $todayLabel = date('l j F Y');
       <?php foreach ($latestAside as $item): ?>
         <a class="rdv-mini" href="<?= rdv_blog_h(rdv_blog_url($item['slug'])) ?>">
           <h3><?= rdv_blog_h($item['title']) ?></h3>
-          <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_format_date($item['published_at'])) ?></p>
+          <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($item, ['reading' => false])) ?></p>
         </a>
       <?php endforeach; ?>
       <?= rdv_render_ad_slot('sidebar') ?>

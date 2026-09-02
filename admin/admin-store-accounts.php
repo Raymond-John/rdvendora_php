@@ -165,7 +165,6 @@ require __DIR__ . '/../includes/admin_layout_start.php';
                     <div><div class="label">Business name</div><div class="value"><?= htmlspecialchars($row['business_name']) ?></div></div>
                     <div><div class="label">Contact phone</div><div class="value"><?= htmlspecialchars($row['contact_phone']) ?></div></div>
                     <div><div class="label">Contact email</div><div class="value"><?= htmlspecialchars($row['contact_email']) ?></div></div>
-                    <div><div class="label">Tax ID / RC</div><div class="value"><?= htmlspecialchars($row['tax_id'] ?: '—') ?></div></div>
                     <div style="grid-column:1/-1;"><div class="label">Business address</div><div class="value"><?= htmlspecialchars($row['business_address']) ?>, <?= htmlspecialchars($row['city']) ?>, <?= htmlspecialchars($row['state_region']) ?>, <?= htmlspecialchars($row['country']) ?></div></div>
                     <div><div class="label">Bank</div><div class="value"><?= htmlspecialchars($row['bank_name']) ?></div></div>
                     <div><div class="label">Account type</div><div class="value"><?= htmlspecialchars(ucfirst((string) $row['account_type'])) ?></div></div>

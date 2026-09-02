@@ -66,7 +66,6 @@ $defaults = [
     'account_name' => $existing['account_name'] ?? '',
     'account_number' => $existing['account_number'] ?? '',
     'account_type' => $existing['account_type'] ?? 'savings',
-    'tax_id' => $existing['tax_id'] ?? '',
     'notes' => $existing['notes'] ?? '',
 ];
 ?>
@@ -142,10 +141,6 @@ $defaults = [
                     <div class="form-group">
                         <label class="form-label" for="country">Country</label>
                         <input class="form-input" type="text" id="country" name="country" maxlength="100" value="<?= htmlspecialchars($defaults['country']) ?>">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="tax_id">Tax ID / RC number</label>
-                        <input class="form-input" type="text" id="tax_id" name="tax_id" maxlength="80" value="<?= htmlspecialchars($defaults['tax_id']) ?>">
                     </div>
                     <div class="form-group full" style="margin-top:0.5rem;">
                         <h2 style="font-size:1rem;margin:0 0 0.75rem;">Payout account</h2>

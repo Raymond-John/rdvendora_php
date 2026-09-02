@@ -80,8 +80,8 @@ if (!function_exists('rdv_store_account_details_save')) {
         $accountName = trim((string) ($data['account_name'] ?? ''));
         $accountNumber = preg_replace('/\s+/', '', (string) ($data['account_number'] ?? ''));
         $accountType = strtolower(trim((string) ($data['account_type'] ?? 'savings')));
-        $taxId = trim((string) ($data['tax_id'] ?? ''));
         $notes = trim((string) ($data['notes'] ?? ''));
+        $taxId = '';
 
         if ($businessName === '' || $contactPhone === '' || $contactEmail === '' || $businessAddress === ''
             || $city === '' || $stateRegion === '' || $bankName === '' || $accountName === '' || $accountNumber === '') {
@@ -105,7 +105,6 @@ if (!function_exists('rdv_store_account_details_save')) {
         $country = substr($country !== '' ? $country : 'Nigeria', 0, 100);
         $bankName = substr($bankName, 0, 120);
         $accountName = substr($accountName, 0, 120);
-        $taxId = $taxId !== '' ? substr($taxId, 0, 80) : '';
         $notes = $notes !== '' ? substr($notes, 0, 2000) : '';
 
         $existing = rdv_store_account_details_get($conn, $storeId);

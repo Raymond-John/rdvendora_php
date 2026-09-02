@@ -25,10 +25,16 @@ $existingStore = $checkStmt->get_result()->fetch_assoc();
 $checkStmt->close();
 
 if ($existingStore) {
-    // User already has a store – set session variables and redirect to dashboard
+    // User already has a store – set session variables
     $_SESSION['store_id']   = $existingStore['id'];
     $_SESSION['store_name'] = $existingStore['store_name'];
     $_SESSION['store_slug'] = $existingStore['store_slug'];
+    require_once __DIR__ . '/app/helpers/store_account_details.php';
+    rdv_ensure_store_account_details_table($conn);
+    if (!rdv_store_account_details_exists($conn, (int) $existingStore['id'])) {
+        header('Location: store-account-details');
+        exit;
+    }
     header('Location: dashboard');
     exit;
 }
@@ -84,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['store_id'] = $store_id;
                 $_SESSION['store_name'] = $store_name;
                 $_SESSION['store_slug'] = $store_slug;
-                header('Location: dashboard');
+                header('Location: store-account-details');
                 exit;
             } else {
                 $error = 'Could not create your store. Please try again.';

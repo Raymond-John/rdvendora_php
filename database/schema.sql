@@ -400,6 +400,32 @@ CREATE TABLE IF NOT EXISTS `company_documents` (
   KEY `document_type` (`document_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `store_account_details` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `store_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `business_name` varchar(200) NOT NULL,
+  `contact_phone` varchar(30) NOT NULL,
+  `contact_email` varchar(191) NOT NULL,
+  `business_address` text NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `state_region` varchar(100) NOT NULL,
+  `country` varchar(100) NOT NULL DEFAULT 'Nigeria',
+  `bank_name` varchar(120) NOT NULL,
+  `account_name` varchar(120) NOT NULL,
+  `account_number` varchar(40) NOT NULL,
+  `account_type` enum('savings','current') NOT NULL DEFAULT 'savings',
+  `tax_id` varchar(80) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('pending','reviewed') NOT NULL DEFAULT 'pending',
+  `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_store_account` (`store_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `promo_banners` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,

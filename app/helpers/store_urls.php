@@ -62,7 +62,7 @@ if (!function_exists('rdv_reserved_store_subdomains')) {
             'newsletter', 'email', 'emails', 'contact', 'about', 'pricing', 'features',
             'faq', 'terms', 'privacy', 'cookies', 'sitemap', 'robots', 'ads', 'ad',
             'logout', 'settings', 'profile', 'products', 'orders', 'analytics',
-            'subscription', 'notifications', 'create-store', 'forgot-password',
+            'subscription', 'notifications', 'create-store', 'store-account-details', 'forgot-password',
             'reset-password', 'maintenance', 'storefront', 'product', 'product-details',
             'category', 'categories', 'home', 'index', 'includes', 'database', 'config',
             'public', 'css', 'js', 'fonts', 'favicon', 'webhook', 'verify', 'billing',

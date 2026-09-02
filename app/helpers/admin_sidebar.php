@@ -47,6 +47,7 @@ $item = static function ($file, $label, $icon) use ($currentPage) {
         <?php if ($can('dashboard')) { $item('admin.php', 'Dashboard', $svg['grid']); } ?>
         <?php if ($can('users')) { $item('admin-users.php', 'Users', $svg['users']); } ?>
         <?php if ($can('stores')) { $item('admin-stores.php', 'Stores', $svg['store']); } ?>
+        <?php if ($can('stores')) { $item('admin-store-accounts.php', 'Store Accounts', $svg['file']); } ?>
         <?php if ($can('pricing')) { $item('admin-pricing.php', 'Pricing Plans', $svg['pricing']); } ?>
         <?php if ($can('testimonials')) { $item('admin-testimonies.php', 'Testimonials', $svg['chat']); } ?>
         <?php if ($can('contacts')) { $item('admin-contacts.php', 'Contact Messages', $svg['mail']); } ?>

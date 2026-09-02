@@ -12,6 +12,7 @@ logUserActivity($_SESSION['user_id'], 'dashboard_view', 'dashboard.php', 'Viewed
 
 require_once 'includes/connection.php';
 require_once 'includes/subscription_check.php';
+require_once __DIR__ . '/app/helpers/store_account_details.php';
 require_once __DIR__ . '/app/helpers/user_avatar.php';
 
 // ---------- Load PHPMailer if available ----------
@@ -67,6 +68,12 @@ $_SESSION['store_name'] = $storeData['store_name'];
 $_SESSION['store_slug'] = trim((string) ($storeData['store_slug'] ?? ''));
 $storeStatus = $storeData['status'];
 $stmt->close();
+
+rdv_ensure_store_account_details_table($conn);
+if (!rdv_store_account_details_exists($conn, (int) $storeData['id'])) {
+    header('Location: store-account-details');
+    exit();
+}
 
 // ---------- Determine if store access is restricted ----------
 $storeRestricted = false;

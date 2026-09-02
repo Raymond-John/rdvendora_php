@@ -7,6 +7,15 @@ if ($pathInfo !== '' && strpos($pathInfo, '/') === false) {
     exit;
 }
 
+require_once __DIR__ . '/includes/connection.php';
+require_once __DIR__ . '/includes/public_site.php';
+
+$conn = $conn ?? $connect ?? ($GLOBALS['conn'] ?? null);
+if ($conn instanceof mysqli) {
+    rdv_ensure_blog_table($conn);
+    rdv_blog_ensure_view_count_column($conn);
+}
+
 $rdvPageTitle = 'News | RD Vendora';
 $rdvPageDescription = 'Platform news, store guides, and payment notes from the RD Vendora team.';
 $rdvPagePath = 'blog.php';
@@ -15,11 +24,6 @@ $rdvOgType = 'website';
 $rdvExtraHead = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">';
 
 require __DIR__ . '/includes/public_layout_start.php';
-
-$conn = $conn ?? $connect ?? ($GLOBALS['conn'] ?? null);
-if ($conn instanceof mysqli) {
-    rdv_ensure_blog_table($conn);
-}
 
 $category = trim((string) ($_GET['cat'] ?? ''));
 if ($category !== '' && !isset(rdv_blog_categories()[$category])) {
@@ -118,7 +122,10 @@ $todayLabel = date('l j F Y');
         <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($lead['category'])) ?></span>
         <h2><?= rdv_blog_h($lead['title']) ?></h2>
         <p><?= rdv_blog_h(rdv_blog_excerpt($lead, 36)) ?></p>
-        <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($lead)) ?></p>
+        <p class="rdv-news-meta rdv-news-meta--with-views">
+          <?= rdv_blog_h(rdv_blog_story_meta($lead, ['views' => false])) ?>
+          · <?= rdv_blog_views_markup($lead) ?>
+        </p>
       </a>
       <div class="rdv-news-secondary">
         <?php foreach ($secondary as $story): ?>
@@ -127,7 +134,10 @@ $todayLabel = date('l j F Y');
             <div>
               <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($story['category'])) ?></span>
               <h3><?= rdv_blog_h($story['title']) ?></h3>
-              <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($story, ['reading' => false])) ?></p>
+              <p class="rdv-news-meta rdv-news-meta--with-views">
+                <?= rdv_blog_h(rdv_blog_story_meta($story, ['reading' => false, 'views' => false])) ?>
+                · <?= rdv_blog_views_markup($story) ?>
+              </p>
             </div>
           </a>
         <?php endforeach; ?>
@@ -149,7 +159,10 @@ $todayLabel = date('l j F Y');
             <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($story['category'])) ?></span>
             <h3><?= rdv_blog_h($story['title']) ?></h3>
             <p><?= rdv_blog_h(rdv_blog_excerpt($story, 22)) ?></p>
-            <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($story)) ?></p>
+            <p class="rdv-news-meta rdv-news-meta--with-views">
+              <?= rdv_blog_h(rdv_blog_story_meta($story, ['views' => false])) ?>
+              · <?= rdv_blog_views_markup($story) ?>
+            </p>
           </div>
         </a>
       <?php endforeach; ?>
@@ -175,7 +188,10 @@ $todayLabel = date('l j F Y');
       <?php foreach ($latestAside as $item): ?>
         <a class="rdv-mini" href="<?= rdv_blog_h(rdv_blog_url($item['slug'])) ?>">
           <h3><?= rdv_blog_h($item['title']) ?></h3>
-          <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($item, ['reading' => false])) ?></p>
+          <p class="rdv-news-meta rdv-news-meta--with-views">
+            <?= rdv_blog_h(rdv_blog_story_meta($item, ['reading' => false, 'views' => false])) ?>
+            · <?= rdv_blog_views_markup($item) ?>
+          </p>
         </a>
       <?php endforeach; ?>
       <?= rdv_render_ad_slot('sidebar') ?>

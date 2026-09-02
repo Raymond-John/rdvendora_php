@@ -300,6 +300,7 @@ CREATE TABLE IF NOT EXISTS `blog_posts` (
   `image_url` varchar(500) DEFAULT NULL,
   `status` enum('draft','published') NOT NULL DEFAULT 'draft',
   `is_featured` tinyint(1) NOT NULL DEFAULT 0,
+  `view_count` int(10) unsigned NOT NULL DEFAULT 0,
   `published_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

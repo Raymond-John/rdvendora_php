@@ -367,6 +367,32 @@ img.rdv-brand-logo,
 }
 .rdv-news-lead p, .rdv-news-side-story p { color: var(--text-secondary); margin: 0 0 8px; }
 .rdv-news-meta { font-size: 0.8rem; color: var(--text-muted); }
+.rdv-news-meta--with-views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.rdv-blog-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: inherit;
+}
+.rdv-blog-views-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+.rdv-article-pill--views {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.rdv-article-hero .rdv-blog-views {
+  color: rgba(255,255,255,0.92);
+}
 .rdv-news-secondary { display: flex; flex-direction: column; gap: 20px; }
 .rdv-news-side-story {
   display: grid;

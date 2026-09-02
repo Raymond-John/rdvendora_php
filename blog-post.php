@@ -3,6 +3,10 @@ require_once __DIR__ . '/includes/connection.php';
 require_once __DIR__ . '/includes/public_site.php';
 
 $conn = $conn ?? $connect ?? null;
+if ($conn instanceof mysqli) {
+    rdv_ensure_blog_table($conn);
+    rdv_blog_ensure_view_count_column($conn);
+}
 $slug = rdv_blog_slugify((string) ($_GET['slug'] ?? ''));
 $preview = isset($_GET['preview']) && $_GET['preview'] === '1';
 $post = null;
@@ -66,7 +70,7 @@ require __DIR__ . '/includes/public_layout_start.php';
         <a class="rdv-news-cat" href="<?= rdv_blog_h(rdv_blog_index_url(['cat' => $post['category']])) ?>"><?= rdv_blog_h(rdv_blog_category_label($post['category'])) ?></a>
         <span class="rdv-article-pill">Complete guide</span>
         <span class="rdv-article-pill"><?= (int) rdv_blog_reading_minutes($post) ?> min read</span>
-        <span class="rdv-article-pill"><?= rdv_blog_h(rdv_blog_format_views((int) ($post['view_count'] ?? 0))) ?></span>
+        <?= rdv_blog_views_markup($post, 'rdv-article-pill rdv-article-pill--views') ?>
         <?php if ($stepCount > 0): ?><span class="rdv-article-pill"><?= (int) $stepCount ?> steps</span><?php endif; ?>
       </div>
       <h1><?= rdv_blog_h($post['title']) ?></h1>
@@ -75,10 +79,10 @@ require __DIR__ . '/includes/public_layout_start.php';
         <div class="rdv-article-byline-avatar" aria-hidden="true"><?= rdv_blog_h(strtoupper(substr($post['author'] ?: 'R', 0, 1))) ?></div>
         <div>
           <p class="rdv-article-byline-name"><?= rdv_blog_h($post['author']) ?></p>
-          <p class="rdv-news-meta">
+          <p class="rdv-news-meta rdv-news-meta--with-views">
             <?= rdv_blog_h(rdv_blog_format_date($post['published_at'], true)) ?>
             · <?= (int) rdv_blog_reading_minutes($post) ?> min read
-            · <?= rdv_blog_h(rdv_blog_format_views((int) ($post['view_count'] ?? 0))) ?>
+            · <?= rdv_blog_views_markup($post) ?>
             <?php if ($post['status'] !== 'published'): ?> · Draft preview<?php endif; ?>
           </p>
         </div>
@@ -120,7 +124,10 @@ require __DIR__ . '/includes/public_layout_start.php';
                   <?= rdv_blog_thumb_html($item, false) ?>
                   <span class="rdv-news-cat"><?= rdv_blog_h(rdv_blog_category_label($item['category'])) ?></span>
                   <h3><?= rdv_blog_h($item['title']) ?></h3>
-                  <p class="rdv-news-meta"><?= rdv_blog_h(rdv_blog_story_meta($item, ['reading' => false])) ?></p>
+                  <p class="rdv-news-meta rdv-news-meta--with-views">
+                    <?= rdv_blog_h(rdv_blog_story_meta($item, ['reading' => false, 'views' => false])) ?>
+                    · <?= rdv_blog_views_markup($item) ?>
+                  </p>
                 </a>
               <?php endforeach; ?>
             </div>

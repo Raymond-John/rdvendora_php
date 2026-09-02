@@ -825,6 +825,70 @@ if (!function_exists('rdv_blog_latest')) {
     }
 }
 
+if (!function_exists('rdv_blog_popular')) {
+    function rdv_blog_popular(mysqli $conn, $limit = 5) {
+        rdv_ensure_blog_table($conn);
+        rdv_blog_ensure_view_count_column($conn);
+        $limit = max(1, min(20, (int) $limit));
+        if (!rdv_blog_has_view_count_column($conn)) {
+            return rdv_blog_latest($conn, $limit);
+        }
+        $where = rdv_blog_public_where();
+        $sql = 'SELECT * FROM blog_posts WHERE ' . $where . ' ORDER BY view_count DESC, published_at DESC, id DESC LIMIT ?';
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            return rdv_blog_latest($conn, $limit);
+        }
+        $stmt->bind_param('i', $limit);
+        $stmt->execute();
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        if (!$rows) {
+            return [];
+        }
+        return array_map('rdv_blog_normalize_post', $rows);
+    }
+}
+
+if (!function_exists('rdv_blog_card_meta')) {
+    function rdv_blog_card_meta(array $post) {
+        $parts = [];
+        $ts = strtotime((string) ($post['published_at'] ?? ''));
+        if ($ts) {
+            $parts[] = date('M j, Y', $ts);
+        }
+        $parts[] = (int) rdv_blog_reading_minutes($post) . ' min read';
+        $author = trim((string) ($post['author'] ?? ''));
+        if ($author !== '') {
+            $parts[] = $author;
+        }
+        return implode(' · ', $parts);
+    }
+}
+
+if (!function_exists('rdv_blog_mini_meta')) {
+    function rdv_blog_mini_meta(array $post) {
+        return (int) rdv_blog_reading_minutes($post) . ' min · ' . rdv_blog_format_views((int) ($post['view_count'] ?? 0));
+    }
+}
+
+if (!function_exists('rdv_blog_card_media_html')) {
+    function rdv_blog_card_media_html(array $post) {
+        $url = rdv_blog_url($post['slug']);
+        $img = rdv_blog_media_url($post['image_url'] ?? '');
+        $title = rdv_blog_h($post['title']);
+        $html = '<a href="' . rdv_blog_h($url) . '" class="blog-card-media">';
+        if ($img !== '') {
+            $html .= '<img src="' . rdv_blog_h($img) . '" alt="' . $title . '">';
+        } else {
+            $cat = rdv_blog_h($post['category'] ?? 'platform');
+            $html .= '<span class="blog-card-media-fallback" data-cat="' . $cat . '"></span>';
+        }
+        $html .= '</a>';
+        return $html;
+    }
+}
+
 if (!function_exists('rdv_blog_related')) {
     function rdv_blog_related(mysqli $conn, $post, $limit = 3) {
         $same = rdv_blog_list($conn, [

@@ -39,6 +39,7 @@ if ($hasSubscription) {
     $stmt->close();
 }
 $isPaidUser = ($activePlan && in_array($activePlan, ['Growth', 'Scale', 'Empire']));
+$canCustomizeColors = (bool) $hasSubscription; // Launch and paid plans can pick store colors
 
 // ========== INITIALIZE VARIABLES ==========
 $message = '';
@@ -258,6 +259,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $button_text_color = $_POST['button_text_color'] ?? $store['button_text_color'];
             $div_bg_color = $_POST['div_bg_color'] ?? $store['div_bg_color'];
             $div_border_color = $_POST['div_border_color'] ?? $store['div_border_color'];
+            $normalizeHex = static function ($value, $fallback) {
+                $value = trim((string) $value);
+                if (preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
+                    return strtolower($value);
+                }
+                return $fallback;
+            };
+            $brand_color = $normalizeHex($brand_color, $store['brand_color']);
+            $nav_color = $normalizeHex($nav_color, $store['nav_color']);
+            $body_bg_color = $normalizeHex($body_bg_color, $store['body_bg_color']);
+            $footer_bg_color = $normalizeHex($footer_bg_color, $store['footer_bg_color']);
+            $card_bg_color = $normalizeHex($card_bg_color, $store['card_bg_color']);
+            $card_border_color = $normalizeHex($card_border_color, $store['card_border_color']);
+            $button_bg_color = $normalizeHex($button_bg_color, $store['button_bg_color']);
+            $button_text_color = $normalizeHex($button_text_color, $store['button_text_color']);
+            $div_bg_color = $normalizeHex($div_bg_color, $store['div_bg_color']);
+            $div_border_color = $normalizeHex($div_border_color, $store['div_border_color']);
             $theme = $_POST['theme'] ?? $store['theme'];
             $logoPath = $store['logo_path'];
             $heroPath = $store['hero_background'];
@@ -985,6 +1003,39 @@ $conn->close();
         .typography-row label { width: 60px; font-weight: 600; }
         .size-input { width: 80px; }
         .color-input { width: 50px; height: 40px; border: 1px solid var(--border-primary); border-radius: 8px; cursor: pointer; }
+        .color-picker-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .custom-color-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-primary);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .custom-color-pick input[type="color"] {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        .custom-color-hex {
+            font-family: var(--font-mono, ui-monospace, monospace);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 4.5rem;
+        }
         .preview-text { flex: 1; font-family: inherit; margin-left: 20px; }
         .live-preview-box { background: var(--bg-tertiary); padding: 20px; border-radius: 12px; margin-top: 20px; }
 
@@ -1079,9 +1130,9 @@ $conn->close();
                 </div>
             <?php else: ?>
                 <!-- Info for free users: show upgrade notice -->
-                <?php if (!$isPaidUser): ?>
+                <?php if ($hasSubscription && !$isPaidUser): ?>
                     <div class="message info" style="background: var(--info-light); color: var(--info-dark);">
-                        💡 You are on the <strong>Launch (Free) Plan</strong>. To access <strong>Colors & Appearance</strong>, <strong>Products & Banners management</strong>, and <strong>Typography</strong>, please upgrade to <strong>Growth, Scale, or Empire</strong> plan.
+                        💡 You are on the <strong>Launch (Free) Plan</strong>. You can customize <strong>Colors & Appearance</strong>. Upgrade to Growth, Scale, or Empire for Products & Banners management and Typography.
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
@@ -1186,29 +1237,36 @@ $conn->close();
                     </div>
                 </div>
 
-                <!-- Colors & Appearance Section – only for paid users -->
-                <?php if ($isPaidUser): ?>
+                <!-- Colors & Appearance – available to all active subscribers -->
+                <?php if ($canCustomizeColors): ?>
                 <div class="settings-group">
                     <div class="settings-group-header">
                         <div class="settings-group-title">Colors & Appearance</div>
-                        <div class="settings-group-desc">Customize the look and feel of your store.</div>
+                        <div class="settings-group-desc">Pick a preset or choose any custom color for your store.</div>
                     </div>
                     <div class="settings-group-body">
                         <form method="POST" id="colorForm">
                             <!-- Brand Color -->
                             <div class="color-section">
-                                <div class="color-section-title">🎨 Brand Color</div>
+                                <div class="color-section-title">Brand Color</div>
                                 <div class="form-group">
                                     <label class="form-label">Primary Brand Color</label>
-                                    <div class="color-picker-grid" id="brandColorPickerGrid">
-                                        <?php
-                                        $brandColorOptions = ['#6366f1', '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#1a1d23'];
-                                        $currentBrandColor = $store['brand_color'] ?? '#6366f1';
-                                        foreach ($brandColorOptions as $color):
-                                            $active = ($color == $currentBrandColor) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectBrandColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="brandColorPickerGrid">
+                                            <?php
+                                            $brandColorOptions = ['#6366f1', '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#1a1d23'];
+                                            $currentBrandColor = $store['brand_color'] ?? '#6366f1';
+                                            foreach ($brandColorOptions as $color):
+                                                $active = (strcasecmp($color, $currentBrandColor) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectBrandColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="brandColorCustom" value="<?= htmlspecialchars($currentBrandColor) ?>" oninput="applyCustomColor('brand', this.value)">
+                                            <span class="custom-color-hex" id="brandColorHex"><?= htmlspecialchars(strtoupper($currentBrandColor)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="brand_color" id="brandColorInput" value="<?= htmlspecialchars($currentBrandColor) ?>">
                                 </div>
@@ -1216,18 +1274,25 @@ $conn->close();
                             
                             <!-- Navigation Bar -->
                             <div class="color-section">
-                                <div class="color-section-title">📌 Navigation Bar</div>
+                                <div class="color-section-title">Navigation Bar</div>
                                 <div class="form-group">
                                     <label class="form-label">Navigation Bar Color</label>
-                                    <div class="color-picker-grid" id="navColorPickerGrid">
-                                        <?php
-                                        $navColorOptions = ['#ffffff', '#1a1a2e', '#16213e', '#0f3460', '#2c3e50', '#34495e', '#111827', '#1f2937', '#f3f4f6'];
-                                        $currentNavColor = $store['nav_color'] ?? '#ffffff';
-                                        foreach ($navColorOptions as $color):
-                                            $active = ($color == $currentNavColor) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectNavColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="navColorPickerGrid">
+                                            <?php
+                                            $navColorOptions = ['#ffffff', '#1a1a2e', '#16213e', '#0f3460', '#2c3e50', '#34495e', '#111827', '#1f2937', '#f3f4f6'];
+                                            $currentNavColor = $store['nav_color'] ?? '#ffffff';
+                                            foreach ($navColorOptions as $color):
+                                                $active = (strcasecmp($color, $currentNavColor) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectNavColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="navColorCustom" value="<?= htmlspecialchars($currentNavColor) ?>" oninput="applyCustomColor('nav', this.value)">
+                                            <span class="custom-color-hex" id="navColorHex"><?= htmlspecialchars(strtoupper($currentNavColor)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="nav_color" id="navColorInput" value="<?= htmlspecialchars($currentNavColor) ?>">
                                 </div>
@@ -1235,18 +1300,25 @@ $conn->close();
                             
                             <!-- Page Background -->
                             <div class="color-section">
-                                <div class="color-section-title">📄 Page Background</div>
+                                <div class="color-section-title">Page Background</div>
                                 <div class="form-group">
                                     <label class="form-label">Body Background Color</label>
-                                    <div class="color-picker-grid" id="bodyBgColorPickerGrid">
-                                        <?php
-                                        $bodyBgOptions = ['#f9fafb', '#f3f4f6', '#ffffff', '#e5e7eb', '#fef3c7', '#ecfdf5', '#eff6ff', '#fae8ff'];
-                                        $currentBodyBg = $store['body_bg_color'] ?? '#f9fafb';
-                                        foreach ($bodyBgOptions as $color):
-                                            $active = ($color == $currentBodyBg) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectBodyBgColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="bodyBgColorPickerGrid">
+                                            <?php
+                                            $bodyBgOptions = ['#f9fafb', '#f3f4f6', '#ffffff', '#e5e7eb', '#fef3c7', '#ecfdf5', '#eff6ff', '#fae8ff'];
+                                            $currentBodyBg = $store['body_bg_color'] ?? '#f9fafb';
+                                            foreach ($bodyBgOptions as $color):
+                                                $active = (strcasecmp($color, $currentBodyBg) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectBodyBgColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="bodyBgColorCustom" value="<?= htmlspecialchars($currentBodyBg) ?>" oninput="applyCustomColor('bodyBg', this.value)">
+                                            <span class="custom-color-hex" id="bodyBgColorHex"><?= htmlspecialchars(strtoupper($currentBodyBg)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="body_bg_color" id="bodyBgColorInput" value="<?= htmlspecialchars($currentBodyBg) ?>">
                                 </div>
@@ -1254,18 +1326,25 @@ $conn->close();
                             
                             <!-- Footer -->
                             <div class="color-section">
-                                <div class="color-section-title">👇 Footer</div>
+                                <div class="color-section-title">Footer</div>
                                 <div class="form-group">
                                     <label class="form-label">Footer Background Color</label>
-                                    <div class="color-picker-grid" id="footerBgColorPickerGrid">
-                                        <?php
-                                        $footerBgOptions = ['#111827', '#1f2937', '#000000', '#1a1a2e', '#2d3748', '#4a5568'];
-                                        $currentFooterBg = $store['footer_bg_color'] ?? '#111827';
-                                        foreach ($footerBgOptions as $color):
-                                            $active = ($color == $currentFooterBg) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectFooterBgColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="footerBgColorPickerGrid">
+                                            <?php
+                                            $footerBgOptions = ['#111827', '#1f2937', '#000000', '#1a1a2e', '#2d3748', '#4a5568'];
+                                            $currentFooterBg = $store['footer_bg_color'] ?? '#111827';
+                                            foreach ($footerBgOptions as $color):
+                                                $active = (strcasecmp($color, $currentFooterBg) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectFooterBgColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="footerBgColorCustom" value="<?= htmlspecialchars($currentFooterBg) ?>" oninput="applyCustomColor('footerBg', this.value)">
+                                            <span class="custom-color-hex" id="footerBgColorHex"><?= htmlspecialchars(strtoupper($currentFooterBg)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="footer_bg_color" id="footerBgColorInput" value="<?= htmlspecialchars($currentFooterBg) ?>">
                                 </div>
@@ -1273,109 +1352,151 @@ $conn->close();
                             
                             <!-- Cards -->
                             <div class="color-section">
-                                <div class="color-section-title">🃏 Cards (Products, Items)</div>
+                                <div class="color-section-title">Cards (Products, Items)</div>
                                 <div class="form-group">
                                     <label class="form-label">Card Background Color</label>
-                                    <div class="color-picker-grid" id="cardBgColorPickerGrid">
-                                        <?php
-                                        $cardBgOptions = ['#ffffff', '#f9fafb', '#f3f4f6', '#ffffff', '#fef2f2', '#ecfdf5'];
-                                        $currentCardBg = $store['card_bg_color'] ?? '#ffffff';
-                                        foreach ($cardBgOptions as $color):
-                                            $active = ($color == $currentCardBg) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectCardBgColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="cardBgColorPickerGrid">
+                                            <?php
+                                            $cardBgOptions = ['#ffffff', '#f9fafb', '#f3f4f6', '#fef2f2', '#ecfdf5'];
+                                            $currentCardBg = $store['card_bg_color'] ?? '#ffffff';
+                                            foreach ($cardBgOptions as $color):
+                                                $active = (strcasecmp($color, $currentCardBg) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectCardBgColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="cardBgColorCustom" value="<?= htmlspecialchars($currentCardBg) ?>" oninput="applyCustomColor('cardBg', this.value)">
+                                            <span class="custom-color-hex" id="cardBgColorHex"><?= htmlspecialchars(strtoupper($currentCardBg)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="card_bg_color" id="cardBgColorInput" value="<?= htmlspecialchars($currentCardBg) ?>">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Card Border Color</label>
-                                    <div class="color-picker-grid" id="cardBorderColorPickerGrid">
-                                        <?php
-                                        $cardBorderOptions = ['#e5e7eb', '#d1d5db', '#cbd5e1', '#e2e8f0', '#f1f5f9'];
-                                        $currentCardBorder = $store['card_border_color'] ?? '#e5e7eb';
-                                        foreach ($cardBorderOptions as $color):
-                                            $active = ($color == $currentCardBorder) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectCardBorderColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="cardBorderColorPickerGrid">
+                                            <?php
+                                            $cardBorderOptions = ['#e5e7eb', '#d1d5db', '#cbd5e1', '#e2e8f0', '#f1f5f9'];
+                                            $currentCardBorder = $store['card_border_color'] ?? '#e5e7eb';
+                                            foreach ($cardBorderOptions as $color):
+                                                $active = (strcasecmp($color, $currentCardBorder) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectCardBorderColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="cardBorderColorCustom" value="<?= htmlspecialchars($currentCardBorder) ?>" oninput="applyCustomColor('cardBorder', this.value)">
+                                            <span class="custom-color-hex" id="cardBorderColorHex"><?= htmlspecialchars(strtoupper($currentCardBorder)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="card_border_color" id="cardBorderColorInput" value="<?= htmlspecialchars($currentCardBorder) ?>">
                                 </div>
-                                <div class="preview-card" style="--card-bg-demo: <?= $store['card_bg_color'] ?? '#ffffff' ?>; --card-border-demo: <?= $store['card_border_color'] ?? '#e5e7eb' ?>;">
+                                <div class="preview-card" style="--card-bg-demo: <?= htmlspecialchars($store['card_bg_color'] ?? '#ffffff') ?>; --card-border-demo: <?= htmlspecialchars($store['card_border_color'] ?? '#e5e7eb') ?>;">
                                     <small>Preview:</small>
-                                    <div style="padding: 0.5rem 0;">🏷️ Product Card Example</div>
+                                    <div style="padding: 0.5rem 0;">Product Card Example</div>
                                 </div>
                             </div>
                             
                             <!-- Buttons -->
                             <div class="color-section">
-                                <div class="color-section-title">🔘 Buttons</div>
+                                <div class="color-section-title">Buttons</div>
                                 <div class="form-group">
                                     <label class="form-label">Button Background Color</label>
-                                    <div class="color-picker-grid" id="buttonBgColorPickerGrid">
-                                        <?php
-                                        $buttonBgOptions = ['#6366f1', '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                                        $currentButtonBg = $store['button_bg_color'] ?? '#6366f1';
-                                        foreach ($buttonBgOptions as $color):
-                                            $active = ($color == $currentButtonBg) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectButtonBgColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="buttonBgColorPickerGrid">
+                                            <?php
+                                            $buttonBgOptions = ['#6366f1', '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                                            $currentButtonBg = $store['button_bg_color'] ?? '#6366f1';
+                                            foreach ($buttonBgOptions as $color):
+                                                $active = (strcasecmp($color, $currentButtonBg) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectButtonBgColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="buttonBgColorCustom" value="<?= htmlspecialchars($currentButtonBg) ?>" oninput="applyCustomColor('buttonBg', this.value)">
+                                            <span class="custom-color-hex" id="buttonBgColorHex"><?= htmlspecialchars(strtoupper($currentButtonBg)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="button_bg_color" id="buttonBgColorInput" value="<?= htmlspecialchars($currentButtonBg) ?>">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Button Text Color</label>
-                                    <div class="color-picker-grid" id="buttonTextColorPickerGrid">
-                                        <?php
-                                        $buttonTextOptions = ['#ffffff', '#111827', '#1f2937', '#000000', '#374151'];
-                                        $currentButtonText = $store['button_text_color'] ?? '#ffffff';
-                                        foreach ($buttonTextOptions as $color):
-                                            $active = ($color == $currentButtonText) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectButtonTextColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="buttonTextColorPickerGrid">
+                                            <?php
+                                            $buttonTextOptions = ['#ffffff', '#111827', '#1f2937', '#000000', '#374151'];
+                                            $currentButtonText = $store['button_text_color'] ?? '#ffffff';
+                                            foreach ($buttonTextOptions as $color):
+                                                $active = (strcasecmp($color, $currentButtonText) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectButtonTextColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="buttonTextColorCustom" value="<?= htmlspecialchars($currentButtonText) ?>" oninput="applyCustomColor('buttonText', this.value)">
+                                            <span class="custom-color-hex" id="buttonTextColorHex"><?= htmlspecialchars(strtoupper($currentButtonText)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="button_text_color" id="buttonTextColorInput" value="<?= htmlspecialchars($currentButtonText) ?>">
                                 </div>
-                                <div class="preview-button" style="--button-bg-demo: <?= $store['button_bg_color'] ?? '#6366f1' ?>; --button-text-demo: <?= $store['button_text_color'] ?? '#ffffff' ?>;">
+                                <div class="preview-button" style="--button-bg-demo: <?= htmlspecialchars($store['button_bg_color'] ?? '#6366f1') ?>; --button-text-demo: <?= htmlspecialchars($store['button_text_color'] ?? '#ffffff') ?>;">
                                     Button Preview
                                 </div>
                             </div>
                             
                             <!-- Divs / Sections -->
                             <div class="color-section">
-                                <div class="color-section-title">📦 Divs & Sections</div>
+                                <div class="color-section-title">Divs & Sections</div>
                                 <div class="form-group">
                                     <label class="form-label">Div Background Color</label>
-                                    <div class="color-picker-grid" id="divBgColorPickerGrid">
-                                        <?php
-                                        $divBgOptions = ['#f3f4f6', '#e5e7eb', '#f9fafb', '#ffffff', '#fef3c7', '#ecfdf5'];
-                                        $currentDivBg = $store['div_bg_color'] ?? '#f3f4f6';
-                                        foreach ($divBgOptions as $color):
-                                            $active = ($color == $currentDivBg) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectDivBgColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="divBgColorPickerGrid">
+                                            <?php
+                                            $divBgOptions = ['#f3f4f6', '#e5e7eb', '#f9fafb', '#ffffff', '#fef3c7', '#ecfdf5'];
+                                            $currentDivBg = $store['div_bg_color'] ?? '#f3f4f6';
+                                            foreach ($divBgOptions as $color):
+                                                $active = (strcasecmp($color, $currentDivBg) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectDivBgColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="divBgColorCustom" value="<?= htmlspecialchars($currentDivBg) ?>" oninput="applyCustomColor('divBg', this.value)">
+                                            <span class="custom-color-hex" id="divBgColorHex"><?= htmlspecialchars(strtoupper($currentDivBg)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="div_bg_color" id="divBgColorInput" value="<?= htmlspecialchars($currentDivBg) ?>">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Div Border Color</label>
-                                    <div class="color-picker-grid" id="divBorderColorPickerGrid">
-                                        <?php
-                                        $divBorderOptions = ['#e5e7eb', '#d1d5db', '#cbd5e1', '#e2e8f0'];
-                                        $currentDivBorder = $store['div_border_color'] ?? '#e5e7eb';
-                                        foreach ($divBorderOptions as $color):
-                                            $active = ($color == $currentDivBorder) ? 'active' : '';
-                                        ?>
-                                            <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectDivBorderColor(this)"></div>
-                                        <?php endforeach; ?>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-grid" id="divBorderColorPickerGrid">
+                                            <?php
+                                            $divBorderOptions = ['#e5e7eb', '#d1d5db', '#cbd5e1', '#e2e8f0'];
+                                            $currentDivBorder = $store['div_border_color'] ?? '#e5e7eb';
+                                            foreach ($divBorderOptions as $color):
+                                                $active = (strcasecmp($color, $currentDivBorder) === 0) ? 'active' : '';
+                                            ?>
+                                                <div class="color-option <?= $active ?>" style="background: <?= $color ?>;" data-color="<?= $color ?>" onclick="selectDivBorderColor(this)"></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <label class="custom-color-pick">
+                                            <span>Custom</span>
+                                            <input type="color" id="divBorderColorCustom" value="<?= htmlspecialchars($currentDivBorder) ?>" oninput="applyCustomColor('divBorder', this.value)">
+                                            <span class="custom-color-hex" id="divBorderColorHex"><?= htmlspecialchars(strtoupper($currentDivBorder)) ?></span>
+                                        </label>
                                     </div>
                                     <input type="hidden" name="div_border_color" id="divBorderColorInput" value="<?= htmlspecialchars($currentDivBorder) ?>">
                                 </div>
-                                <div class="preview-div" style="--div-bg-demo: <?= $store['div_bg_color'] ?? '#f3f4f6' ?>; --div-border-demo: <?= $store['div_border_color'] ?? '#e5e7eb' ?>;">
+                                <div class="preview-div" style="--div-bg-demo: <?= htmlspecialchars($store['div_bg_color'] ?? '#f3f4f6') ?>; --div-border-demo: <?= htmlspecialchars($store['div_border_color'] ?? '#e5e7eb') ?>;">
                                     <small>Section / Div Preview</small>
                                     <div style="margin-top: 8px;">This is how your content sections will look</div>
                                 </div>
@@ -1385,7 +1506,9 @@ $conn->close();
                         </form>
                     </div>
                 </div>
+                <?php endif; ?>
 
+                <?php if ($isPaidUser): ?>
                 <!-- Products Section – only for paid users -->
                 <div class="settings-group">
                     <div class="settings-group-header">
@@ -1493,16 +1616,16 @@ $conn->close();
                     </div>
                 </div>
                 <?php else: ?>
-                    <!-- For free users, show upgrade notice instead of the restricted sections -->
+                    <!-- For free users, show upgrade notice for paid-only features -->
                     <div class="settings-group">
                         <div class="settings-group-header">
-                            <div class="settings-group-title">✨ Unlock Full Customization</div>
-                            <div class="settings-group-desc">Upgrade to Growth, Scale, or Empire plan to access Colors & Appearance, Products & Banners, and Typography.</div>
+                            <div class="settings-group-title">Unlock Full Customization</div>
+                            <div class="settings-group-desc">Upgrade to Growth, Scale, or Empire to manage Products & Banners and Typography. Color customization is already available on Launch.</div>
                         </div>
                         <div class="settings-group-body" style="text-align: center; padding: 40px;">
                             <div style="font-size: 48px; margin-bottom: 16px;">🚀</div>
                             <h3 style="margin-bottom: 8px;">Upgrade Your Plan</h3>
-                            <p style="margin-bottom: 24px; color: var(--text-muted);">Get full control over your store’s design and advanced features.</p>
+                            <p style="margin-bottom: 24px; color: var(--text-muted);">Get product management, banners, and typography controls.</p>
                             <a href="subscription" class="btn btn-primary">View Plans →</a>
                         </div>
                     </div>
@@ -1604,69 +1727,103 @@ $conn->close();
             });
         }
 
-        // Color picker functions (only defined for paid users)
-        <?php if ($isPaidUser): ?>
-        function selectBrandColor(el) {
-            document.querySelectorAll('#brandColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('brandColorInput').value = el.getAttribute('data-color');
+        // Color picker functions (available to all subscribers with color access)
+        <?php if ($canCustomizeColors): ?>
+        function setColorField(gridId, inputId, customId, hexId, color, previewFn) {
+            const grid = document.getElementById(gridId);
+            if (grid) {
+                grid.querySelectorAll('.color-option').forEach(c => {
+                    c.classList.toggle('active', c.getAttribute('data-color').toLowerCase() === color.toLowerCase());
+                });
+            }
+            const input = document.getElementById(inputId);
+            if (input) input.value = color;
+            const custom = document.getElementById(customId);
+            if (custom) custom.value = color;
+            const hex = document.getElementById(hexId);
+            if (hex) hex.textContent = color.toUpperCase();
+            if (typeof previewFn === 'function') previewFn(color);
         }
-        function selectNavColor(el) {
-            document.querySelectorAll('#navColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('navColorInput').value = el.getAttribute('data-color');
-        }
-        function selectBodyBgColor(el) {
-            document.querySelectorAll('#bodyBgColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('bodyBgColorInput').value = el.getAttribute('data-color');
-        }
-        function selectFooterBgColor(el) {
-            document.querySelectorAll('#footerBgColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('footerBgColorInput').value = el.getAttribute('data-color');
-        }
+        function selectBrandColor(el) { setColorField('brandColorPickerGrid', 'brandColorInput', 'brandColorCustom', 'brandColorHex', el.getAttribute('data-color')); }
+        function selectNavColor(el) { setColorField('navColorPickerGrid', 'navColorInput', 'navColorCustom', 'navColorHex', el.getAttribute('data-color')); }
+        function selectBodyBgColor(el) { setColorField('bodyBgColorPickerGrid', 'bodyBgColorInput', 'bodyBgColorCustom', 'bodyBgColorHex', el.getAttribute('data-color')); }
+        function selectFooterBgColor(el) { setColorField('footerBgColorPickerGrid', 'footerBgColorInput', 'footerBgColorCustom', 'footerBgColorHex', el.getAttribute('data-color')); }
         function selectCardBgColor(el) {
-            document.querySelectorAll('#cardBgColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('cardBgColorInput').value = el.getAttribute('data-color');
-            const preview = document.querySelector('.preview-card');
-            if (preview) preview.style.setProperty('--card-bg-demo', el.getAttribute('data-color'));
+            const color = el.getAttribute('data-color');
+            setColorField('cardBgColorPickerGrid', 'cardBgColorInput', 'cardBgColorCustom', 'cardBgColorHex', color, function(c) {
+                const preview = document.querySelector('.preview-card');
+                if (preview) preview.style.setProperty('--card-bg-demo', c);
+            });
         }
         function selectCardBorderColor(el) {
-            document.querySelectorAll('#cardBorderColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('cardBorderColorInput').value = el.getAttribute('data-color');
-            const preview = document.querySelector('.preview-card');
-            if (preview) preview.style.setProperty('--card-border-demo', el.getAttribute('data-color'));
+            const color = el.getAttribute('data-color');
+            setColorField('cardBorderColorPickerGrid', 'cardBorderColorInput', 'cardBorderColorCustom', 'cardBorderColorHex', color, function(c) {
+                const preview = document.querySelector('.preview-card');
+                if (preview) preview.style.setProperty('--card-border-demo', c);
+            });
         }
         function selectButtonBgColor(el) {
-            document.querySelectorAll('#buttonBgColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('buttonBgColorInput').value = el.getAttribute('data-color');
-            const preview = document.querySelector('.preview-button');
-            if (preview) preview.style.setProperty('--button-bg-demo', el.getAttribute('data-color'));
+            const color = el.getAttribute('data-color');
+            setColorField('buttonBgColorPickerGrid', 'buttonBgColorInput', 'buttonBgColorCustom', 'buttonBgColorHex', color, function(c) {
+                const preview = document.querySelector('.preview-button');
+                if (preview) preview.style.setProperty('--button-bg-demo', c);
+            });
         }
         function selectButtonTextColor(el) {
-            document.querySelectorAll('#buttonTextColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('buttonTextColorInput').value = el.getAttribute('data-color');
-            const preview = document.querySelector('.preview-button');
-            if (preview) preview.style.setProperty('--button-text-demo', el.getAttribute('data-color'));
+            const color = el.getAttribute('data-color');
+            setColorField('buttonTextColorPickerGrid', 'buttonTextColorInput', 'buttonTextColorCustom', 'buttonTextColorHex', color, function(c) {
+                const preview = document.querySelector('.preview-button');
+                if (preview) preview.style.setProperty('--button-text-demo', c);
+            });
         }
         function selectDivBgColor(el) {
-            document.querySelectorAll('#divBgColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('divBgColorInput').value = el.getAttribute('data-color');
-            const preview = document.querySelector('.preview-div');
-            if (preview) preview.style.setProperty('--div-bg-demo', el.getAttribute('data-color'));
+            const color = el.getAttribute('data-color');
+            setColorField('divBgColorPickerGrid', 'divBgColorInput', 'divBgColorCustom', 'divBgColorHex', color, function(c) {
+                const preview = document.querySelector('.preview-div');
+                if (preview) preview.style.setProperty('--div-bg-demo', c);
+            });
         }
         function selectDivBorderColor(el) {
-            document.querySelectorAll('#divBorderColorPickerGrid .color-option').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('divBorderColorInput').value = el.getAttribute('data-color');
-            const preview = document.querySelector('.preview-div');
-            if (preview) preview.style.setProperty('--div-border-demo', el.getAttribute('data-color'));
+            const color = el.getAttribute('data-color');
+            setColorField('divBorderColorPickerGrid', 'divBorderColorInput', 'divBorderColorCustom', 'divBorderColorHex', color, function(c) {
+                const preview = document.querySelector('.preview-div');
+                if (preview) preview.style.setProperty('--div-border-demo', c);
+            });
+        }
+        function applyCustomColor(key, color) {
+            const map = {
+                brand: ['brandColorPickerGrid', 'brandColorInput', 'brandColorCustom', 'brandColorHex', null],
+                nav: ['navColorPickerGrid', 'navColorInput', 'navColorCustom', 'navColorHex', null],
+                bodyBg: ['bodyBgColorPickerGrid', 'bodyBgColorInput', 'bodyBgColorCustom', 'bodyBgColorHex', null],
+                footerBg: ['footerBgColorPickerGrid', 'footerBgColorInput', 'footerBgColorCustom', 'footerBgColorHex', null],
+                cardBg: ['cardBgColorPickerGrid', 'cardBgColorInput', 'cardBgColorCustom', 'cardBgColorHex', function(c) {
+                    const preview = document.querySelector('.preview-card');
+                    if (preview) preview.style.setProperty('--card-bg-demo', c);
+                }],
+                cardBorder: ['cardBorderColorPickerGrid', 'cardBorderColorInput', 'cardBorderColorCustom', 'cardBorderColorHex', function(c) {
+                    const preview = document.querySelector('.preview-card');
+                    if (preview) preview.style.setProperty('--card-border-demo', c);
+                }],
+                buttonBg: ['buttonBgColorPickerGrid', 'buttonBgColorInput', 'buttonBgColorCustom', 'buttonBgColorHex', function(c) {
+                    const preview = document.querySelector('.preview-button');
+                    if (preview) preview.style.setProperty('--button-bg-demo', c);
+                }],
+                buttonText: ['buttonTextColorPickerGrid', 'buttonTextColorInput', 'buttonTextColorCustom', 'buttonTextColorHex', function(c) {
+                    const preview = document.querySelector('.preview-button');
+                    if (preview) preview.style.setProperty('--button-text-demo', c);
+                }],
+                divBg: ['divBgColorPickerGrid', 'divBgColorInput', 'divBgColorCustom', 'divBgColorHex', function(c) {
+                    const preview = document.querySelector('.preview-div');
+                    if (preview) preview.style.setProperty('--div-bg-demo', c);
+                }],
+                divBorder: ['divBorderColorPickerGrid', 'divBorderColorInput', 'divBorderColorCustom', 'divBorderColorHex', function(c) {
+                    const preview = document.querySelector('.preview-div');
+                    if (preview) preview.style.setProperty('--div-border-demo', c);
+                }]
+            };
+            const cfg = map[key];
+            if (!cfg) return;
+            setColorField(cfg[0], cfg[1], cfg[2], cfg[3], color, cfg[4]);
         }
         <?php endif; ?>
 

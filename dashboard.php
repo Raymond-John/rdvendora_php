@@ -99,9 +99,16 @@ if ($storeStatus === 'pending') {
     $hasSubscription = hasActiveSubscription($conn, $_SESSION['user_id']);
     if (!$hasSubscription) {
         $storeRestricted = true;
-        $restrictionMessage = '🚫 Your account has been suspended because your subscription has expired. Please renew to restore full access.';
-        $isSuspended = true;
-        $subscriptionStatus = 'expired';
+        $usedFreePlan = hasUsedFreePlan($conn, $_SESSION['user_id']);
+        if (!$usedFreePlan) {
+            $restrictionMessage = '🎉 Your store has been approved! Start your 2-week free plan to unlock your dashboard and begin selling.';
+            $isSuspended = false;
+            $subscriptionStatus = 'none';
+        } else {
+            $restrictionMessage = '🚫 Your account has been suspended because your subscription has expired. Please renew to restore full access.';
+            $isSuspended = true;
+            $subscriptionStatus = 'expired';
+        }
     } else {
         // Subscription is active – get plan name
         $stmt = $conn->prepare("SELECT plan FROM subscriptions WHERE user_id = ? AND status = 'active' AND end_date > NOW() ORDER BY id DESC LIMIT 1");
@@ -116,6 +123,20 @@ if ($storeStatus === 'pending') {
     // Fallback: treat as restricted
     $storeRestricted = true;
     $restrictionMessage = '⛔ Your store is not accessible at this time. Please contact support.';
+}
+
+// Show free-plan modal when store is approved and vendor has not started a subscription yet
+$showFreePlanModal = (
+    $storeStatus === 'active'
+    && !hasActiveSubscription($conn, (int) $_SESSION['user_id'])
+    && !hasUsedFreePlan($conn, (int) $_SESSION['user_id'])
+    && empty($_SESSION['free_plan_modal_dismissed'])
+);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'dismiss_free_plan_modal') {
+    $_SESSION['free_plan_modal_dismissed'] = 1;
+    header('Location: dashboard');
+    exit();
 }
 
 // ---------- Get user's display name ----------
@@ -1130,6 +1151,8 @@ $revenue = $total_revenue;
                         <strong>
                             <?php if ($isSuspended): ?>
                                 Subscription Expired
+                            <?php elseif ($storeStatus === 'active' && $subscriptionStatus === 'none'): ?>
+                                Start Your Free Plan
                             <?php elseif ($storeStatus === 'pending'): ?>
                                 Store Pending Approval
                             <?php elseif ($storeStatus === 'pending_docs'): ?>
@@ -1144,6 +1167,8 @@ $revenue = $total_revenue;
                     </div>
                     <?php if ($isSuspended): ?>
                         <a href="subscription" class="contact-btn" style="background: #6366f1;">Renew Now →</a>
+                    <?php elseif ($showFreePlanModal || ($storeStatus === 'active' && $subscriptionStatus === 'none')): ?>
+                        <a href="subscription" class="contact-btn" style="background: #6366f1;">Start free plan →</a>
                     <?php else: ?>
                         <a href="contact" class="contact-btn">Contact Us →</a>
                     <?php endif; ?>
@@ -1258,6 +1283,8 @@ $revenue = $total_revenue;
                     <h3 style="font-size: 20px; margin-bottom: 8px;">
                         <?php if ($isSuspended): ?>
                             Subscription Expired
+                        <?php elseif ($storeStatus === 'active' && $subscriptionStatus === 'none'): ?>
+                            Start Your Free Plan
                         <?php elseif ($storeStatus === 'pending'): ?>
                             Store Under Review
                         <?php elseif ($storeStatus === 'pending_docs'): ?>
@@ -1271,6 +1298,8 @@ $revenue = $total_revenue;
                     <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;"><?= htmlspecialchars($restrictionMessage) ?></p>
                     <?php if ($isSuspended): ?>
                         <a href="subscription" class="btn btn-primary" style="margin-top: 24px;">Renew Subscription</a>
+                    <?php elseif ($storeStatus === 'active' && $subscriptionStatus === 'none'): ?>
+                        <a href="subscription" class="btn btn-primary" style="margin-top: 24px;" onclick="document.getElementById('freePlanModal')?.classList.add('active'); return false;">Start 2-Week Free Plan</a>
                     <?php elseif ($storeStatus === 'active' && strpos($restrictionMessage, 'subscription') !== false): ?>
                         <a href="subscription" class="btn btn-primary" style="margin-top: 24px;">View Plans</a>
                     <?php endif; ?>
@@ -1293,6 +1322,65 @@ $revenue = $total_revenue;
 
     <!-- Order Details Modal -->
     <div class="modal-overlay" id="orderModal"><div class="modal"><div class="modal-header"><h3 class="modal-title">Order Details</h3><button class="modal-close" onclick="closeOrderModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body" id="orderModalBody"></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeOrderModal()">Close</button></div></div></div>
+
+    <?php if (!empty($showFreePlanModal)): ?>
+    <div class="modal-overlay active" id="freePlanModal" role="dialog" aria-modal="true" aria-labelledby="freePlanModalTitle">
+        <div class="modal" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="freePlanModalTitle">Your store is approved</h3>
+                <button type="button" class="modal-close" onclick="dismissFreePlanModal()" aria-label="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <div style="font-size:3rem;line-height:1;margin-bottom:0.75rem;">🎉</div>
+                <p style="margin:0 0 0.75rem;color:var(--text-secondary);line-height:1.6;">
+                    Welcome aboard! Subscribe to the <strong>Launch</strong> plan and enjoy a
+                    <strong>2-week free trial</strong> to unlock your dashboard, add products, and start selling.
+                </p>
+                <ul style="text-align:left;margin:1rem auto;max-width:320px;color:var(--text-secondary);line-height:1.7;padding-left:1.2rem;">
+                    <li>14 days free — no payment required</li>
+                    <li>List products and manage orders</li>
+                    <li>Upgrade anytime before the trial ends</li>
+                </ul>
+            </div>
+            <div class="modal-footer" style="justify-content:center;flex-wrap:wrap;">
+                <form method="POST" action="subscription" style="display:inline;">
+                    <input type="hidden" name="action" value="activate_free_plan">
+                    <input type="hidden" name="plan" value="Launch">
+                    <input type="hidden" name="billing" value="monthly">
+                    <input type="hidden" name="redirect" value="dashboard">
+                    <button type="submit" class="btn btn-primary">Start 2-Week Free Plan</button>
+                </form>
+                <form method="POST" action="dashboard" style="display:inline;">
+                    <input type="hidden" name="action" value="dismiss_free_plan_modal">
+                    <button type="submit" class="btn btn-ghost">Maybe later</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.body.style.overflow = 'hidden';
+        function dismissFreePlanModal() {
+            const overlay = document.getElementById('freePlanModal');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'dashboard';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'action';
+            input.value = 'dismiss_free_plan_modal';
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+        document.getElementById('freePlanModal')?.addEventListener('click', function(e) {
+            if (e.target === this) dismissFreePlanModal();
+        });
+    </script>
+    <?php endif; ?>
 
     <div class="toast-container" id="toastContainer"></div>
 

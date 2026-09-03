@@ -485,7 +485,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 notifyTeamMembers($conn, $storeId, $title, $message, $link);
             }
 
-            header("Location: subscription");
+            unset($_SESSION['free_plan_modal_dismissed']);
+            $redirectTo = trim((string) ($_POST['redirect'] ?? 'subscription'));
+            if (!in_array($redirectTo, ['dashboard', 'subscription'], true)) {
+                $redirectTo = 'subscription';
+            }
+            header('Location: ' . $redirectTo);
             exit();
         } else {
             $activation_error = "Failed to activate subscription.";

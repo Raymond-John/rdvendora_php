@@ -39,7 +39,7 @@ if ($hasSubscription) {
     $stmt->close();
 }
 $isPaidUser = ($activePlan && in_array($activePlan, ['Growth', 'Scale', 'Empire']));
-$canCustomizeColors = (bool) $hasSubscription; // Launch and paid plans can pick store colors
+$canCustomizeColors = (bool) $isPaidUser; // Colors require Growth, Scale, or Empire
 
 // ========== INITIALIZE VARIABLES ==========
 $message = '';
@@ -1132,7 +1132,7 @@ $conn->close();
                 <!-- Info for free users: show upgrade notice -->
                 <?php if ($hasSubscription && !$isPaidUser): ?>
                     <div class="message info" style="background: var(--info-light); color: var(--info-dark);">
-                        💡 You are on the <strong>Launch (Free) Plan</strong>. You can customize <strong>Colors & Appearance</strong>. Upgrade to Growth, Scale, or Empire for Products & Banners management and Typography.
+                        💡 You are on the <strong>Launch (Free) Plan</strong>. Upgrade to <strong>Growth, Scale, or Empire</strong> to access <strong>Colors & Appearance</strong>, <strong>Products & Banners</strong>, and <strong>Typography</strong>.
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
@@ -1237,7 +1237,7 @@ $conn->close();
                     </div>
                 </div>
 
-                <!-- Colors & Appearance – available to all active subscribers -->
+                <!-- Colors & Appearance – Growth, Scale, or Empire only -->
                 <?php if ($canCustomizeColors): ?>
                 <div class="settings-group">
                     <div class="settings-group-header">
@@ -1620,12 +1620,12 @@ $conn->close();
                     <div class="settings-group">
                         <div class="settings-group-header">
                             <div class="settings-group-title">Unlock Full Customization</div>
-                            <div class="settings-group-desc">Upgrade to Growth, Scale, or Empire to manage Products & Banners and Typography. Color customization is already available on Launch.</div>
+                            <div class="settings-group-desc">Upgrade to Growth, Scale, or Empire to manage Colors & Appearance, Products & Banners, and Typography.</div>
                         </div>
                         <div class="settings-group-body" style="text-align: center; padding: 40px;">
                             <div style="font-size: 48px; margin-bottom: 16px;">🚀</div>
                             <h3 style="margin-bottom: 8px;">Upgrade Your Plan</h3>
-                            <p style="margin-bottom: 24px; color: var(--text-muted);">Get product management, banners, and typography controls.</p>
+                            <p style="margin-bottom: 24px; color: var(--text-muted);">Get full control over your store’s design, products, banners, and typography.</p>
                             <a href="subscription" class="btn btn-primary">View Plans →</a>
                         </div>
                     </div>

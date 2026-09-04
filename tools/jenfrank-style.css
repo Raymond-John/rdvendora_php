@@ -1,0 +1,898 @@
+/********** Template CSS **********/
+:root {
+    --primary: #5B8C51;
+    --secondary: #EDDD5E;
+    --light: #F7F7F7;
+    --dark: #404A3D;
+}
+
+html {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+body {
+    max-width: 100%;
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+/* Clip horizontal overflow on page sections only — keeps navbar sticky working */
+.container,
+.container-fluid,
+.container-xxl,
+#header-carousel,
+.carousel,
+.carousel-inner,
+.carousel-item {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+#header-carousel,
+.carousel-inner,
+.carousel-item {
+    overflow: hidden;
+}
+
+/* Shorter home hero */
+#header-carousel .carousel-item {
+    height: min(68vh, 580px);
+    min-height: 400px;
+    max-height: 580px;
+}
+
+#header-carousel .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+#header-carousel .carousel-caption .display-1 {
+    font-size: clamp(1.85rem, 3.8vw, 3.1rem);
+    line-height: 1.15;
+    margin-bottom: 1rem !important;
+}
+
+#header-carousel .carousel-caption .fs-4 {
+    font-size: 1.05rem !important;
+    margin-bottom: 0.35rem;
+}
+
+.carousel-caption h1 {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Parallax.js mirrors often spill past the viewport */
+.parallax-mirror {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+.owl-carousel .owl-stage-outer {
+    overflow: hidden !important;
+}
+
+img,
+svg,
+video,
+iframe {
+    max-width: 100%;
+}
+
+.back-to-top {
+    position: fixed;
+    display: none;
+    right: 30px;
+    bottom: 30px;
+    z-index: 99;
+}
+
+.fw-bold {
+    font-weight: 700 !important;
+}
+
+.fw-medium {
+    font-weight: 600 !important;
+}
+
+.fw-semi-bold {
+    font-weight: 500 !important;
+}
+
+
+/*** Spinner ***/
+#spinner {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .5s ease-out, visibility 0s linear .5s;
+    z-index: 99999;
+}
+
+#spinner.show {
+    transition: opacity .5s ease-out, visibility 0s linear 0s;
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/*** Button ***/
+.btn {
+    transition: .5s;
+    font-weight: 500;
+}
+
+.btn-primary,
+.btn-outline-primary:hover {
+    color: var(--light);
+}
+
+.btn-secondary,
+.btn-outline-secondary:hover {
+    color: var(--dark);
+}
+
+.btn-square {
+    width: 38px;
+    height: 38px;
+}
+
+.btn-sm-square {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-lg-square {
+    width: 48px;
+    height: 48px;
+}
+
+.btn-square,
+.btn-sm-square,
+.btn-lg-square {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: normal;
+}
+
+
+/*** Navbar ***/
+.navbar.sticky-top {
+    top: -100px;
+    transition: top .5s ease, background-color .8s ease, box-shadow .5s ease, border-color .8s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.navbar.sticky-top .navbar-brand .site-brand-name,
+.navbar.sticky-top .nav-link,
+.navbar.sticky-top .btn,
+.navbar.sticky-top .navbar-toggler,
+.navbar.sticky-top .dropdown-menu {
+    transition: color .8s ease, background-color .8s ease, border-color .8s ease, filter .8s ease;
+}
+
+.navbar.navbar-stuck {
+    background-color: #f3f6f1 !important;
+    box-shadow: 0 .125rem .5rem rgba(64, 74, 61, .15) !important;
+    border-bottom-color: rgba(91, 140, 81, .2);
+}
+
+/* Chameleon themes — match the section the user is viewing */
+.navbar.nav-theme-hero {
+    background-color: rgba(45, 58, 42, .96) !important;
+    border-bottom-color: rgba(237, 221, 94, .25);
+}
+
+.navbar.nav-theme-about {
+    background-color: #eef4eb !important;
+    border-bottom-color: rgba(91, 140, 81, .25);
+}
+
+.navbar.nav-theme-features {
+    background-color: #5B8C51 !important;
+    border-bottom-color: rgba(237, 221, 94, .35);
+}
+
+.navbar.nav-theme-banner {
+    background-color: #404A3D !important;
+    border-bottom-color: rgba(237, 221, 94, .3);
+}
+
+.navbar.nav-theme-services {
+    background-color: #EDDD5E !important;
+    border-bottom-color: rgba(64, 74, 61, .2);
+}
+
+.navbar.nav-theme-gallery {
+    background-color: #6d7f5f !important;
+    border-bottom-color: rgba(255, 255, 255, .15);
+}
+
+.navbar.nav-theme-products {
+    background-color: #e7f0e4 !important;
+    border-bottom-color: rgba(91, 140, 81, .25);
+}
+
+.navbar.nav-theme-team {
+    background-color: #f7f7f7 !important;
+    border-bottom-color: rgba(64, 74, 61, .12);
+}
+
+.navbar.nav-theme-testimonial {
+    background-color: #f6efc4 !important;
+    border-bottom-color: rgba(91, 140, 81, .2);
+}
+
+.navbar.nav-theme-footer,
+.navbar.nav-theme-page {
+    background-color: #404A3D !important;
+    border-bottom-color: rgba(237, 221, 94, .25);
+}
+
+.navbar.nav-theme-contact {
+    background-color: #dfe9db !important;
+    border-bottom-color: rgba(91, 140, 81, .25);
+}
+
+/* Light-on-dark / dark-on-light text for chameleon themes */
+.navbar.nav-theme-hero .navbar-brand .site-brand-name,
+.navbar.nav-theme-features .navbar-brand .site-brand-name,
+.navbar.nav-theme-banner .navbar-brand .site-brand-name,
+.navbar.nav-theme-gallery .navbar-brand .site-brand-name,
+.navbar.nav-theme-footer .navbar-brand .site-brand-name,
+.navbar.nav-theme-page .navbar-brand .site-brand-name,
+.navbar.nav-theme-hero .nav-link,
+.navbar.nav-theme-features .nav-link,
+.navbar.nav-theme-banner .nav-link,
+.navbar.nav-theme-gallery .nav-link,
+.navbar.nav-theme-footer .nav-link,
+.navbar.nav-theme-page .nav-link,
+.navbar.nav-theme-hero .btn,
+.navbar.nav-theme-features .btn,
+.navbar.nav-theme-banner .btn,
+.navbar.nav-theme-gallery .btn,
+.navbar.nav-theme-footer .btn,
+.navbar.nav-theme-page .btn {
+    color: #F7F7F7 !important;
+}
+
+.navbar.nav-theme-hero .nav-link:hover,
+.navbar.nav-theme-hero .nav-link.active,
+.navbar.nav-theme-features .nav-link:hover,
+.navbar.nav-theme-features .nav-link.active,
+.navbar.nav-theme-banner .nav-link:hover,
+.navbar.nav-theme-banner .nav-link.active,
+.navbar.nav-theme-gallery .nav-link:hover,
+.navbar.nav-theme-gallery .nav-link.active,
+.navbar.nav-theme-footer .nav-link:hover,
+.navbar.nav-theme-footer .nav-link.active,
+.navbar.nav-theme-page .nav-link:hover,
+.navbar.nav-theme-page .nav-link.active {
+    color: var(--secondary) !important;
+}
+
+.navbar.nav-theme-services .navbar-brand .site-brand-name,
+.navbar.nav-theme-services .nav-link,
+.navbar.nav-theme-services .btn,
+.navbar.nav-theme-testimonial .navbar-brand .site-brand-name,
+.navbar.nav-theme-testimonial .nav-link,
+.navbar.nav-theme-testimonial .btn {
+    color: var(--dark) !important;
+}
+
+.navbar.nav-theme-services .nav-link:hover,
+.navbar.nav-theme-services .nav-link.active,
+.navbar.nav-theme-testimonial .nav-link:hover,
+.navbar.nav-theme-testimonial .nav-link.active {
+    color: var(--primary) !important;
+}
+
+.navbar.nav-theme-hero .navbar-toggler-icon,
+.navbar.nav-theme-features .navbar-toggler-icon,
+.navbar.nav-theme-banner .navbar-toggler-icon,
+.navbar.nav-theme-gallery .navbar-toggler-icon,
+.navbar.nav-theme-footer .navbar-toggler-icon,
+.navbar.nav-theme-page .navbar-toggler-icon {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.navbar.nav-theme-hero .border-start,
+.navbar.nav-theme-features .border-start,
+.navbar.nav-theme-banner .border-start,
+.navbar.nav-theme-gallery .border-start,
+.navbar.nav-theme-footer .border-start,
+.navbar.nav-theme-page .border-start {
+    border-color: rgba(247, 247, 247, .25) !important;
+}
+
+.navbar.nav-theme-hero .dropdown-menu,
+.navbar.nav-theme-features .dropdown-menu,
+.navbar.nav-theme-banner .dropdown-menu,
+.navbar.nav-theme-gallery .dropdown-menu,
+.navbar.nav-theme-footer .dropdown-menu,
+.navbar.nav-theme-page .dropdown-menu {
+    background-color: rgba(45, 58, 42, .98) !important;
+}
+
+.navbar.nav-theme-hero .dropdown-item,
+.navbar.nav-theme-features .dropdown-item,
+.navbar.nav-theme-banner .dropdown-item,
+.navbar.nav-theme-gallery .dropdown-item,
+.navbar.nav-theme-footer .dropdown-item,
+.navbar.nav-theme-page .dropdown-item {
+    color: #F7F7F7;
+}
+
+.navbar.nav-theme-hero .dropdown-item:hover,
+.navbar.nav-theme-features .dropdown-item:hover,
+.navbar.nav-theme-banner .dropdown-item:hover,
+.navbar.nav-theme-gallery .dropdown-item:hover,
+.navbar.nav-theme-footer .dropdown-item:hover,
+.navbar.nav-theme-page .dropdown-item:hover,
+.navbar.nav-theme-hero .dropdown-item.active,
+.navbar.nav-theme-features .dropdown-item.active,
+.navbar.nav-theme-banner .dropdown-item.active,
+.navbar.nav-theme-gallery .dropdown-item.active,
+.navbar.nav-theme-footer .dropdown-item.active,
+.navbar.nav-theme-page .dropdown-item.active {
+    color: var(--secondary);
+    background-color: rgba(255, 255, 255, .08);
+}
+
+@media (max-width: 991.98px) {
+    .navbar.nav-theme-hero .navbar-nav,
+    .navbar.nav-theme-features .navbar-nav,
+    .navbar.nav-theme-banner .navbar-nav,
+    .navbar.nav-theme-gallery .navbar-nav,
+    .navbar.nav-theme-footer .navbar-nav,
+    .navbar.nav-theme-page .navbar-nav {
+        border-top-color: rgba(247, 247, 247, .2);
+    }
+
+    .navbar.nav-theme-services .navbar-nav,
+    .navbar.nav-theme-testimonial .navbar-nav {
+        border-top-color: rgba(64, 74, 61, .15);
+    }
+}
+
+/* Prevent topbar / full-bleed Bootstrap row margins from causing page-wide horizontal scroll */
+.container-fluid.px-0 > .row,
+.container-xxl.px-0 > .row {
+    --bs-gutter-x: 0;
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+}
+
+.navbar .navbar-nav .nav-link {
+    margin-right: 35px;
+    padding: 25px 0;
+    color: var(--dark);
+    font-size: 18px;
+    font-weight: 500;
+    outline: none;
+}
+
+.navbar .navbar-nav .nav-link:hover,
+.navbar .navbar-nav .nav-link.active {
+    color: var(--primary);
+}
+
+.navbar .dropdown-toggle::after {
+    border: none;
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+@media (max-width: 991.98px) {
+    .navbar .navbar-nav .nav-link  {
+        margin-right: 0;
+        padding: 10px 0;
+    }
+
+    .navbar .navbar-nav {
+        border-top: 1px solid #EEEEEE;
+    }
+}
+
+@media (min-width: 992px) {
+    .navbar .nav-item .dropdown-menu {
+        display: block;
+        border: none;
+        margin-top: 0;
+        top: 150%;
+        opacity: 0;
+        visibility: hidden;
+        transition: .5s;
+    }
+
+    .navbar .nav-item:hover .dropdown-menu {
+        top: 100%;
+        visibility: visible;
+        transition: .5s;
+        opacity: 1;
+    }
+}
+
+
+/*** Header ***/
+.carousel-caption {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, .1);
+    z-index: 1;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 15%;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 3rem;
+    background-color: var(--primary);
+    border: 10px solid var(--primary);
+}
+
+@media (max-width: 768px) {
+    #header-carousel .carousel-item {
+        position: relative;
+        height: 60vh;
+        min-height: 380px;
+        max-height: 500px;
+    }
+    
+    #header-carousel .carousel-item img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.page-header {
+    background: url(../img/banner.jpg) center center no-repeat;
+    background-size: cover;
+    padding-top: 3.5rem !important;
+    padding-bottom: 3.5rem !important;
+}
+
+.page-header .breadcrumb-item+.breadcrumb-item::before {
+    color: var(--light);
+}
+
+.page-header .breadcrumb-item,
+.page-header .breadcrumb-item a {
+    font-size: 18px;
+    color: var(--light);
+}
+
+
+/*** Section Title ***/
+.section-title {
+    position: relative;
+    display: inline-block;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.section-title::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 2px;
+    top: 5px;
+    left: 0;
+    background: var(--primary);
+    z-index: -1;
+}
+
+.section-title::after {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 2px;
+    bottom: 6px;
+    left: 0;
+    background: var(--primary);
+    z-index: -1;
+}
+
+.section-title.text-start::before,
+.section-title.text-start::after {
+    width: 100%;
+    left: 0;
+    max-width: 100%;
+}
+
+.section-title.text-center::before,
+.section-title.text-center::after {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 100%;
+}
+
+
+/*** About ***/
+/*
+ * Legacy collage: yellow "25 Years" badge sits top-left and
+ * grows slightly over the three neighboring photos.
+ */
+.about-experience-spacer {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.about-experience {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 118%;
+    height: 118%;
+    right: auto;
+    bottom: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark);
+    z-index: 5;
+    box-shadow: 0 12px 30px rgba(64, 74, 61, 0.22);
+}
+
+.about-experience h1,
+.about-experience small {
+    color: var(--dark);
+}
+
+[data-nav-theme="about"] .about-media,
+[data-nav-theme="about"] .about-mosaic,
+[data-nav-theme="about"] .about-experience-col {
+    position: relative;
+    overflow: visible !important;
+}
+
+[data-nav-theme="about"] .about-experience-col {
+    z-index: 5;
+}
+
+[data-nav-theme="about"] .about-mosaic .about-shot {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: center;
+    position: relative;
+    z-index: 1;
+}
+
+[data-nav-theme="about"] .about-copy {
+    color: var(--dark);
+}
+
+[data-nav-theme="about"] .about-copy h1,
+[data-nav-theme="about"] .about-copy h5,
+[data-nav-theme="about"] .about-copy p,
+[data-nav-theme="about"] .about-copy span {
+    color: var(--dark);
+}
+
+[data-nav-theme="about"] .about-copy .section-title.text-primary {
+    color: var(--primary) !important;
+}
+
+[data-nav-theme="about"] .about-copy .btn-secondary {
+    color: var(--dark);
+}
+
+/* Contain other g-2 grids so nothing bleeds past the viewport */
+.row.g-2 {
+    overflow: hidden;
+}
+
+/* Allow the experience badge to overlap the three photos */
+[data-nav-theme="about"] .row.g-2.about-mosaic {
+    overflow: visible !important;
+}
+
+
+/*** Service ***/
+.service-item {
+    position: relative;
+    border-radius: 8px;
+    box-shadow: 0 0 45px rgba(0, 0, 0, .07);
+}
+
+.service-item .service-img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.service-item .service-img img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.service-item .service-img::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, .5);
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.service-item .service-img::after {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: #FFFFFF;
+    transition: .5s ease-out;
+    z-index: 2;
+}
+
+.service-item:hover .service-img::after {
+    width: 0;
+    left: auto;
+    right: 0;
+}
+
+.service-item .service-text {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    background: transparent;
+}
+
+.service-item .service-text .service-icon {
+    width: 140px;
+    height: 140px;
+    padding: 15px;
+    margin: -70px auto 40px;
+    background: #FFFFFF;
+    border-radius: 140px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0, 0, 0, .1);
+}
+
+.service-item .service-text .service-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-item .service-text h4,
+.service-item .service-text h5,
+.service-item .service-text p {
+    transition: .5s;
+}
+
+.service-item:hover .service-text h4,
+.service-item:hover .service-text h5,
+.service-item:hover .service-text p {
+    color: #FFFFFF;
+}
+
+.service-item .service-text .btn {
+    color: var(--secondary);
+    background: #FFFFFF;
+    box-shadow: 0 0 45px rgba(0, 0, 0, .25);
+}
+
+.service-item .service-text .btn:hover {
+    color: var(--dark);
+    background: var(--secondary);
+}
+
+
+/*** Product ***/
+.product-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 45px rgba(0, 0, 0, .07);
+}
+
+.product-item .product-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, .5);
+    opacity: 0;
+    padding-top: 60px;
+    transition: .5s;
+}
+
+.product-item:hover .product-overlay {
+    opacity: 1;
+    padding-top: 0;
+}
+
+
+/*** Team ***/
+.team-item {
+    position: relative;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 0 45px rgba(0, 0, 0, .07);
+}
+
+.team-item .btn {
+    border-color: transparent;
+    box-shadow: 0 0 45px rgba(0, 0, 0, .2);
+}
+
+
+/*** Testimonial ***/
+.testimonial-img {
+    position: relative;
+    min-height: 400px;
+}
+
+.testimonial-img::after {
+    position: absolute;
+    content: "\f10d";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 200px;
+    color: #EEEEEE;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}
+
+.testimonial-img img {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 100px;
+    max-width: none;
+}
+
+@media (max-width: 991.98px) {
+    .testimonial-img {
+        min-height: 320px;
+        margin-bottom: 1rem;
+    }
+}
+
+.testimonial-img img:nth-child(1) {
+    top: 0;
+    left: 0;
+}
+
+.testimonial-img img:nth-child(2) {
+    top: 60%;
+    left: 20%;
+}
+
+.testimonial-img img:nth-child(3) {
+    top: 20%;
+    left: 60%;
+}
+
+.testimonial-img img:nth-child(4) {
+    bottom: 0;
+    right: 0;
+}
+
+.testimonial-img img.animated.pulse {
+    animation-duration: 2s;
+}
+
+.testimonial-carousel .owl-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 100px;
+}
+
+.testimonial-carousel .testimonial-item {
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.testimonial-carousel .owl-nav {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.testimonial-carousel .owl-nav .owl-prev,
+.testimonial-carousel .owl-nav .owl-next {
+    margin-right: 15px;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary);
+    border-radius: 45px;
+    box-shadow: 0 0 45px rgba(0, 0, 0, .2);
+    font-size: 22px;
+    transition: .5s;
+}
+
+.testimonial-carousel .owl-nav .owl-prev:hover,
+.testimonial-carousel .owl-nav .owl-next:hover {
+    background: var(--secondary);
+    color: var(--dark);
+}
+
+
+/*** Footer ***/
+.footer {
+    color: #B0B9AE;
+}
+
+.footer .btn.btn-link {
+    display: block;
+    margin-bottom: 5px;
+    padding: 0;
+    text-align: left;
+    color: #B0B9AE;
+    font-weight: normal;
+    text-transform: capitalize;
+    transition: .3s;
+}
+
+.footer .btn.btn-link::before {
+    position: relative;
+    content: "\f105";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-right: 10px;
+}
+
+.footer .btn.btn-link:hover {
+    color: var(--light);
+    letter-spacing: 1px;
+    box-shadow: none;
+}

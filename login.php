@@ -41,7 +41,7 @@ require __DIR__ . '/includes/auth_layout_start.php';
           <div class="auth-alert success"><?= htmlspecialchars($successMsg) ?></div>
         <?php endif; ?>
 
-        <form id="login-form" method="POST" action="includes/loginuser">
+        <form id="login-form" method="POST" action="includes/loginuser.php">
           <?= rdv_csrf_field() ?>
           <?php if (!empty($_GET['next']) && preg_match('/^[a-z0-9_\\-]+\\.php$/i', (string) $_GET['next'])): ?>
             <input type="hidden" name="next" value="<?= htmlspecialchars((string) $_GET['next'], ENT_QUOTES, 'UTF-8') ?>">

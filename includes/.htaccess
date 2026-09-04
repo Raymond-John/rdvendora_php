@@ -1,5 +1,6 @@
 Require all denied
 
+# Allow vendor login handler only
 <Files "loginuser.php">
     Require all granted
 </Files>

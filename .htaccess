@@ -29,6 +29,9 @@ DirectorySlash Off
     # relative redirects break under subdirectory installs like /RD%20Vendora/)
     RewriteRule ^vendor/?$ vendor-chat.php [L,QSA]
 
+    # Login POST target (clean URL) — includes/ is otherwise private
+    RewriteRule ^includes/loginuser/?$ includes/loginuser.php [L,QSA]
+
     # Block private application folders / composer package files
     RewriteRule ^(app|storage|archive|config|database)(/|$) - [F,L]
     RewriteRule ^vendor/.+ - [F,L]
